@@ -1,0 +1,43 @@
+{
+  "name": "portfolio (Next.js)",
+
+  // Reuses the repo's multi-stage Dockerfile — the `dev` target only (§5).
+  "build": {
+    "dockerfile": "../Dockerfile",
+    "target": "dev"
+  },
+
+  // Node comes from the base image; common-utils provides the `vscode` user.
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "username": "vscode"
+    }
+  },
+
+  "remoteUser": "vscode",
+
+  // Persist Claude Code credentials/config across container rebuilds.
+  "containerEnv": {
+    "CLAUDE_CONFIG_DIR": "/home/vscode/.claude-config"
+  },
+  "mounts": [
+    "source=${localWorkspaceFolder}/.devcontainer/claude-config,target=/home/vscode/.claude-config,type=bind,consistency=cached"
+  ],
+
+  "forwardPorts": [3000],
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "anthropic.claude-code",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "bradlc.vscode-tailwindcss"
+      ]
+    }
+  }
+
+  // Opt-in: also install the `claude` terminal command.
+  // "postCreateCommand": "npm install -g @anthropic-ai/claude-code"
+}

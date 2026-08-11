@@ -1,0 +1,19 @@
+# Claude Code local credentials — never commit
+.devcontainer/claude-config/*
+!.devcontainer/claude-config/.gitkeep
+
+# Node / Next.js (populated once the app is scaffolded)
+node_modules/
+.next/
+out/
+build/
+next-env.d.ts
+
+# Env & secrets
+.env
+.env.local
+.env*.local
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
