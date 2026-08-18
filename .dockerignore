@@ -1,0 +1,8 @@
+.git
+.devcontainer
+node_modules
+.next
+.content-collections
+*.md
+.env*
+!.env.example
