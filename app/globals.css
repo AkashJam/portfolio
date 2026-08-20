@@ -64,6 +64,11 @@
   /* §17 "animated gradient loading sweep" — top-of-viewport loader now,
      reused as a section-divider accent once real pages exist (Days 3-4+) */
   --animate-loading-sweep: loading-sweep 2s ease-in-out infinite;
+
+  /* Days 3-4 — Hero orb / About sphere ambient float loops (§17/§18) */
+  --animate-float: float 9s ease-in-out infinite;
+  --animate-sphere: sphere 12s ease-in-out infinite;
+  --color-read: var(--read);
 }
 
 @keyframes loading-sweep {
@@ -72,6 +77,33 @@
   }
   100% {
     transform: translateX(100%);
+  }
+}
+
+/* mockups/html/{home,errors}.html disagree on float amplitude (hero orb
+   ±26px vs. error-page orb ±20px) — one keyframe, amplitude overridden per
+   usage via --float-distance, instead of duplicating the keyframe. */
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(var(--float-distance, -26px));
+  }
+}
+@keyframes sphere {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-30px) scale(1.04);
+  }
+}
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
   }
 }
 
@@ -101,6 +133,9 @@
   --market-up: #26a69a;
   --market-down: #ef5350;
   --simulated: #e0a83a;
+  /* mockups/html/about.html — brighter body text for dense bullet lists
+     (Experience cards), distinct from --text-muted's broader role elsewhere. */
+  --read: #c7cbd1;
 
   --background: var(--canvas);
   --foreground: var(--text);
@@ -145,5 +180,73 @@
   }
   html {
     @apply font-sans;
+  }
+}
+
+/* §17 decorative glow elements — Hero orb / About sphere / error-page orbs
+   (components/site/Glow.tsx, GlowBar.tsx). Ported from
+   mockups/html/{home,about,errors}.html; token names adjusted to this
+   repo's --brand/--market-down (mockups used --accent/--down), and
+   color-mix() replaces their hardcoded rgba literals so the glow always
+   tracks the real tokens instead of a second, driftable hardcoded color. */
+.glow-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(30px);
+  background: radial-gradient(
+    circle at 45% 40%,
+    color-mix(in oklab, var(--brand) 16%, transparent),
+    transparent 70%
+  );
+}
+.glow-orb--down {
+  background: radial-gradient(
+    circle at 45% 40%,
+    color-mix(in oklab, var(--market-down) 15%, transparent),
+    transparent 70%
+  );
+}
+.glow-sphere {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(6px);
+  box-shadow: inset 0 0 120px color-mix(in oklab, var(--brand) 15%, transparent);
+  background: radial-gradient(
+    circle at 40% 35%,
+    color-mix(in oklab, var(--brand) 18%, transparent),
+    color-mix(in oklab, var(--brand) 4%, transparent) 45%,
+    transparent 70%
+  );
+}
+.glow-bar {
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, var(--brand), transparent);
+  box-shadow: 0 0 18px 2px color-mix(in oklab, var(--brand) 55%, transparent);
+}
+.glow-bar--down {
+  background: linear-gradient(90deg, transparent, var(--market-down), transparent);
+  box-shadow: 0 0 18px 2px color-mix(in oklab, var(--market-down) 45%, transparent);
+}
+
+/* Hero's scrolling background text (components/site/TechMarquee.tsx) — a
+   plain CSS class rather than a Tailwind @theme animate token since each
+   row needs its own duration/direction, set inline per row. */
+@media (prefers-reduced-motion: no-preference) {
+  .tech-marquee-row {
+    animation-name: marquee;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+  }
+}
+
+/* §17: parallax/drift is disabled on touch devices, not just under
+   prefers-reduced-motion — a separate media feature Tailwind's
+   `motion-safe:` variant doesn't cover. */
+@media (hover: none) and (pointer: coarse) {
+  .glow-orb,
+  .glow-sphere,
+  .tech-marquee-row {
+    animation: none !important;
   }
 }

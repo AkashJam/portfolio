@@ -1,13 +1,7 @@
 import Link from "next/link";
 
 import { navLinks } from "@/lib/nav";
-
-// TODO: confirm real LinkedIn URL and public contact email before Days 3-4
-// (the git remotes already confirm the GitHub handle below).
-const GITHUB_URL = "https://github.com/AkashJam";
-const LINKEDIN_URL = "https://linkedin.com/in/TODO";
-const CONTACT_EMAIL = "hello@akjames.dev";
-const RESUME_HREF = "/resume.pdf";
+import { CONTACT_EMAIL, GITHUB_URL, LINKEDIN_URL, RESUME_HREF } from "@/lib/contact";
 
 export function Footer() {
   return (

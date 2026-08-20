@@ -1,9 +1,23 @@
+import { ContactCTA } from "@/components/site/ContactCTA";
+import { Hero } from "@/components/site/Hero";
+import { Reveal } from "@/components/site/Reveal";
+import { TechIconGrid } from "@/components/site/TechIconGrid";
+
 export default function Home() {
   return (
-    <div className="flex flex-1 items-center justify-center px-4 py-24">
-      <p className="text-sm tracking-wide text-text-muted uppercase">
-        Home — content lands Days 3-4 (portfolio.md §15)
-      </p>
-    </div>
+    <>
+      <Hero />
+      <section className="mx-auto max-w-6xl px-4 py-16">
+        <Reveal>
+          <p className="mb-8 text-xs tracking-[0.2em] text-text-muted uppercase">
+            Skills &amp; Technologies — current stack (click to explore)
+          </p>
+          <TechIconGrid />
+        </Reveal>
+      </section>
+      <Reveal>
+        <ContactCTA />
+      </Reveal>
+    </>
   );
 }
