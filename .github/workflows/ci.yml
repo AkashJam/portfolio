@@ -57,3 +57,18 @@ jobs:
             -t "$REGISTRY/portfolio:latest" \
             --push \
             .
+
+      # Days 5-9 (portfolio.md §15): infra's deploy.yml only triggers on
+      # push-to-main touching docker-compose.yml/Caddyfile in that repo — a
+      # bare image push here wouldn't otherwise redeploy anything. This
+      # closes that gap (it predates ticker; likely why the Days 3-4 image
+      # needed a manual workflow_dispatch to go live — see phase3.md).
+      # Conditioned on the secret existing — deferred setup (INFRA_DISPATCH_TOKEN
+      # not created yet) skips this cleanly instead of failing the run.
+      - if: github.ref == 'refs/heads/main' && github.event_name == 'push' && secrets.INFRA_DISPATCH_TOKEN != ''
+        name: Trigger infra deploy
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.INFRA_DISPATCH_TOKEN }}
+          repository: ${{ github.repository_owner }}/infra
+          event-type: image-pushed
