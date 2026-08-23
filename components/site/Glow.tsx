@@ -9,12 +9,15 @@ export function Glow({
   variant,
   color = "brand",
   floatDistance,
+  animate = true,
   className,
 }: {
   variant: "orb" | "sphere";
   color?: "brand" | "down";
   /** CSS length, e.g. "-20px" — overrides the shared keyframe's default amplitude. */
   floatDistance?: string;
+  /** Home's Hero orb is static in the v2 design refresh — every other use keeps floating. */
+  animate?: boolean;
   className?: string;
 }) {
   return (
@@ -24,7 +27,7 @@ export function Glow({
       className={cn(
         variant === "orb" ? "glow-orb" : "glow-sphere",
         variant === "orb" && color === "down" && "glow-orb--down",
-        variant === "orb" ? "motion-safe:animate-float" : "motion-safe:animate-sphere",
+        animate && (variant === "orb" ? "motion-safe:animate-float" : "motion-safe:animate-sphere"),
         className
       )}
     />

@@ -27,10 +27,16 @@ export const TICKER_API_URL = process.env.TICKER_API_URL ?? "http://localhost:80
  */
 async function get<Schema extends z.ZodType>(
   path: string,
-  schema: Schema
+  schema: Schema,
+  revalidateSeconds?: number
 ): Promise<z.infer<Schema> | null> {
   try {
-    const res = await fetch(`${TICKER_API_URL}${path}`, { cache: "no-store" });
+    const res = await fetch(
+      `${TICKER_API_URL}${path}`,
+      revalidateSeconds !== undefined
+        ? { next: { revalidate: revalidateSeconds } }
+        : { cache: "no-store" }
+    );
     if (!res.ok) {
       console.error(`ticker-client: ${path} → ${res.status}`);
       return null;
@@ -42,8 +48,8 @@ async function get<Schema extends z.ZodType>(
   }
 }
 
-export function getSymbols(): Promise<Symbol[] | null> {
-  return get("/symbols", symbolsResponseSchema);
+export function getSymbols(opts?: { revalidateSeconds?: number }): Promise<Symbol[] | null> {
+  return get("/symbols", symbolsResponseSchema, opts?.revalidateSeconds);
 }
 
 export function getSymbolSnapshot(symbol: string): Promise<SymbolSnapshot | null> {

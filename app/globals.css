@@ -51,6 +51,7 @@
      (bg-canvas, text-brand, text-market-up, bg-simulated, etc.) */
   --color-canvas: var(--canvas);
   --color-panel: var(--panel);
+  --color-panel-2: var(--panel-2);
   --color-hairline: var(--hairline);
   --color-text: var(--text);
   --color-text-muted: var(--text-muted);
@@ -106,6 +107,14 @@
     transform: translateX(-50%);
   }
 }
+/* About's live-signal ambient (components/site/LiveSignal.tsx) — a
+   repeating waveform drifting left, mirroring mockups/v2/about.html's
+   `.sigflow` exactly (same distance/duration). */
+@keyframes flow {
+  to {
+    transform: translateX(-1200px);
+  }
+}
 
 /*
  * portfolio.md §17 — dark-only in v1, no light toggle (next-themes + a real
@@ -124,6 +133,9 @@
 :root {
   --canvas: #0b0d0f;
   --panel: #0f1216;
+  /* mockups/v2/{home,about}.html — secondary panel shade, used for the
+     tech-banner icon tiles and other small inset surfaces. */
+  --panel-2: #13171d;
   --hairline: #1c2127;
   --text: #e6e8ea;
   --text-muted: #8b929b;
@@ -229,14 +241,18 @@
   box-shadow: 0 0 18px 2px color-mix(in oklab, var(--market-down) 45%, transparent);
 }
 
-/* Hero's scrolling background text (components/site/TechMarquee.tsx) — a
-   plain CSS class rather than a Tailwind @theme animate token since each
-   row needs its own duration/direction, set inline per row. */
+/* Continuous horizontal scroll (components/site/TechBanner.tsx) — a plain
+   CSS class rather than a Tailwind @theme animate token since the row's
+   duration is set inline (§17 also once used this for a multi-row variant
+   with per-row durations — same class, one consumer now). */
 @media (prefers-reduced-motion: no-preference) {
-  .tech-marquee-row {
+  .marquee-track {
     animation-name: marquee;
     animation-timing-function: linear;
     animation-iteration-count: infinite;
+  }
+  .signal-flow {
+    animation: flow 9s linear infinite;
   }
 }
 
@@ -246,7 +262,8 @@
 @media (hover: none) and (pointer: coarse) {
   .glow-orb,
   .glow-sphere,
-  .tech-marquee-row {
+  .marquee-track,
+  .signal-flow {
     animation: none !important;
   }
 }

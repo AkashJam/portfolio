@@ -13,6 +13,7 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { navLinks, type PaletteSymbol } from "@/lib/nav";
+import { RESUME_HREF } from "@/lib/contact";
 
 export function CommandPalette({
   open,
@@ -76,6 +77,16 @@ export function CommandPalette({
             ))}
           </CommandGroup>
         )}
+        <CommandGroup heading="Actions">
+          <CommandItem
+            onSelect={() => {
+              window.open(RESUME_HREF, "_blank");
+              onOpenChange(false);
+            }}
+          >
+            Download résumé
+          </CommandItem>
+        </CommandGroup>
       </CommandList>
     </CommandDialog>
   );
