@@ -12,7 +12,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { navLinks } from "@/lib/nav";
+import { navLinks, type PaletteSymbol } from "@/lib/nav";
 
 export function CommandPalette({
   open,
@@ -22,6 +22,17 @@ export function CommandPalette({
   onOpenChange: (open: boolean) => void;
 }) {
   const router = useRouter();
+  const [symbols, setSymbols] = React.useState<PaletteSymbol[]>([]);
+
+  React.useEffect(() => {
+    // Fetched once per page load (this component lives in the root layout,
+    // which persists across client-side navigations) rather than from a
+    // server component — see app/api/palette-symbols/route.ts for why.
+    fetch("/api/palette-symbols")
+      .then((res) => (res.ok ? res.json() : []))
+      .then(setSymbols)
+      .catch(() => {});
+  }, []);
 
   React.useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -55,8 +66,16 @@ export function CommandPalette({
             Market
           </CommandItem>
         </CommandGroup>
-        {/* Symbols group (SIM: tickers, Cost-of-Living cities) arrives with
-            the Ticker backend — Days 5-9, portfolio.md §15 */}
+        {symbols.length > 0 && (
+          <CommandGroup heading="Symbols">
+            {symbols.map((s) => (
+              <CommandItem key={s.href} onSelect={() => go(s.href)}>
+                <span>{s.label}</span>
+                <span className="text-text-muted">{s.sublabel}</span>
+              </CommandItem>
+            ))}
+          </CommandGroup>
+        )}
       </CommandList>
     </CommandDialog>
   );
