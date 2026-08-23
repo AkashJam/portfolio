@@ -140,15 +140,23 @@ jobs:
       # sibling-container gotcha this project hit repeatedly in local dev
       # (see phase3.md), sidestepped here by not isolating ticker's network
       # namespace at all, same trick used to reach the same services above.
+      #
+      # --platform linux/arm64: without it, `docker run` matches the
+      # runner's own host platform (amd64) against the image's manifest
+      # list — ticker:latest has no amd64 entry at all (single-arch, built
+      # for the arm64 production box only), so it fails with "no matching
+      # manifest" before QEMU emulation (registered above) ever gets a
+      # chance to run it. A real CI failure caught on the first live run,
+      # not anticipated correctly here originally.
       - name: Run ticker migrate + serve
         env:
           REGISTRY: ${{ steps.ecr-login.outputs.registry }}
         run: |
-          docker run --rm --network host \
+          docker run --rm --network host --platform linux/arm64 \
             -e TIMESCALE_DSN="postgres://ticker:ticker@localhost:5432/ticker?sslmode=disable" \
             "$REGISTRY/ticker:latest" migrate
 
-          docker run -d --network host --name ticker \
+          docker run -d --network host --platform linux/arm64 --name ticker \
             -e SOURCE=sim -e ADDR=:8080 -e AGG_WINDOW=2s \
             -e TIMESCALE_DSN="postgres://ticker:ticker@localhost:5432/ticker?sslmode=disable" \
             -e REDIS_ADDR="localhost:6379" \
