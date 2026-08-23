@@ -30,7 +30,10 @@ export function TopBar({
                 href={link.href}
                 aria-current={active ? "page" : undefined}
                 className={`rounded-lg px-3 py-1.5 text-sm tracking-wide uppercase transition-colors ${
-                  active ? "text-brand" : "text-text-muted hover:text-text"
+                  // text-brand (#6366f1 on #0b0d0f) is 4.35:1 — fails WCAG
+                  // AA's 4.5:1 for this text size (caught by e2e/axe.spec.ts).
+                  // text-brand-hover (#818cf8) is 6.53:1, passes comfortably.
+                  active ? "text-brand-hover" : "text-text-muted hover:text-text"
                 }`}
               >
                 {link.label}

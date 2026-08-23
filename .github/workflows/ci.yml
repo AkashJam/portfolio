@@ -29,8 +29,7 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm run build
-      # Vitest/contract-test/axe land in Days 10-12 (portfolio.md §15, §21) —
-      # no `npm run test` script exists yet.
+      - run: npm run test
 
       - if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         name: Set up QEMU
@@ -77,3 +76,95 @@ jobs:
           token: ${{ secrets.INFRA_DISPATCH_TOKEN }}
           repository: ${{ github.repository_owner }}/infra
           event-type: image-pushed
+
+  # §21 "Contract"/"Accessibility"/"E2E" tiers — needs a live ticker + Redis
+  # + Timescale, unlike the fast `build` job above. Gated the same way as
+  # that job's own AWS/ECR steps (main-branch pushes only) — not on every
+  # PR, avoiding both a full-stack spin-up on every commit and exercising
+  # OIDC credentials from PR-triggered runs. NOTE (portfolio.md §15 Days
+  # 10-12): written and locally verified against a real backend this same
+  # way, but this exact job has not yet been run for real in GitHub Actions
+  # — the arm64 `ticker` image executing under QEMU emulation on an x86
+  # runner in particular is worth watching on the first real run.
+  integration:
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+      timescale:
+        image: timescale/timescaledb:2.20.3-pg16
+        env:
+          POSTGRES_USER: ticker
+          POSTGRES_PASSWORD: ticker
+          POSTGRES_DB: ticker
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      TICKER_API_URL: http://localhost:8080
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      # arm64 (matches ticker's own production target) run under QEMU
+      # emulation, not built here — pulled from ECR, same image ticker's
+      # own CI already pushed.
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Configure AWS credentials
+        id: creds
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Login to ECR
+        id: ecr-login
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # --network host: ticker's container needs to reach the redis/
+      # timescale service containers via localhost — the same
+      # sibling-container gotcha this project hit repeatedly in local dev
+      # (see phase3.md), sidestepped here by not isolating ticker's network
+      # namespace at all, same trick used to reach the same services above.
+      - name: Run ticker migrate + serve
+        env:
+          REGISTRY: ${{ steps.ecr-login.outputs.registry }}
+        run: |
+          docker run --rm --network host \
+            -e TIMESCALE_DSN="postgres://ticker:ticker@localhost:5432/ticker?sslmode=disable" \
+            "$REGISTRY/ticker:latest" migrate
+
+          docker run -d --network host --name ticker \
+            -e SOURCE=sim -e ADDR=:8080 -e AGG_WINDOW=2s \
+            -e TIMESCALE_DSN="postgres://ticker:ticker@localhost:5432/ticker?sslmode=disable" \
+            -e REDIS_ADDR="localhost:6379" \
+            "$REGISTRY/ticker:latest" serve
+
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:8080/ready && break
+            sleep 2
+          done
+
+      - run: npm run test:contract
+
+      - run: npx playwright install --with-deps chromium
+
+      - run: npx playwright test
+
+      - if: always()
+        name: Ticker logs (on failure, for debugging)
+        run: docker logs ticker || true

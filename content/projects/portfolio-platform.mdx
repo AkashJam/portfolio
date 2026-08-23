@@ -1,0 +1,74 @@
+---
+title: Portfolio Platform
+summary: Next.js App Router, RSC-first rendering, keyless CI/CD to AWS, and a design system single-sourced in code — the presentation layer you're reading right now.
+slug: portfolio-platform
+year: 2026
+role: Solo
+focus: Frontend · Infra
+status: This site
+tags: [Next.js, TypeScript, Tailwind, AWS, Terraform, CI/CD]
+links:
+  repo: https://github.com/AkashJam/portfolio
+---
+
+## Problem
+
+A portfolio site is easy to template and easy to make forgettable. The goal here was the
+opposite: something that felt engineered rather than assembled — real infrastructure behind it
+(this page and the live Market dashboard both run on it), a design system that can't quietly drift
+from what's actually in the browser, and a deploy pipeline with no long-lived cloud credentials
+sitting in CI waiting to leak.
+
+## Approach
+
+- Next.js App Router with Server Components as the default, not the exception — pages fetch data
+  server-side and ship minimal client JavaScript; client components are reserved for genuinely
+  interactive pieces (the command palette, the mobile drawer, live charts), not the whole tree.
+- Design tokens are single-sourced as CSS custom properties in `globals.css`, mapped into
+  Tailwind v4's `@theme`. The design mockups are a visual reference only — where a mockup and the
+  token layer disagreed, the tokens in code won, never the other way around.
+- shadcn/ui, built on Radix-family primitives, themed to those same tokens — accessibility (focus
+  trapping, keyboard navigation, ARIA wiring) comes from the primitives by construction, not from
+  hand-rolled logic layered on top.
+- `/projects` and `/blog` run on Content Collections + MDX: Zod-validated structured frontmatter
+  plus free-form MDX body, so publishing a new case study or post is a new file, not a schema
+  migration or a CMS deploy.
+- Keyless CI/CD: GitHub Actions assumes an AWS IAM role over OIDC on every push, builds a
+  multi-arch image, pushes it to ECR, and triggers a deploy over SSM — no static AWS access keys
+  live in either repo's secrets.
+- One EC2 box runs the whole stack behind Caddy (automatic Let's Encrypt TLS) via Docker Compose —
+  deliberately not a multi-service cloud topology. A personal portfolio's real traffic and cost
+  profile doesn't justify one, and a topology sized for scale it'll never see isn't a stronger
+  engineering statement, just a more expensive one.
+
+## Results
+
+- Everything you're looking at — Home, About, a live streaming Market dashboard (see the Ticker
+  case study), Projects, and Blog — served from one box for a few dollars a month.
+- Every push either lints, typechecks, and builds cleanly, or the pipeline fails it — no separate
+  "works on my machine" step between writing code and it being live.
+- Zero long-lived cloud credentials anywhere in either GitHub repo — OIDC-issued, short-lived
+  tokens only, scoped per workflow run.
+
+## Lessons
+
+- GitHub's OIDC subject claim isn't what most walkthroughs assume — see the "Keyless deploys" post
+  for the exact shape of the bug that cost during the real build.
+- Building the design system as CSS custom properties mapped into Tailwind's `@theme`, instead of
+  hardcoding color values through the JSX, is what turned a mid-build design refresh (new ambient
+  elements, a reworked color usage pass across two full pages) into a targeted diff instead of a
+  search-and-replace across dozens of files.
+- A personal site is a legitimate place to hold production-grade discipline — leader election,
+  shutdown-flush semantics, honest data-provenance flags. None of that is overkill for a
+  portfolio if the entire point is demonstrating how the real thing would actually get built.
+
+## Go deeper
+
+<DeeperLinks
+  items={[
+    { label: "Architecture", description: "App shell & rendering strategy", href: "#" },
+    { label: "Decision", description: "Single-box Docker Compose topology", href: "#" },
+    { label: "Decision", description: "Tokens single-sourced in code", href: "#" },
+    { label: "Infrastructure", description: "Terraform & keyless CI/CD", href: "#" },
+  ]}
+/>

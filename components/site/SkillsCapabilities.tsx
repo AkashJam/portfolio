@@ -38,9 +38,9 @@ export function SkillsCapabilities() {
       <div className="flex flex-col divide-y divide-hairline">
         {CAPABILITIES.map((cap) => (
           <div key={cap.category} className="grid gap-3 py-5 first:pt-0 last:pb-0 sm:grid-cols-[150px_1fr] sm:gap-6">
-            <h4 className="font-mono text-xs tracking-[0.2em] text-brand-hover uppercase">
+            <h3 className="font-mono text-xs tracking-[0.2em] text-brand-hover uppercase">
               {cap.category}
-            </h4>
+            </h3>
             <div className="flex flex-col gap-3">
               <div className="flex flex-wrap gap-2">
                 {cap.tags.map((tag) => (

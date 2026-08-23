@@ -16,7 +16,7 @@ export function ExperienceCard({ entry }: { entry: ExperienceEntry }) {
 
       <div className="grid gap-8 lg:grid-cols-2">
         <div>
-          <h4 className="mb-3 text-xs tracking-[0.2em] text-text-faint uppercase">
+          <h4 className="mb-3 text-xs tracking-[0.2em] text-text-muted uppercase">
             Responsibilities
           </h4>
           <ul className="space-y-2 text-sm">
@@ -31,7 +31,7 @@ export function ExperienceCard({ entry }: { entry: ExperienceEntry }) {
           </ul>
         </div>
         <div>
-          <h4 className="mb-3 text-xs tracking-[0.2em] text-text-faint uppercase">
+          <h4 className="mb-3 text-xs tracking-[0.2em] text-text-muted uppercase">
             Achievements
           </h4>
           <ul className="space-y-2 text-sm">
@@ -48,7 +48,7 @@ export function ExperienceCard({ entry }: { entry: ExperienceEntry }) {
       </div>
 
       <div className="mt-8">
-        <h4 className="mb-3 text-xs tracking-[0.2em] text-text-faint uppercase">
+        <h4 className="mb-3 text-xs tracking-[0.2em] text-text-muted uppercase">
           Key Decisions
         </h4>
         <ul className="space-y-2 text-sm">

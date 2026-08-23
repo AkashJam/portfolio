@@ -5,6 +5,7 @@ import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "rec
 
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LiveBadge } from "@/components/market/LiveBadge";
+import { convertToEur, deriveFxRate } from "@/lib/currency";
 import type { CostOfLivingDetail } from "@/lib/market-schemas";
 
 /**
@@ -15,11 +16,11 @@ import type { CostOfLivingDetail } from "@/lib/market-schemas";
  */
 export function CostOfLivingChart({ detail }: { detail: CostOfLivingDetail }) {
   const [currency, setCurrency] = React.useState<"local" | "eur">("local");
-  const rate = detail.eurValue / detail.localValue;
+  const rate = deriveFxRate(detail.localValue, detail.eurValue);
 
   const data = detail.series.map((p) => ({
     time: new Date(p.time).getTime(),
-    value: currency === "eur" ? p.value * rate : p.value,
+    value: currency === "eur" ? convertToEur(p.value, rate) : p.value,
   }));
 
   const basketTotal = detail.basket.reduce((sum, item) => sum + item.value, 0);

@@ -43,7 +43,7 @@ export default function AboutPage() {
 
       <section className="py-16">
         <div className="mx-auto max-w-6xl px-4">
-          <p className="mb-8 text-xs tracking-[0.2em] text-text-muted uppercase">Experience</p>
+          <h2 className="mb-8 text-xs tracking-[0.2em] text-text-muted uppercase">Experience</h2>
           <div className="flex flex-col gap-6">
             {experience.map((entry) => (
               <Reveal key={entry.company}>
@@ -56,9 +56,9 @@ export default function AboutPage() {
 
       <section className="pb-16">
         <div className="mx-auto max-w-6xl px-4">
-          <p className="mb-8 text-xs tracking-[0.2em] text-text-muted uppercase">
+          <h2 className="mb-8 text-xs tracking-[0.2em] text-text-muted uppercase">
             Skills &amp; Capabilities
-          </p>
+          </h2>
           <Reveal>
             <SkillsCapabilities />
           </Reveal>

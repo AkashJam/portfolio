@@ -33,7 +33,7 @@ export default function ErrorPage({
       <button
         type="button"
         onClick={reset}
-        className="relative z-10 font-mono text-sm text-text-faint transition-colors hover:text-market-down focus-visible:text-market-down focus-visible:outline-none"
+        className="relative z-10 font-mono text-sm text-text-muted transition-colors hover:text-market-down focus-visible:text-market-down focus-visible:outline-none"
       >
         ↻ Try again
       </button>

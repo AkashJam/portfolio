@@ -14,7 +14,7 @@ export default function NotFound() {
       <p className="relative z-10 text-text-muted">Page not found.</p>
       <Link
         href="/"
-        className="relative z-10 font-mono text-sm text-text-faint transition-colors hover:text-brand focus-visible:text-brand focus-visible:outline-none"
+        className="relative z-10 font-mono text-sm text-text-muted transition-colors hover:text-brand-hover focus-visible:text-brand-hover focus-visible:outline-none"
       >
         ← Back home
       </Link>

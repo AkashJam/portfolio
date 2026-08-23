@@ -1,0 +1,84 @@
+---
+title: Market (Ticker)
+summary: A self-hosted, production-style market-data platform — one multiplexed feed, Redis-coordinated ingestion, TimescaleDB candles, computed indicators, and a live SSE dashboard.
+slug: market-ticker
+year: 2026
+role: Solo
+focus: Backend · Infra
+status: Live
+tags: [Go, Redis, TimescaleDB, SSE, Docker, AWS, Terraform]
+featured: true
+links:
+  live: /market
+  repo: https://github.com/AkashJam/ticker
+---
+
+## Problem
+
+This portfolio needed to prove something a static site can't: that I can build and run a real
+distributed backend, not just talk about one. The constraint was specific — live-feeling data,
+sub-second updates, near-zero marginal cost, no user accounts, and honesty whenever the data
+behind it isn't a real market feed. A dashboard that quietly fakes numbers is worse than no
+dashboard at all.
+
+## Approach
+
+<ArchFlow
+  nodes={["Sim source", "Ingest · lock", ["Redis stream", "TimescaleDB"], "SSE hub", "UI"]}
+  highlight="SSE hub"
+/>
+
+- A pluggable `MarketSource` interface decouples the pipeline from where ticks actually come from.
+  v1 runs a simulated source (four regime symbols, five seeded cost-of-living cities); a real
+  Finnhub adapter drops in later behind the same interface with no pipeline changes.
+- Ticks flow through a Redis Stream rather than an in-process channel, with a Redis `SET NX PX`
+  leader lock gating who's allowed to ingest. At v1's scale — one instance — the lock is
+  non-load-bearing, but it's built for the horizontal-scale case on purpose, not retrofitted later.
+- An aggregator maintains OHLCV candles across multiple intervals at once (a configurable finest
+  window, plus a fixed 5m/15m/1h/1d set) and upserts them idempotently into TimescaleDB — required
+  because Redis Streams only guarantees *at-least-once* delivery, so a duplicate tick must never
+  produce a duplicate candle.
+- EMA and Wilder-smoothed RSI(14) are computed on read and cached in Redis. The cache was extended
+  mid-build to store each indicator's *full* series, not just its latest value, once the frontend
+  needed a real chart line rather than a single number — one cache entry now serves both shapes.
+- The browser never talks to the Go API directly. A single Next.js route proxies the SSE stream
+  same-origin, so there's no public backend, no CORS, and no auth surface to manage.
+- On `SIGTERM`, the aggregator flushes every in-flight candle to Timescale and the ingestion loop
+  releases its leader lock before the process exits — a deploy loses zero data, not "usually zero."
+
+## Results
+
+- A live dashboard — candlestick chart with an EMA overlay, a real RSI(14) panel, a live markets
+  table, and a cost-of-living series with expense-basket breakdowns — all driven by the same
+  pipeline a real feed would use.
+- Runs alongside the rest of the site on one `t4g.small` box: Go, Redis, TimescaleDB, Next.js, and
+  Caddy together, effectively $0 marginal infrastructure cost beyond the box that was already there.
+- Every simulated value carries a `simulated: true` flag end-to-end, from the Go API through to a
+  visible badge in the UI — it can't silently pass itself off as a real market feed.
+
+## Lessons
+
+- The RSI Wilder-smoothing bug is a real, well-documented trap: a plain SMA-based RSI *looks*
+  correct and quietly isn't. Validating against a hand-computed worked example (not just internal
+  consistency) is what actually catches it.
+- A cache that only ever stores the latest computed value doesn't survive a UI requirement change
+  gracefully. When the chart needed a full series instead of one point, the fix ended up smaller
+  than expected — because the cache wrapper was already scoped to one job, extending it didn't
+  mean touching everything that called it.
+- Getting server rendering and a live stream right *together* is easy to get subtly wrong: fetching
+  "live" data from a shared layout can silently make an entire site render dynamically instead of
+  statically. This actually happened twice during the build — once feeding the command palette's
+  symbol list, once feeding the homepage's live-stat pill — and both times the fix was the same
+  shape: move the fetch into its own route, or behind an explicit revalidate window, rather than a
+  `no-store` fetch sitting in code every page shares.
+
+## Go deeper
+
+<DeeperLinks
+  items={[
+    { label: "Architecture", description: "Pipeline & sequence diagrams", href: "#" },
+    { label: "Decision", description: "ADR-001 · Deployment topology", href: "#" },
+    { label: "Decision", description: "ADR-002 · Cross-plane networking", href: "#" },
+    { label: "Infrastructure", description: "AWS & Terraform", href: "#" },
+  ]}
+/>

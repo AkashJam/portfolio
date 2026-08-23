@@ -71,15 +71,15 @@ export default async function SymbolPage({ params }: PageProps<"/market/[symbol]
           prevClose as Open to match the mockup's 4-stat layout. */}
       <div className="grid grid-cols-3 gap-4 font-mono text-sm text-text-muted">
         <div>
-          <p className="text-text-faint">High</p>
+          <p className="text-text-muted">High</p>
           <p className="text-text">{snapshot.dayHigh.toFixed(2)}</p>
         </div>
         <div>
-          <p className="text-text-faint">Low</p>
+          <p className="text-text-muted">Low</p>
           <p className="text-text">{snapshot.dayLow.toFixed(2)}</p>
         </div>
         <div>
-          <p className="text-text-faint">Prev Close</p>
+          <p className="text-text-muted">Prev Close</p>
           <p className="text-text">{snapshot.prevClose.toFixed(2)}</p>
         </div>
       </div>

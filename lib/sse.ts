@@ -12,6 +12,12 @@ import {
 const BASE_RECONNECT_DELAY_MS = 1000;
 const MAX_RECONNECT_DELAY_MS = 30_000;
 
+/** Exponential backoff step, extracted as a pure function so it's testable
+ * without a real EventSource (§21 "SSE reconnect/backoff state machine"). */
+export function nextReconnectDelay(currentDelayMs: number): number {
+  return Math.min(currentDelayMs * 2, MAX_RECONNECT_DELAY_MS);
+}
+
 export interface StreamHandlers {
   onQuote?: (event: QuoteEvent) => void;
   onCandle?: (event: CandleEvent) => void;
@@ -61,7 +67,7 @@ export function subscribeToStream(symbols: string[], handlers: StreamHandlers): 
       source?.close();
       if (stopped) return;
       reconnectTimer = setTimeout(connect, reconnectDelay);
-      reconnectDelay = Math.min(reconnectDelay * 2, MAX_RECONNECT_DELAY_MS);
+      reconnectDelay = nextReconnectDelay(reconnectDelay);
     });
   }
 

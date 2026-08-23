@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+@plugin "@tailwindcss/typography";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -155,7 +156,14 @@
   --card-foreground: var(--text);
   --popover: var(--panel);
   --popover-foreground: var(--text);
-  --primary: var(--brand);
+  /* Deliberately NOT var(--brand) — e2e/axe.spec.ts caught that
+     --text (#e6e8ea) on --brand (#6366f1) is only 3.63:1, and even pure
+     white on --brand tops out at 4.47:1, short of WCAG AA's 4.5:1 for
+     normal-size button text. --brand itself stays untouched (borders,
+     glows, rings, links all still use it); --primary is a dedicated,
+     slightly darker indigo (Tailwind's indigo-600) that gives --text
+     6.29:1 against it, comfortable headroom instead of a hairline pass. */
+  --primary: #4f46e5;
   --primary-foreground: var(--text);
   --secondary: var(--panel);
   --secondary-foreground: var(--text);
@@ -181,6 +189,29 @@
   --sidebar-accent-foreground: var(--text);
   --sidebar-border: var(--hairline);
   --sidebar-ring: var(--brand);
+}
+
+/* @tailwindcss/typography's `.prose` reads these --tw-prose-* variables —
+   pointed at this project's own tokens (used by blog posts/case studies,
+   components/mdx/MDXRenderer.tsx) rather than the plugin's own default
+   gray scale, keeping every color single-sourced in one place. */
+.prose {
+  --tw-prose-body: var(--text-muted);
+  --tw-prose-headings: var(--text);
+  --tw-prose-lead: var(--read);
+  --tw-prose-links: var(--brand-hover);
+  --tw-prose-bold: var(--text);
+  --tw-prose-counters: var(--text-faint);
+  --tw-prose-bullets: var(--text-faint);
+  --tw-prose-hr: var(--hairline);
+  --tw-prose-quotes: var(--read);
+  --tw-prose-quote-borders: var(--brand);
+  --tw-prose-captions: var(--text-faint);
+  --tw-prose-code: var(--text);
+  --tw-prose-pre-code: var(--text);
+  --tw-prose-pre-bg: var(--panel);
+  --tw-prose-th-borders: var(--hairline);
+  --tw-prose-td-borders: var(--hairline);
 }
 
 @layer base {

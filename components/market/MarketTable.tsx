@@ -68,7 +68,7 @@ export function MarketTable({ rows: initialRows }: { rows: MarketRow[] }) {
         {rows.map((row) => {
           const up = row.snapshot.change >= 0;
           return (
-            <TableRow key={row.symbol}>
+            <TableRow key={row.symbol} data-testid={`market-row-${row.symbol}`}>
               <TableCell>
                 <Link href={`/market/${row.symbol}`} className="flex flex-col hover:text-brand">
                   <span className="font-mono">{row.symbol}</span>
@@ -93,7 +93,7 @@ export function MarketTable({ rows: initialRows }: { rows: MarketRow[] }) {
                 </div>
               </TableCell>
               <TableCell className="text-right font-mono">
-                {row.snapshot.price.toFixed(2)}
+                <span data-testid="price">{row.snapshot.price.toFixed(2)}</span>
                 <LiveBadge simulated={row.snapshot.simulated} className="ml-2" />
               </TableCell>
               <TableCell

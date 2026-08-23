@@ -1,0 +1,64 @@
+---
+title: "Keyless deploys: OIDC from GitHub Actions to AWS, and the subject-claim gotcha"
+summary: A real IAM trust policy denial caused by assuming GitHub's OIDC subject claim was the mutable OWNER/REPO form, when it's actually the immutable OWNER@id/REPO@id form.
+category: Infra
+date: "2026-06-30"
+tags: [AWS, Terraform, CI/CD]
+draft: true
+---
+
+{/* DRAFT for your review, but fully real — this bug was actually hit and
+    fixed during Days 1-2 of the real build (phase1.md, "IAM OIDC trust
+    policies" row). No fabricated specifics; needs a normal editorial pass. */}
+
+Wiring GitHub Actions to assume an AWS IAM role over OIDC means writing a trust policy that
+checks the token's `sub` (subject) claim — a condition that says, in effect, "only let this role
+be assumed by workflows running in this specific repo." Get the claim format wrong and the
+failure mode isn't a helpful error about a malformed policy. It's `AssumeRoleWithWebIdentity`
+denied, with every individual value in the policy looking correct.
+
+## What the trust policy assumed
+
+The natural first guess for the claim's shape is `repo:OWNER/REPO:ref:refs/heads/main` — and
+that's what most quick examples show. It's also wrong for anything that isn't a static,
+never-renamed repository, because it isn't actually the claim GitHub issues.
+
+## What GitHub actually sends
+
+GitHub's OIDC token issues the subject claim using **immutable IDs**, not the human-readable
+owner and repo names:
+
+```
+repo:OWNER@owner_id/REPO@repo_id:ref:refs/heads/main
+```
+
+A `StringEquals` condition built against the plain `OWNER/REPO` form will never match this,
+because the actual claim has `@owner_id`/`@repo_id` suffixes baked in that a naive
+copy-the-docs-example trust policy has no way to anticipate.
+
+## The fix
+
+Two changes, both necessary:
+
+1. Switch the condition operator from `StringEquals` to `StringLike`, since an exact match can't
+   tolerate the ID suffixes at all.
+2. Wildcard around the owner and repo segments specifically, rather than trying to hardcode the
+   numeric IDs (which is possible, but brittle — a repo transfer or an org rename changes them):
+
+```json
+"StringLike": {
+  "token.actions.githubusercontent.com:sub": "repo:*/*:ref:refs/heads/main"
+}
+```
+
+Scoped loosely enough to actually match GitHub's real claim shape, tightened elsewhere in the
+policy (the audience condition, the role's own permission boundary) rather than trying to make
+the subject-claim match do all the access-control work by itself.
+
+## Why this is worth knowing before you hit it
+
+The failure is maximally unhelpful to debug from the outside: every value in the trust policy is
+individually correct-looking, the role exists, the OIDC provider is configured, and the request
+still gets denied. The only way to actually see the mismatch is to decode a real token GitHub
+issued and compare its literal `sub` claim against what the policy expects — at which point the
+`@owner_id/@repo_id` suffixes are obvious, but only once you know to look for them.

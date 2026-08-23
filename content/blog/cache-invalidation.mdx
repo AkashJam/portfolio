@@ -1,0 +1,58 @@
+---
+title: "Death by cache invalidation: rescuing a data-viz tool's load times"
+summary: How an internal dashboard's caching layer went from a 5-second load to 3 seconds by fixing invalidation scope and eliminating N+1 queries.
+category: Engineering · Performance
+date: "2026-08-08"
+tags: [Vue, Go, Caching, Performance]
+draft: true
+---
+
+{/* DRAFT — dramatization, needs your fact-check on every specific.
+    Grounded in one real, documented fact (data/experience.ts, Lifeed):
+    "Cut dashboard API response time 40% (5s → 3s) by redesigning the
+    Redis caching layer and eliminating N+1 queries." I don't have the
+    full incident story — what the dashboard actually was, what the real
+    root cause and debugging path looked like, or real before/after
+    numbers beyond the résumé's 5s→3s figure. Everything below the
+    résumé bullet is a plausible reconstruction, not a verified account.
+    Rewrite freely or discard. */}
+
+An internal dashboard that Customer Success used daily had quietly become the thing everyone
+complained about in standup. Every dashboard load took close to five seconds. Nobody had touched
+the caching layer in months, and nothing about the underlying data had grown dramatically — so
+why did it feel like the system was falling over?
+
+## The cache that ate itself
+
+The caching layer had been added early, with good intentions: cache the expensive aggregate
+queries, invalidate on write, keep things fast. The problem was invalidation scope. A single
+write to one customer record was invalidating cache entries far beyond that customer — entire
+aggregate views were getting torn down and recomputed on the next read, even when the actual
+data those views depended on hadn't changed.
+
+<Callout variant="warn" label="Root cause">
+  Invalidation was scoped to entities, not to the specific aggregates that actually depended on
+  them — so a narrow write triggered a wide cache wipe, and the "cache" spent more time
+  recomputing than it did serving from memory.
+</Callout>
+
+## Fix 1 — stop blocking the first paint
+
+The first fix wasn't about caching at all — it was about not making the user wait on the
+slowest query before showing anything. Splitting the dashboard's data fetching so the shell and
+fast-loading widgets rendered immediately, with the expensive aggregate views streaming in
+afterward, made the perceived load time drop even before the caching fix landed.
+
+## Fix 2 — key on inputs, not outputs
+
+The real fix was re-scoping cache keys to the actual query inputs rather than the entity being
+displayed, so a write only invalidated the cache entries whose *inputs* had actually changed.
+Paired with fixing the N+1 query pattern underneath the aggregates — batching what had been a
+loop of individual queries into a single query per aggregate — the combination is what took the
+response time from five seconds to three.
+
+## What I'd do first next time
+
+Cache invalidation scope is worth designing deliberately, up front, rather than defaulting to
+"invalidate broadly to be safe." Broad invalidation feels safer in the moment and turns into the
+exact failure mode it was meant to avoid once the system has been running for a while.

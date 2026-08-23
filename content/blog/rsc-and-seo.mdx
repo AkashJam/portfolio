@@ -1,0 +1,55 @@
+---
+title: "RSC without the hand-wringing: what actually matters for SEO"
+summary: A conceptual look at why React Server Components make server-rendered, crawlable HTML the default outcome instead of a separate optimization pass.
+category: Frontend
+date: "2026-06-03"
+tags: [Next.js, RSC, SEO]
+draft: true
+---
+
+{/* DRAFT for your review — grounded in real tech (this site genuinely
+    uses the App Router with RSC-by-default, described accurately below),
+    but deliberately NOT claiming specific before/after SEO metrics —
+    no Lighthouse/search-console history is tracked anywhere for this
+    site, so any numbers here would be fabricated. Kept conceptual on
+    purpose; add real numbers yourself if you have them, don't invent
+    ones for me to fill in. */}
+
+A lot of React SEO advice reads like a checklist bolted onto a client-rendered app after the
+fact: add meta tags here, consider server-side rendering there, maybe reach for a static export
+if the framework supports it. React Server Components change the shape of the problem rather
+than adding another item to the checklist.
+
+## The default output is already what crawlers want
+
+With the App Router's Server Components as the default, a page's HTML is generated on the
+server and sent complete — the same output whether the visitor is a browser or a crawler,
+without SSR being a separately-maintained code path bolted onto a client-rendered app. This
+site's own pages work this way: the market pages, the project case studies, this post itself,
+are rendered server-side by default. Client components exist only for the pieces that genuinely
+need interactivity — the command palette, live-updating charts — not the page shell around them.
+
+## What that actually buys you
+
+- **No hydration gap for content.** The text a crawler sees is the text a user sees on first
+  paint, because nothing had to wait for client-side JavaScript to render it in.
+- **Metadata is server-computed too.** Per-route `generateMetadata` runs alongside the same
+  server render, so title/description/OG tags reflect the actual page content rather than a
+  static fallback shared across routes.
+- **Streaming doesn't undermine any of this.** Slower, non-critical parts of a page can stream in
+  after the initial response without the crawlable content depending on that slower work landing
+  first.
+
+## What it doesn't solve by itself
+
+RSC makes "the HTML is real and complete" the default, which removes a whole category of SEO
+problems this kind of app used to accumulate by default. It doesn't replace actually thinking
+about information architecture, internal linking, or writing content worth ranking — the
+mechanical part of the problem gets easier; the part that was never really mechanical doesn't.
+
+## The honest takeaway
+
+The right way to evaluate this isn't a before/after SEO score for one site — it's recognizing
+that the frontend architecture stopped requiring a separate SEO-rendering strategy at all. The
+crawlable version and the user-facing version are the same render, by construction, not by
+discipline.
