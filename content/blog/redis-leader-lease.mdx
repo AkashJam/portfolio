@@ -1,61 +1,102 @@
 ---
 title: "One reader, many replicas: coordinating a single upstream feed with a Redis lease"
-summary: Why the Ticker backend uses a Redis SET NX PX leader lock instead of a consensus system to guarantee exactly one process reads the upstream market feed.
+summary: How Ticker's streaming pipeline is put together, why building it to scale creates a single-reader problem, and why a Redis SET NX PX lease answers it instead of a consensus system.
 category: Distributed Systems
-date: "2026-07-22"
+date: "2026-08-25"
 tags: [Redis, Go, Coordination]
 draft: false
 ---
 
-{/* DRAFT for your review, but fully real — this is Ticker's actual leader
-    lock, ticker/internal/ingest/leader.go, built this engagement. No
-    fabricated specifics here, just needs a normal editorial pass (voice,
-    length, whether the framing matches how you'd tell it). */}
+Ticker is the streaming backend behind this site's market pages. A Go service reads a feed of
+price ticks, aggregates them into OHLCV candles, stores them in TimescaleDB, and pushes live
+updates into a browser chart over Server-Sent Events. Version one runs a simulated feed, flagged
+end to end so it can't pass for real market data.
 
-Ticker's ingestion pipeline reads a single upstream market feed and fans it out to every
-consumer downstream. That's fine with one process running it. The moment there's more than one
-— for redundancy, for horizontal scale, for a rolling deploy briefly running two — you have a
-problem: the upstream feed doesn't want two readers. A duplicated read means duplicated ticks,
-and duplicated ticks turn into wrong candles if nothing downstream is built to tolerate it.
+## How the ticks move
 
-## The options
+Ingestion normalizes each tick, appends it to a Redis Stream with `XADD`, and publishes it to a
+per-symbol pub/sub channel. A separate aggregator consumes that stream through a *consumer group*,
+buckets ticks into candles at several intervals, and upserts them into TimescaleDB. An SSE hub
+relays the pub/sub messages to browsers through a same-origin Next.js proxy.
 
-Coordinating "exactly one of N processes is active" is a well-trodden problem, and the well-known
-answer is a consensus system — etcd, ZooKeeper, a Raft group of your own. Each of those is also a
-new distributed system to operate, with its own failure modes, for a project that already runs
-Redis for the ingestion stream itself.
+The stream in the middle is the choice that matters. An in-process channel would be simpler and
+would work perfectly today, since both stages run in the same binary on the same box. A consumer
+group means they don't have to: splitting them apart later is a deployment change rather than a
+rewrite. Duplicate delivery is assumed from the start, because a consumer group only promises
+at-least-once, so the aggregator's writes are idempotent upserts.
 
-Redis already being in the stack changed the calculus. A `SET key value NX PX ttl` is atomic,
-already available, and does exactly what's needed here: exactly one process can hold the key at a
-time, and if that process dies without releasing it, the TTL expires the lock on its own.
+That flexibility has a cost the moment anyone uses it. If the service can run as more than one
+replica, the code reading the upstream feed runs more than once — and the feed doesn't want two
+readers. Two subscriptions mean two copies of every tick and a doubled bill, and it happens
+unplanned, in the seconds a rolling deploy runs both containers.
 
-## What the lock actually protects
+## The textbook answer, and what it costs
 
-```go
-acquired, err := redis.SetNX(ctx, leaderKey, instanceID, leaseTTL)
-if !acquired {
-    return // another instance holds the lease — stand by, don't ingest
-}
+"Exactly one of N processes is active" is leader election, and the established answer is a
+consensus system: etcd, ZooKeeper, or a Raft group of your own. They're linearizable — the cluster
+genuinely agrees on who leads, and that agreement survives a partition in a way you can reason
+about formally. They're also each a new distributed system to run, monitor, back up, and upgrade.
+For a service already running Redis for the stream itself, standing up a second one to elect a
+leader among a candidate set of one is a bad trade made in advance.
+
+## What a lease buys instead
+
+`SET key token NX PX ttl` is a single atomic operation that does most of the job. Exactly one
+process can create the key, so exactly one wins, and the TTL means a holder that dies without
+cleaning up releases by expiry rather than by anyone noticing.
+
+The value matters as much as the key. Each instance writes a token unique to that process —
+hostname, PID, start timestamp — which is what makes it possible to ask "do I still own this?"
+later. Ingestion checks one boolean before touching a tick, so a standby replica runs the whole
+pipeline and produces nothing.
+
+## Renew and release are the parts that have to be right
+
+Acquisition is the easy half. The holder renews on a 3-second cadence against a 15-second TTL,
+comfortably inside budget without a second timer. But a renewal must extend the lock *only if this
+process still owns it*: a goroutine that stalls past the TTL and wakes up must not extend a lease
+another instance has since taken. Redis has no single command for check-then-act, so both
+operations run as Lua, which executes atomically:
+
+```lua
+-- release
+if redis.call("GET", KEYS[1]) == ARGV[1] then
+    return redis.call("DEL", KEYS[1])
+end
+return 0
 ```
 
-The holder renews the lease on an interval well inside the TTL, so a live process never loses its
-lock to a slow tick or a GC pause — only an actually-dead process lets the lease expire. On clean
-shutdown, the process releases the lock explicitly rather than waiting out the TTL, so a
-deliberate restart doesn't leave downstream consumers waiting on a lease that nobody's coming back
-for.
+Renewal is the same shape with `PEXPIRE`. Skipping the check and calling a plain `DEL` on shutdown
+is the classic version of this bug: a process whose lease already lapsed deletes the lock its
+successor now holds, and two readers start. Release runs on the shutdown path rather than waiting
+out expiry, so a restart hands leadership over immediately instead of idling ingestion for fifteen
+seconds.
+
+And when a renewal reports the token no longer matches, this process has lost the lock: it stops
+considering itself leader and stops producing. That branch isn't decoration — a stop-the-world
+pause longer than the TTL reaches it, and the right response is to believe Redis over the last
+thing the process knew about itself.
 
 ## The honest caveat
 
-A Redis lease is not linearizable consensus. Under a real network partition, there's a window
-where a lease could theoretically be held by a process Redis itself can no longer see cleanly. At
-v1's actual scale — one ingestion instance — this entire mechanism is non-load-bearing; there's
-never a second process to conflict with. It's built anyway, shaped for the day a second instance
-exists, rather than retrofitted under pressure once it's actually needed.
+A Redis lease is not consensus. Under a partition there's a window where a process believes it
+holds a lease Redis can no longer confirm, and no amount of TTL tuning closes that window — it
+moves it. What makes that acceptable is the cost of being briefly wrong: a few duplicated ticks,
+into a stream that only promises at-least-once delivery anyway, aggregated by upserts that are
+idempotent regardless. At v1's scale it's non-load-bearing in any case — one box, one ingesting
+container, never a second candidate. It's built now because it's cheap now, and because
+retrofitting coordination onto a running pipeline is the expensive version.
 
-## Would I use this at real scale?
+## Where a different shape fits
 
-For the specific failure mode — "don't let two processes both think they're the sole reader of an
-external feed" — yes, with eyes open about what it isn't. It's not a replacement for a
-consensus system in a context where split-brain is genuinely dangerous. It's a lightweight, honest
-tool for a narrower job: cheap coordination when the cost of getting it briefly wrong (a few
-duplicated ticks, deduplicated idempotently downstream anyway) is low.
+- **Split-brain is genuinely expensive.** If two active writers corrupt state rather than
+  duplicating work, pay for real consensus. That's what etcd and ZooKeeper are for.
+- **The resource can reject stale writers.** Fencing tokens — an only-increasing number checked by
+  the resource itself — beat any lock, but need a downstream that can enforce them, which an
+  external feed can't.
+- **Already on Kubernetes.** The `Lease` API and client-go's leader election give you this against
+  the cluster's own store, with nothing extra to run.
+
+The lease isn't a cheap substitute for consensus so much as an answer to a different question.
+Consensus asks who is authoritative. This asks who should be working right now, where being
+briefly wrong is survivable — and that has a much cheaper answer.

@@ -4,30 +4,44 @@ interface Capability {
   summary: string;
 }
 
-// mockups/v2/about.html's editorial capabilities block, verbatim — except
-// the Data row's "Prisma" tag/mention, dropped: this project has no ORM
-// anywhere (the Go backend reads Postgres directly via pgx), so keeping it
-// would name a technology that isn't actually used.
+// Originally mockups/v2/about.html's editorial block verbatim; since rewritten
+// to match data/experience.ts rather than the mockup. Every tag here is
+// something with production or shipped-project evidence behind it — the
+// previous version claimed Node.js services (none exist: the backends are Go
+// and, earlier, .NET), WebSockets (Ticker deliberately uses SSE instead),
+// Core Web Vitals budgets (Lighthouse CI isn't wired into CI) and time-series
+// "at scale" (one t4g.small against a simulated source), while omitting Vue —
+// three years and three products of it.
 const CAPABILITIES: Capability[] = [
   {
     category: "Frontend",
-    tags: ["TypeScript", "React", "Next.js", "Tailwind"],
-    summary: "Type-safe React with RSC and design systems, held to Core Web Vitals budgets.",
+    tags: ["Vue", "TypeScript", "Quasar", "React / Next.js", "Tailwind"],
+    summary:
+      "Vue and TypeScript across three production apps, one an installable PWA; React with Server Components on this site.",
   },
   {
     category: "Backend",
-    tags: ["Go", "Node.js", "GraphQL", "SSE / WebSockets"],
-    summary: "Streaming Go and Node services — SSE fan-out, GraphQL, and clean store seams.",
+    tags: ["Go", "REST", "GraphQL", "SSE"],
+    summary:
+      "Go services, and a Backend-for-Frontend aggregating a fleet of internal APIs behind one auth boundary.",
   },
   {
     category: "Infra",
     tags: ["AWS", "Terraform", "Docker", "CI/CD"],
-    summary: "Keyless CI/CD to AWS, all of it in Terraform, single-box Docker Compose.",
+    summary:
+      "EC2 and RDS at work; Terraform and keyless OIDC deploys onto single-box Docker Compose here.",
   },
   {
     category: "Data",
-    tags: ["TimescaleDB", "PostgreSQL", "Redis"],
-    summary: "Time-series at scale — Timescale hypertables, Redis coordination, typed Postgres access via pgx.",
+    tags: ["PostgreSQL", "Redis", "TimescaleDB"],
+    summary:
+      "Invariants enforced in the schema, Redis for coordination and caching, Timescale hypertables for candles.",
+  },
+  {
+    category: "Reliability",
+    tags: ["Integration testing", "Playwright", "Prometheus", "Grafana"],
+    summary:
+      "A real database as the merge gate, browser and contract tests in CI, and monitoring that made uptime a defended target.",
   },
 ];
 

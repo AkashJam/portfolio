@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { allBlogs } from "content-collections";
 
@@ -26,7 +27,9 @@ export default function BlogPage() {
       </p>
 
       <div className="mt-10">
-        <PostList posts={posts} />
+        <Suspense>
+          <PostList posts={posts} />
+        </Suspense>
       </div>
     </div>
   );

@@ -11,7 +11,7 @@ import {
 describe("symbolsResponseSchema", () => {
   it("accepts a well-formed §8 response", () => {
     const result = symbolsResponseSchema.safeParse([
-      { symbol: "SIM:NOVA", name: "Nova (simulated)", type: "stock", exchange: "SIM" },
+      { symbol: "SIM:NOVA", name: "Nova (simulated)", type: "stock", exchange: "SIM", regime: "steady" },
     ]);
     expect(result.success).toBe(true);
   });

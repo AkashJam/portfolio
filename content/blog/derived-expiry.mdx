@@ -1,66 +1,87 @@
 ---
 title: "Don't store what you can derive: expiry as computed state"
-summary: Storing an "expired" status means a scheduled job, two sources of truth, and a window where the flag disagrees with reality. Deriving validity from the dates you already have removes all three.
+summary: Storing an "expired" status means a scheduled job, two sources of truth, and a window where the flag disagrees with reality. Deriving validity from dates you already have removes all three — and brings its own smaller set of problems worth naming.
 category: Architecture
-date: "2026-08-19"
+date: "2026-07-31"
 tags: [PostgreSQL, Data Modeling, Backend]
 draft: false
 ---
 
-{/* Draft for your review — general modeling lesson drawn from the Lifeed admin tool,
-    kept high-level (generic column names, textbook predicate). Adjust the date. */}
-
 The tempting way to model an entitlement that ends — a contract, a subscription, a trial — is a
-status column you flip to `expired` when the clock runs out. It reads well, it's easy to query, and
-it feels like state should be stored. It's also a small trap: you've just signed up for a scheduled
+status column you flip to `expired` when the clock runs out. It reads well, it queries easily, and
+it feels like state ought to be stored. It's also a small trap: you've signed up for a scheduled
 job, two sources of truth, and a stretch of time where the column and reality disagree.
 
-## The stored-status version, and why it drifts
+## Why a stored status drifts
 
-A status you *write* needs something to write it. That something is a cron or scheduled job scanning
-for newly-expired rows and flipping them. Between the moment an end date passes and the moment the
-job next runs, the row says `active` and the truth says otherwise. Shorten the interval and you burn
-more compute for the privilege; lengthen it and you widen the lie. Either way you now have two facts
-— the dates and the status — that can disagree, and every consumer downstream has to quietly hope
-the job ran on time.
+A status you *write* needs something to write it, and that something is a job scanning for
+newly-expired rows and flipping them. Between the moment an end date passes and the moment the job
+next runs, the row says active and the truth says otherwise.
+
+Shorten the interval and you burn compute for the privilege. Lengthen it and you widen the lie.
+Either way there are now two facts — the dates and the status — that can disagree, and every
+consumer downstream is quietly trusting that the job ran on time.
 
 ## Derive it instead
 
-Validity isn't independent state. It's a function of data you already store: the thing is active,
-and *now* falls inside its window.
+Validity isn't independent state. It's a function of data already stored: the contract is active,
+and now falls inside its window.
 
-```sql
--- validity is computed, never stored
-status = 'active' AND now() BETWEEN start_date AND end_date
+```
+valid = status == "active" AND start <= now <= end
 ```
 
-No job, no second source of truth, no drift window. The dates are the fact; validity is computed
-from them the instant you ask. Nothing to keep in sync because there's nothing stored to fall out of
-sync.
+No job, no second source of truth, no drift. The dates are the fact; validity is computed the
+instant somebody asks.
+
+Note that the window is inclusive at both ends — a contract is valid for the whole of its final
+day, not up to the start of it. That's a product decision rather than a technical one, and the
+reason to state it explicitly is that inclusive and half-open windows look identical in a schema
+and differ by a day in a customer's experience. Whichever you choose, it should be a choice.
 
 ## Compute it in exactly one place
 
-Derived state has its own failure mode: five callers each re-implementing the predicate slightly
-differently, one of them forgetting the `status` half, another getting the boundary wrong. So the
-predicate lives *once* — a single function, or a database view or generated column — and everything
-routes through it. One definition of "valid," used everywhere, is the whole point; scatter it and
-you've traded a sync problem for a consistency problem.
+Derived state has its own failure mode: five callers each writing the predicate slightly
+differently, one forgetting the status half, another disagreeing about the boundary. So it lives in
+a single Go function, and every path that needs to know whether a contract is valid calls it.
 
-## The tradeoffs you're accepting
+One definition of "valid," used everywhere, is the entire point. Scatter it and you've swapped a
+synchronization problem for a consistency problem, which is worse — at least a stale flag is
+consistently stale.
 
-- **You can't `WHERE status = 'expired'` against a stored column anymore.** If you need to filter or
-  index on validity, express it as a generated column or a view over the same predicate — still one
-  definition, now indexable.
-- **Every read path has to go through the one predicate.** That's a discipline cost. It's also the
-  same discipline that makes the guarantee hold, so it's not really extra.
-- **"Now" is an input.** Tests pin it; anything auditable records the value it used. Deriving from
-  the clock means being explicit about *which* clock, rather than pretending time isn't a parameter.
+## What you give up
 
-## Where this came from
+**Filtering.** You can't `WHERE status = 'expired'` any more, because there's no such column. Queries
+that need to select on validity have to express the predicate, which means the predicate now exists
+in SQL as well as in Go, which is exactly the duplication the previous section warns about. A view
+is the usual answer — one SQL definition, sitting next to the Go one, with a test asserting they
+agree.
 
-At Lifeed, contract validity in the internal admin tool is computed exactly this way — a status plus
-a date window, evaluated in one place — rather than stored as a status a job maintains. The admin
-tool hands contract configuration to a non-engineering team, and "is this contract valid right now"
-is precisely the kind of fact you don't want drifting between a column and the calendar while a
-customer's access hangs on the answer. Store the dates, which are real; derive the verdict, which
-isn't.
+**Indexing, in a way that surprises people.** A derived predicate involving the current time cannot
+be indexed. Postgres requires expressions in generated columns and expression indexes to be
+immutable, and `now()` is not — so a generated `is_valid` column is rejected outright, and an index
+on the predicate can't be created either. What you index instead are the inputs: `status`,
+`start_date`, `end_date`, or a partial index on active rows. The planner does the time comparison
+at runtime. This works well, and it is worth knowing before you design a query plan around a column
+that can't exist.
+
+**"Now" becomes an input.** Deriving from the clock means being explicit about which clock. Tests
+pin it rather than calling the real one, and anything auditable records the value it used, because
+"was this valid?" is unanswerable later unless you know what time you asked at.
+
+## Where a different shape fits
+
+- **The transition has side effects.** Deriving validity tells you a contract lapsed; it doesn't
+  email anyone about it. If expiry needs to *do* something — notify, revoke, archive — you still
+  need a scheduled job. The difference is that the job triggers actions rather than owning the
+  truth, so a late run delays a notification instead of extending someone's access.
+- **Validity depends on more than dates.** Payment status, seat counts, manual suspension — as the
+  inputs multiply, a predicate evaluated on every read gets expensive and hard to reason about. At
+  that point a materialized decision, recomputed on input change rather than on a timer, starts to
+  earn its keep.
+- **Something outside your system needs to read it.** A partner integration or a data warehouse
+  can't call your Go function. They need a column or a view, and it should be generated from the
+  same definition rather than reimplemented by whoever writes the export.
+
+Store the dates, which are facts. Derive the verdict, which isn't — and keep the derivation
+somewhere singular enough that there's only ever one answer to argue with.

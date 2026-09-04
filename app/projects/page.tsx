@@ -8,8 +8,13 @@ export const metadata: Metadata = {
   description: "Case studies from the systems I've actually built and shipped.",
 };
 
+// Draft case studies render in `next dev` for review; hidden from production builds.
+const isDev = process.env.NODE_ENV !== "production";
+
 export default function ProjectsPage() {
-  const projects = [...allProjects].sort((a, b) => b.year - a.year);
+  const projects = allProjects
+    .filter((p) => isDev || !p.draft)
+    .sort((a, b) => b.year - a.year);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-16">

@@ -1,55 +1,93 @@
 ---
-title: "Go, Redis, TimescaleDB, and Next.js on one box: sizing infra to the traffic it'll actually see"
-summary: Ticker runs its entire pipeline — ingestion, storage, indicators, SSE, and the frontend — alongside the rest of this portfolio on a single t4g.small, provisioned by the same Terraform as everything else on the site.
+title: "A box you can't log into: Terraform, SSM, and deploys without SSH"
+summary: The security group on this site's instance opens exactly one port, and it isn't 22. What that forces — TLS-ALPN-01, SSM-driven deploys, an instance that boots empty — turns out to be a better shape than the one SSH would have allowed.
 category: Infra
-date: "2026-08-13"
+date: "2026-08-27"
 tags: [AWS, Terraform, Docker, Infra]
 draft: false
 ---
 
-{/* Draft for your review — grounded in this portfolio's real deploy topology, kept
-    high-level: no literal instance IDs, security-group names, or account details. */}
+Everything on this domain — the site, the market dashboard, the Go API behind it, Redis, and
+TimescaleDB — runs as Docker Compose services on a single Terraform-provisioned `t4g.small`. This
+post is about how that box is built and deployed to, rather than why it's one box.
 
-A live streaming market-data pipeline sounds like it wants a distributed topology — separate compute
-for ingestion, a managed database, a managed cache, autoscaling for the stream fan-out. Ticker runs on
-one `t4g.small`, alongside the rest of this portfolio, and that's not a corner cut — it's sized to the
-traffic it actually has.
+## Nothing listens but 443
 
-## What "production-style" doesn't have to mean
+The security group has exactly one ingress rule: TCP 443 from anywhere. No port 22, and
+deliberately no port 80 either. Operator access is `aws ssm start-session`, which works because
+Amazon Linux 2023 ships the SSM agent and the instance profile grants it — a shell without an open
+port, authenticated by IAM rather than a key file somebody has to hold.
 
-Production-style, here, means the pipeline behaves the way the real thing would: idempotent
-processing, leader election, graceful shutdown, honest data provenance. It doesn't mean provisioning
-for load that a personal portfolio will never see. A topology sized for horizontal scale it doesn't
-need isn't a stronger engineering statement than one box run well — it's a more expensive one, and the
-extra AWS surface is more to secure and more to pay for without a corresponding benefit.
+Closing port 80 has a consequence worth knowing before you hit it. Automatic certificate issuance
+usually leans on the HTTP-01 challenge, which needs port 80. With only 443 open, TLS-ALPN-01 is
+the only challenge that can complete, and it works on 443 alone. Caddy negotiates that without any
+extra configuration — the requirement is simply not to map port 80, which was already the case.
 
-## One Terraform-managed box, several processes
+## Graviton, and the images that didn't match it
 
-Go, Redis, TimescaleDB, and Next.js all run via Docker Compose behind Caddy on the same instance that
-serves the rest of the site. The instance itself, its networking, and its access are provisioned by
-the same Terraform that stood up the site's infra spine — Ticker isn't a separate deploy target, it's
-another set of containers on infrastructure that already exists.
+The instance is ARM64: an AL2023 arm64 AMI on a `t4g` instance, which is the cheapest way to buy
+this much memory on AWS.
 
-```text
-t4g.small
- ├─ Caddy (TLS)
- ├─ Next.js (site + market UI)
- ├─ Go API (Ticker)
- ├─ Redis (stream + indicator cache)
- └─ TimescaleDB (candles)
+This is also where the deploy path bit hardest. CI built container images on GitHub's runners,
+which are amd64, and pushed them to a registry an ARM box then pulled from. The containers
+crash-looped with `exec format error` — a failure that says nothing about architecture unless you
+already know that's what it means. The fix was QEMU plus Buildx and an explicit
+`--platform linux/arm64` on the build, which is one line and entirely obvious in retrospect.
+
+## The instance boots empty on purpose
+
+`user_data` installs Docker and the Compose plugin, formats and mounts a data volume, and stops.
+It starts no containers.
+
+That's deliberate: what runs on the box is owned entirely by the deploy workflow, so there's one
+place that decides, not two racing each other at boot. It also sidesteps a trap — `user_data` only
+executes on an instance's *first* boot, so anything added to it later doesn't reach a box that's
+already running. The Terraform sets `user_data_replace_on_change = false` to make that explicit,
+because a destroy-and-recreate is never the right response to editing a boot script on a live
+instance. Changes to it apply to the next instance, and to this one only via a matching one-time
+command run through Session Manager.
+
+## Deploying to a box with no inbound path
+
+The workflow assumes an AWS role over OIDC, uploads `docker-compose.yml`, the Caddyfile, and the
+backup script to an S3 release bucket, and then sends the box a command through SSM:
+
+```
+aws s3 cp …                       # pull the compose files down
+aws ecr get-login-password | …    # authenticate to the registry
+aws ssm get-parameter --with-decryption   # fetch the DB password
+docker compose pull && docker compose up -d --remove-orphans
 ```
 
-## The real cost story
+Three things about that are load-bearing. The instance is resolved by its `Name` tag rather than a
+hardcoded ID, so replacing the box needs no workflow change. The database password is read fresh
+from an SSM SecureString on every deploy and passed as an environment variable — it's never
+written to a file, never committed, and no human has ever seen it. And nothing in the sequence
+needs an inbound connection: SSM is an outbound agent poll, which is precisely why the security
+group can stay closed.
 
-Marginal infrastructure cost for the entire pipeline is effectively zero beyond the box that was
-already running the rest of the site. That's the actual point being demonstrated: the engineering
-discipline (idempotency, leader locks, flush-on-shutdown) is real and independent of the topology it
-runs on, and pretending otherwise — reaching for managed services and multi-instance scale to look
-more "production" — would be spending money to make the same argument less convincingly.
+## The data is not on the root volume
 
-## Where this came from
+Timescale's data directory is a bind mount onto a separate gp3 EBS volume, attached and mounted at
+`/mnt/data`, so it survives an instance replacement instead of dying with the root disk. The
+formatting step in `user_data` is guarded by `blkid`, so re-running it can never reformat a volume
+that already has a filesystem on it.
 
-This is the real deploy shape of both this site and Ticker: one EC2 instance, Terraform-provisioned,
-running every service behind Caddy via Docker Compose. The infrastructure decision that mattered
-wasn't picking managed services — it was being honest about what scale the project actually needs and
-refusing to provision past it.
+The root volume is 30GB, which isn't a capacity decision — the AL2023 ARM64 AMI's snapshot is
+30GB, and EBS won't create a volume smaller than the snapshot it's built from. The first attempt
+asked for 20 and `RunInstances` simply refused.
+
+## Where a different shape fits
+
+- **More than one environment.** The default VPC is fine for a single box with one public service.
+  A second environment wants its own VPC and subnets, if only so a security-group edit can't reach
+  across environments.
+- **Deploys that can't drop requests.** `docker compose up -d` replaces containers in place, which
+  is a brief outage. Zero-downtime needs two instances and something in front of them, and that's
+  the point where a load balancer stops being ceremony.
+- **A team.** SSM Session Manager scales to more operators than SSH keys do — that's an argument
+  for it, not against — but the moment more than one person deploys, the release bucket wants
+  versioning and the SSM command wants an approval gate rather than firing on every push to main.
+
+None of the above is exotic. It's mostly the consequence of one decision — close port 22 — followed
+honestly to the places it leads.

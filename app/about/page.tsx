@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import { Download } from "lucide-react";
 
+import { EducationCard } from "@/components/site/EducationCard";
 import { ExperienceCard } from "@/components/site/ExperienceCard";
 import { LiveSignal } from "@/components/site/LiveSignal";
 import { Reveal } from "@/components/site/Reveal";
 import { SkillsCapabilities } from "@/components/site/SkillsCapabilities";
+import { education } from "@/data/education";
 import { experience } from "@/data/experience";
-import { bio, statement } from "@/data/profile";
+import { bio, statement, workAuthorization } from "@/data/profile";
 import { RESUME_HREF } from "@/lib/contact";
 
 export const metadata: Metadata = {
@@ -38,6 +40,7 @@ export default function AboutPage() {
             <Download className="size-4" />
             Download Résumé (PDF)
           </a>
+          <p className="mt-4 text-sm text-text-muted">{workAuthorization}</p>
         </div>
       </section>
 
@@ -48,6 +51,19 @@ export default function AboutPage() {
             {experience.map((entry) => (
               <Reveal key={entry.company}>
                 <ExperienceCard entry={entry} />
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="pb-16">
+        <div className="mx-auto max-w-6xl px-4">
+          <h2 className="mb-8 text-xs tracking-[0.2em] text-text-muted uppercase">Education</h2>
+          <div className="flex flex-col gap-6">
+            {education.map((entry) => (
+              <Reveal key={entry.institution}>
+                <EducationCard entry={entry} />
               </Reveal>
             ))}
           </div>

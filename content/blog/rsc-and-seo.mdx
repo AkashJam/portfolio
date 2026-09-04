@@ -1,55 +1,99 @@
 ---
-title: "RSC without the hand-wringing: what actually matters for SEO"
-summary: A conceptual look at why React Server Components make server-rendered, crawlable HTML the default outcome instead of a separate optimization pass.
+title: "One fetch away from dynamic: what RSC actually decides for you"
+summary: React Server Components make complete, crawlable HTML the default. They also make static-versus-dynamic rendering a consequence of where you put a fetch — decided silently, per route, with no error when you get it wrong.
 category: Frontend
-date: "2026-06-03"
+date: "2026-09-01"
 tags: [Next.js, RSC, SEO]
 draft: false
 ---
 
-{/* DRAFT for your review — grounded in real tech (this site genuinely
-    uses the App Router with RSC-by-default, described accurately below),
-    but deliberately NOT claiming specific before/after SEO metrics —
-    no Lighthouse/search-console history is tracked anywhere for this
-    site, so any numbers here would be fabricated. Kept conceptual on
-    purpose; add real numbers yourself if you have them, don't invent
-    ones for me to fill in. */}
+Most React SEO advice reads like a checklist bolted onto a client-rendered app after the fact: add
+meta tags, consider server-side rendering, maybe reach for a static export. Server Components
+change the shape of that problem rather than adding another item to the list — and then introduce
+a quieter one in its place.
 
-A lot of React SEO advice reads like a checklist bolted onto a client-rendered app after the
-fact: add meta tags here, consider server-side rendering there, maybe reach for a static export
-if the framework supports it. React Server Components change the shape of the problem rather
-than adding another item to the checklist.
+## What RSC genuinely fixes
 
-## The default output is already what crawlers want
+With Server Components as the default, a page's HTML is generated on the server and arrives
+complete. The markup a crawler sees is the markup a user sees on first paint, because nothing had
+to wait for client JavaScript to put the content there. Per-route metadata is computed in the same
+server pass, so titles and social tags reflect the actual page rather than a shared fallback. And
+slower parts of a page can stream in afterwards without the crawlable content waiting on them.
 
-With the App Router's Server Components as the default, a page's HTML is generated on the
-server and sent complete — the same output whether the visitor is a browser or a crawler,
-without SSR being a separately-maintained code path bolted onto a client-rendered app. This
-site's own pages work this way: the market pages, the project case studies, this post itself,
-are rendered server-side by default. Client components exist only for the pieces that genuinely
-need interactivity — the command palette, live-updating charts — not the page shell around them.
+None of that is a separate SEO rendering strategy. It's the ordinary output. That really does
+remove a category of problems this kind of app used to accumulate by default.
 
-## What that actually buys you
+## The part that gets undersold
 
-- **No hydration gap for content.** The text a crawler sees is the text a user sees on first
-  paint, because nothing had to wait for client-side JavaScript to render it in.
-- **Metadata is server-computed too.** Per-route `generateMetadata` runs alongside the same
-  server render, so title/description/OG tags reflect the actual page content rather than a
-  static fallback shared across routes.
-- **Streaming doesn't undermine any of this.** Slower, non-critical parts of a page can stream in
-  after the initial response without the crawlable content depending on that slower work landing
-  first.
+What replaces it is subtler: whether a route is statically generated or rendered on demand is not
+something you declare. It's inferred from what the route touches. A single uncached fetch anywhere
+in a route's server component tree makes that route dynamic.
 
-## What it doesn't solve by itself
+There's no error. No warning at build time that reads like a warning. The site works perfectly in
+development, and it works perfectly in production too — just rendered fresh on every request,
+paying server time for markup that could have been generated once.
 
-RSC makes "the HTML is real and complete" the default, which removes a whole category of SEO
-problems this kind of app used to accumulate by default. It doesn't replace actually thinking
-about information architecture, internal linking, or writing content worth ranking — the
-mechanical part of the problem gets easier; the part that was never really mechanical doesn't.
+## One fetch, every page
 
-## The honest takeaway
+The first time this bit, it was the command palette.
 
-The right way to evaluate this isn't a before/after SEO score for one site — it's recognizing
-that the frontend architecture stopped requiring a separate SEO-rendering strategy at all. The
-crawlable version and the user-facing version are the same render, by construction, not by
-discipline.
+The palette needed a list of tradeable symbols to populate its search group. The palette lives in
+the application shell, which wraps every route. Fetching that list where the palette lived would
+have meant fetching it in the root layout — and a fetch in the root layout is a fetch in every
+route's tree. The entirely static Home and About pages would have become dynamic, re-rendered on
+demand, to populate a dropdown that most visitors never open.
+
+The fix was to stop fetching it on the server at all. The list moved into its own endpoint, which
+the palette calls from the client on mount. That endpoint is dynamic, because it should be. Nothing
+else is affected, because a route handler isn't in anybody's component tree.
+
+## And then again, on the home page
+
+The second time was a live statistic in the hero — a small pill showing how many symbols the
+market backend is tracking.
+
+Same shape, different cause. The shared helper that reads from the backend defaults to an uncached
+fetch, which is correct for the market pages: they show live data and should be rendered per
+request. The home page uses the same helper, so it inherited a default that was right for
+somewhere else.
+
+Here the answer wasn't a separate route, because the value genuinely belongs in the server-rendered
+HTML. It was to give the helper an explicit revalidation window — five minutes — so the page stays
+statically generated and merely regenerates periodically. The pill is at most five minutes stale,
+which for a count of tracked symbols is indistinguishable from live.
+
+## The default is the interesting part
+
+It's tempting to conclude the helper should have cached by default. I don't think so.
+
+Most of its callers are the market pages, where serving cached data would be a correctness problem
+rather than a performance one. A default of "always fresh" is wrong for a minority of callers and
+merely wasteful; a default of "cached" would be wrong for the majority and actively misleading.
+Defaults should fail in the direction that's obvious rather than the direction that's silent.
+
+What the two incidents actually argue for is that opting into caching should be visible at the
+call site — which it now is. Reading the home page, you can see the revalidation window and ask
+whether five minutes is right. Reading it before, you'd have had to know what the helper's default
+was, and what that default implied three layers up about how the entire page renders.
+
+## Noticing it at all
+
+Both of these were found by looking at the build output, which marks each route as static or
+dynamic, and noticing that pages with no live data on them were listed as dynamic.
+
+That's worth doing deliberately rather than by accident. It's one of the few places the framework
+tells you the consequence of a decision you didn't realize you were making, and it's a list nobody
+reads unless they've been caught once.
+
+## Where a different shape fits
+
+- **The dynamic part is genuinely small.** Partial prerendering is designed for exactly this — a
+  static shell with dynamic holes — and removes the need to choose per route at all.
+- **The data is user-specific.** Then dynamic is the correct answer and the whole question
+  dissolves; the mistake is only a mistake when the output would have been identical for everyone.
+- **Staleness is unacceptable.** Client-side fetching after paint keeps the shell static and puts
+  the freshness requirement where it belongs, at the cost of a loading state and no crawlable value.
+
+The SEO framing that started this post is real but small. The crawlable render and the user-facing
+render being the same output, by construction, removes work that used to be a project of its own.
+What it doesn't remove is knowing which of your pages are being rebuilt for every visitor, and why.

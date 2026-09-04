@@ -18,6 +18,8 @@ const base = z.object({
 // fields (role/focus/status) that interface didn't originally cover —
 // §19 gets updated to match, same as every other spec/implementation
 // reconciliation this session.
+const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "date must be YYYY-MM-DD");
+
 const projectFrontmatter = base.extend({
   slug: z.string(),
   year: z.number(),
@@ -27,12 +29,16 @@ const projectFrontmatter = base.extend({
   tags: z.array(z.string()),
   featured: z.boolean().default(false),
   links: z.object({ live: z.string().optional(), repo: z.string().optional() }).default({}),
+  // Draft case studies render in `next dev` but are filtered out of
+  // production builds (app/projects/{page,[project]}.tsx) — same mechanism
+  // as blog's `draft` below.
+  draft: z.boolean().default(false),
 });
 
 const blogFrontmatter = base.extend({
   category: z.string(),
-  date: z.string(),
-  updated: z.string().optional(),
+  date: isoDate,
+  updated: isoDate.optional(),
   tags: z.array(z.string()),
   // Draft posts render in `next dev` but are filtered out of production
   // builds (app/blog/{page,[slug]}.tsx) — lets a half-reviewed post exist

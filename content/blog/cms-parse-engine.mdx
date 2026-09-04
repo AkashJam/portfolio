@@ -1,58 +1,103 @@
 ---
-title: "Skip what you don't recognize: a parse engine for CMS-authored content"
-summary: When content is authored as open-ended, typed blocks, hardcoding a layout per module means every new block type is a frontend deploy. A parse engine that maps types to components — and skips what it doesn't know — decouples the two.
+title: "Rendering content whose shape nobody had decided yet"
+summary: Microlearning's block types were never finalized, arrived constantly, and nested inside each other. The frontend had to render them before the designs existed — which makes skipping what you don't recognize the load-bearing decision, and gives it a failure mode worth knowing about.
 category: Frontend
-date: "2026-08-25"
+date: "2026-06-05"
 tags: [Vue, TypeScript, Frontend, CMS]
 draft: false
 ---
 
-{/* Draft for your review — grounded in Microlearning's real frontend architecture (Lifeed),
-    kept high-level: no literal block-type names or component internals. */}
-
 Microlearning's content — sessions, reflective missions, journaling prompts, achievements — is
-authored in a CMS as trees of typed "blocks" and "cards," not as fixed pages. That's the right call
-for a content team that wants to ship new module shapes without waiting on engineering. It also means
-the frontend can never assume it has seen every block type the CMS will ever send.
+authored in a CMS as trees of typed blocks and cards rather than as fixed pages. A content team
+composes a module out of block types, nests them inside each other, and publishes.
 
-## The naive version breaks on day one of new content
+The awkward part wasn't the tree. It was that the set of block types was never finalized. New ones
+kept being authored, designs for them shipped continuously, and the frontend had to be built and
+running before most of that existed.
 
-Hardcode a layout per module and you've coupled the frontend release cycle to the content team's
-publishing cadence — every new block type is a deploy, and a CMS author who ships ahead of the
-frontend takes the app down mid-session for whoever's using it. That's the actual failure mode a
-content-driven product has to design around, not a hypothetical.
+## You cannot enumerate what hasn't been designed
+
+The instinct is to model the content: enumerate the block types, write a component for each, render
+a module by walking a known structure. That works exactly as long as the list is closed, and here
+it never was.
+
+Hardcoding a layout per module couples the frontend's release cycle to the content team's
+publishing cadence. Every new block type becomes a deploy, and the coordination window between
+"author publishes" and "frontend supports it" becomes a window in which the product is broken for
+whoever is mid-session. For a product where content *is* the product, and where new module shapes
+are the roadmap, that's not a tolerable coupling.
+
+So the frontend's contract had to be weaker on purpose. Not "I render these block types," but "I
+render the block types I know about, and I do something sensible about the rest."
 
 ## A parser per type, one pipeline
 
-The fix is a set of parsers, each responsible for one block type, each mapping its input to a
-concrete Vue component with normalized props. Adding a new kind of content is adding a parser and a
-component — the rendering pipeline that walks the content tree and dispatches to the right parser
-never changes.
+Each block type gets a parser: a small function that takes the CMS's representation and produces
+normalized props for a concrete Vue component. A registry maps type to parser. The pipeline walks
+the content tree, looks up each node's type, and dispatches.
 
-```text
-CMS block tree ──▶ parser (by type) ──▶ normalized props ──▶ Vue component
-                         │
-                         └─ unrecognized type ──▶ skip, don't throw
-```
+Adding support for a new kind of content is adding a parser and a component. The walker never
+changes, which is the point — the part that has to keep working while everything around it churns
+is the part with nothing type-specific in it.
 
-## The one line that matters most: skip, don't throw
+The normalization matters as much as the dispatch. Components take props shaped for the component,
+not for the CMS, so the parser absorbs the CMS's field names, its optionality, and its occasional
+restructuring. A schema change upstream lands in one parser rather than in every component that
+happened to read a field directly.
 
-An unrecognized type degrading gracefully — rendered as nothing, logged, moved past — instead of
-throwing is what actually decouples content from code. Without that one behavior, a content author
-shipping ahead of a frontend release doesn't just get a blank spot; they take down every learner
-mid-session on whatever screen renders that block. With it, the worst case of an eager CMS publish is
-a missing widget, not a crashed app.
+## Nesting makes it recursive
 
-## What this buys the content team
+Blocks contain blocks. A card holds content; a section holds cards; a module holds sections.
 
-New block, card, and wizard types become additive on the CMS side — no frontend rewrite required to
-support them, and no coordination window where a content change has to wait for a deploy. The
-frontend's job shrinks to "know how to skip what it doesn't recognize," which is a much smaller
-promise to keep than "recognize everything, forever."
+That falls out naturally once dispatch is a lookup: a parser that has children hands them back to
+the same walker rather than trying to render them itself. The tree renders by the pipeline calling
+itself, and no parser needs to know how deep it is or what its parent was.
 
-## Where this came from
+## Skip, don't throw
 
-This is Microlearning's actual parse engine, serving 50,000+ learners' sessions, journaling, and
-achievement flows off content the CMS team publishes independently. The engineering payoff wasn't a
-clever parser — it was the discipline of never letting an unknown type become a thrown exception on a
-learner's screen.
+An unrecognized type renders nothing, gets logged, and the walk continues.
+
+That single behaviour is what actually decouples the two release cycles. Without it, an author
+publishing a block type the deployed frontend has never heard of doesn't produce a gap — it
+produces a thrown exception partway through rendering, which in practice means a blank or broken
+screen for every learner who opens that module. With it, the worst case of publishing ahead of a
+deploy is a missing widget on an otherwise working page.
+
+It also inverts the promise the frontend has to keep. "Recognize everything, forever" is impossible
+against an open set. "Skip what you don't recognize" is a promise that stays true no matter what
+the content team invents next.
+
+## What skipping costs
+
+This is the part I'd want to read in someone else's version of this post, so here it is.
+
+**Failures are silent by construction.** A block that renders nothing looks identical to a block
+that was never added. An author who typos a type, or who publishes something the frontend genuinely
+can't support yet, gets no feedback at all — the page just quietly lacks a thing they thought they
+published.
+
+**And a skipped container takes its subtree with it.** This is the one that matters. Skipping an
+unknown leaf loses a widget. Skipping an unknown *nesting* type loses everything inside it, because
+the walker never descends into children it didn't recognize the parent of. The blast radius of one
+unknown type is not one block; it's however much content was underneath it.
+
+**Logging is not the same as knowing.** Skips are only useful as a signal if someone actually
+watches for them. A log line nobody reads is functionally the same as no log line, and the whole
+design leans on unknown types being noticed and implemented promptly rather than accumulating.
+
+## Where a different shape fits
+
+- **Show something in preview, nothing in production.** The behaviour authors need and the
+  behaviour learners need are different. An explicit "this block type isn't supported yet"
+  placeholder in the CMS preview environment, and a silent skip in production, gives the author
+  feedback at exactly the moment they can act on it without ever showing a learner a defect.
+- **Descend past unknown containers.** Rather than skipping an unrecognized node and its subtree,
+  render an unstyled passthrough and keep walking. You lose that node's layout and keep its
+  content, which for a nesting type is almost always the better trade.
+- **Generate the type list from the CMS schema.** If the CMS can describe its own types, a build
+  step can produce the registry's expected shape and fail loudly at build time on a type nothing
+  handles — turning a silent runtime skip into a visible engineering task.
+
+The engineering here was never a clever parser. It was deciding that an unknown type is a normal
+condition rather than an error — and then being honest that "normal condition" means nobody finds
+out unless you go looking.

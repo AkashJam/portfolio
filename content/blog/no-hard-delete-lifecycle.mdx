@@ -1,59 +1,84 @@
 ---
 title: "No hard delete: a lifecycle you can walk back"
-summary: Handing delete power to a non-engineering team raises the stakes of a mistaken click. Modeling cancellation as a reversible state transition instead of a destructive one changes what a mistake costs.
+summary: Handing delete power to a non-engineering team means the safety of the system rests on nobody ever misclicking. Modelling cancellation as a reversible state transition changes what a mistake costs — and quietly removes delete's special-cased code path.
 category: Architecture
-date: "2026-08-23"
+date: "2026-07-23"
 tags: [PostgreSQL, Backend, Data Modeling]
 draft: false
 ---
 
-{/* Draft for your review — grounded in the Lifeed internal admin tool's real architecture,
-    kept high-level: no literal table or status-column names. */}
-
-Self-serve tooling for a non-engineering team means the person clicking "cancel" isn't going to trace
-through what that button does before they click it. If "cancel" means a row disappears, the system's
-safety depends entirely on nobody ever clicking it by mistake — which is a bet you will eventually
-lose.
+Self-serve tooling for a non-engineering team means the person clicking "cancel" is not going to
+trace what that button does first. If cancel means a row disappears, the system's safety depends
+entirely on nobody ever clicking it by mistake, which is a bet you eventually lose.
 
 ## Delete is a one-way door
 
-A hard delete doesn't just remove a row, it removes the history of why the row existed and what state
-it was in before it went away. When the thing deleted was a paying customer's contract, "restore from
-backup" is not the same as "undo" — it's slower, it's a different team, and it's the kind of incident
-report nobody wants to write.
+A hard delete doesn't only remove a row. It removes the record of why the row existed and what
+state it was in beforehand.
 
-## Modeling the lifecycle as an explicit state machine
+When the deleted thing is a paying customer's contract, "restore from backup" is not the same as
+"undo." It's slower, it involves a different team, it recovers a point in time rather than a
+decision, and it's the kind of incident nobody wants to write up. The gap between those two words
+is the entire argument.
 
-The fix is refusing to let "gone" be a real state. A contract moves through draft, active, and
-suspended — an explicit, finite set of states with defined transitions between them — and there is no
-transition that means "row no longer exists." Cancellation is suspension: reversible, visible, and
-exactly as findable after the fact as before it.
+## Cancellation as a transition, not a disappearance
+
+A contract moves through an explicit, finite set of states — draft, active, suspended — with
+defined transitions between them, and there is no transition meaning "row no longer exists."
+Cancelling is suspending: reversible, visible, and exactly as findable afterwards as before.
 
 ```text
 draft ──▶ active ──▶ suspended
             ▲             │
             └─────────────┘
-         (reactivate is just another transition)
+         (reactivation is just another transition)
 ```
 
-## What this buys, concretely
+Reactivation isn't a recovery mechanism bolted on for emergencies. It's the same kind of operation
+as any other transition, which is why it can be trusted — it's exercised in normal use rather than
+only when something has gone wrong.
 
-An accidental cancellation is recoverable by flipping the state back, not by escalating to whoever
-has database access. The full history of a contract's lifecycle stays queryable — every transition is
-still a row, not a gap where a row used to be. And because "suspended" is a state like any other, the
-same authorization and audit logic that governs every other transition governs this one too, instead
-of delete needing its own special-cased, harder-to-audit code path.
+## What it buys beyond undo
 
-## The honest tradeoff
+The reversibility is the obvious win. The one that mattered more in practice is that delete stops
+being special.
 
-Nothing is ever really gone, which means the table doesn't shrink and every state transition is
-permanent history you're keeping. That's a deliberate trade: a little more storage and a little more
-schema discipline, in exchange for making the worst version of "I clicked the wrong thing" a two-click
-fix instead of an incident.
+A destructive operation usually gets its own code path: its own permission check, its own
+confirmation, its own audit entry, often written later and separately from everything else. That
+path is used rarely, tested less, and is the one place a mistake is unrecoverable. Removing it
+means suspension is governed by the same authorization and audit logic as every other transition,
+because it *is* every other transition. There's no special case left to get wrong.
 
-## Where this came from
+The history stays queryable too. Every transition is a row rather than a gap where a row used to
+be, so "what happened to this contract" is a question the system can answer.
 
-This is the real lifecycle model in Lifeed's internal admin tool: draft, active, suspended, no hard
-delete, cancellation as a reversible transition. It's the direct answer to handing delete-adjacent
-power to a team that isn't reading the code underneath the button — make the destructive-feeling
-action non-destructive by construction.
+## What it costs
+
+**Nothing ever leaves.** The table only grows, and every state a contract ever occupied is
+permanent history you're now storing and paging past. At this scale that's a rounding error; at a
+much larger one it's a partitioning and archival problem you've deferred rather than avoided.
+
+**Every query needs to care.** Once "gone" isn't a state, no query can assume the rows it sees are
+live ones. Every read path has to filter on state, and the failure mode is a forgotten filter
+quietly showing suspended contracts as active — which is a subtler bug than a missing row and
+harder to notice.
+
+**"Deleted" still means something to someone.** A customer asking for their data to be removed is
+not asking for a status change. Soft-delete-everything and a real erasure requirement will collide
+eventually, and the answer has to be a deliberate destructive path rather than the discovery that
+none exists.
+
+## Where a different shape fits
+
+- **Genuine erasure obligations.** Where deletion is a legal requirement rather than a UI verb, the
+  model needs a real removal path — ideally narrow, audited, and deliberately awkward to invoke, so
+  it stays distinct from the everyday cancel button.
+- **High-volume, low-value rows.** Lifecycle history earns its storage when each row represents a
+  commercial relationship. For event or telemetry data it doesn't, and a retention window beats a
+  state machine.
+- **The audit trail is the requirement.** If you need to know not just the current state but who
+  changed it and when, a status column isn't enough — that's an append-only transition log, with
+  current state derived from it. Strictly better, and considerably more machinery.
+
+Make the destructive-feeling action non-destructive by construction, and the question stops being
+whether someone will click the wrong thing. They will. It stops mattering.

@@ -1,57 +1,99 @@
 ---
-title: "One model, two consumers: a control plane that can't drift from the product"
-summary: When Customer Success edits data through an admin tool and the product reads the same source of truth, there's no second copy of the truth to drift — the alternative isn't safer, it's just a sync bug waiting to happen.
+title: "One database, one owner: why the product asks instead of reads"
+summary: Customer Success configures contracts in an admin tool; the learner platform enforces them. Both could have read the same tables. Making the platform ask the admin server instead — over a request that never leaves the node — is what keeps authorization in one place.
 category: Architecture
-date: "2026-08-22"
+date: "2026-07-14"
 tags: [PostgreSQL, Backend, Architecture]
 draft: false
 ---
 
-{/* Draft for your review — grounded in the Lifeed internal admin tool's real architecture,
-    kept high-level: no schema, no literal table names. */}
+Two systems care about the same facts. Customer Success configures clients and contracts through an
+internal admin tool. The learner-facing platform has to enforce whatever they configured — who has
+access, to what, until when.
 
-Give a non-engineering team self-serve tooling and there's a tempting shortcut: build the admin
-surface against its own copy of the data, sync it to the product on a schedule or via an event queue,
-and call it done. It's tempting because it's decoupled — the admin tool and the product can each move
-at their own pace. It's also how you end up debugging why a client's contract looks active in one
-place and expired in another.
+There are three ways to arrange that, and the differences between them are almost entirely about
+who is trusted with what.
 
-## The shortcut's real cost is a synchronization problem
+## The tempting one: give each system its own copy
 
-Two copies of the same fact need something to keep them in agreement, and that something is either a
-sync job that can lag or fail, or an event pipeline that can be dropped or reordered. Either way
-you've traded "one place to look" for "two places that are supposed to agree, usually do, and you
-find out when they don't."
+Build the admin tool against its own store, sync to the platform on a schedule or through an event
+queue, and both sides move independently.
 
-## A control plane and a data plane, one model
+It's decoupled, which is the appeal, and the cost is a synchronization problem you now own forever.
+Two copies of one fact need something keeping them in agreement, and that something is either a job
+that can lag or fail, or a pipeline that can drop or reorder. You've traded one place to look for
+two places that are supposed to agree, usually do, and announce their disagreement as a support
+ticket from a customer whose access doesn't match what they were sold.
 
-The alternative is structural, not procedural: Customer Success edits clients and contracts through
-the admin tool, and the learner-facing product reads that exact same source of truth. There's no
-sync step because there's nothing to sync — one domain model, two consumers, no second copy anywhere
-to drift from the first.
+## The obvious one: let both systems read the table
+
+One database, no sync, nothing to drift. This is better, and it's where the design started.
+
+But it puts the learner platform inside the contract tables. Every query the platform writes is a
+query that could return a row it shouldn't, and the only thing preventing that is the platform
+remembering to scope correctly, every time, in every query, forever. Authorization becomes a
+property distributed across two codebases written by people solving different problems.
+
+## What it actually does: the platform asks
+
+The admin server owns the database. Nothing else connects to it. When the platform needs to know
+whether a learner's access is valid, it sends an internal request to the admin server and gets an
+answer back — the request never leaves the node it's running on.
 
 ```text
-Customer Success ──▶ Admin UI ──▶ API / authz ──▶ Postgres ◀── Learner app (reads)
+Customer Success ──▶ Admin UI ──▶ Admin server ──▶ Postgres
+                                       ▲
+                              internal request
+                                       │
+                              Learner platform
 ```
 
-## What this forecloses, on purpose
+The difference from reading the table looks small and isn't. The platform can no longer construct a
+query, so it can no longer construct a *wrong* query. It doesn't ask for rows, it asks a question,
+and the component that answers is the one that owns the rules. Authorization lives in exactly one
+codebase because only one codebase is capable of reaching the data.
 
-It forecloses the class of bug where the admin tool says one thing and the product enforces another,
-because there is structurally nowhere for that disagreement to live. It also means a contract
-misconfigured in the admin tool is immediately what the product does — which is exactly the property
-you want when the whole point is handing configuration to people who aren't going to read the
-enforcing code.
+There's still no second copy of anything, so the sync problem never comes back. What's added isn't
+duplication — it's a door.
 
-## The tradeoff this accepts
+## What this forecloses on purpose
 
-A shared model means the admin tool and the product move together — a schema change touches both
-consumers, not one. That coupling is a real cost. It's the cost of removing a class of bug that a
-sync layer can hide for a long time before it surfaces as a customer whose access doesn't match what
-Customer Success configured.
+A contract misconfigured in the admin tool is immediately what the platform enforces, because
+there's no interval between configuration and effect for a state to be misconfigured *in*. That's
+the property you want when the whole point is handing configuration to people who will never read
+the code that acts on it. Their mistake is visible immediately rather than at the next sync.
 
-## Where this came from
+It also means the admin tool cannot be casually wrong about what the platform will do. There's no
+"the admin UI says active but the product says expired" class of bug, because there is structurally
+nowhere for those two statements to differ.
 
-This is the actual shape of Lifeed's internal admin tool: one Postgres-backed domain model, edited by
-Customer Success and read by the learner-facing product, with no second copy of client or contract
-state anywhere in the system. The engineering choice that mattered wasn't the admin UI — it was
-refusing to let a second source of truth exist in the first place.
+## What it costs
+
+**A network hop on a hot path.** Checking access is now a request rather than a join. Keeping it on
+the same node makes that cheap, but it is not free, and it makes the platform's availability depend
+on the admin server's. A component used by a handful of Customer Success staff is now load-bearing
+for every learner.
+
+**Coupling by contract instead of by schema.** The two systems move together — not because they
+share a schema, but because they share an interface. That's a better coupling than a shared table,
+and it is still coupling: changing what the platform can ask means changing two things.
+
+**One more service in the request path** to deploy, monitor, and reason about, in exchange for
+authorization that can only be implemented once.
+
+## Where a different shape fits
+
+- **The consumers genuinely don't need consistency.** If a stale answer is acceptable for minutes,
+  a read replica or a cache in front of the ask removes the hop and the availability coupling. The
+  reason it isn't done here is that access checks are exactly the thing you don't want stale.
+- **The database can enforce it.** Postgres row-level security pushes the scoping into the engine,
+  which makes direct reads safe again and removes the service boundary. It's a real alternative,
+  and it moves authorization into a place fewer engineers are comfortable debugging.
+- **More than two consumers appear.** At two systems, a direct internal request is simple and
+  obvious. At six, that's a hub every one of them depends on, and the shape worth considering is a
+  service that publishes decisions rather than answering them one at a time.
+
+The thing worth taking from this isn't "don't duplicate data" — everybody agrees with that already.
+It's that removing the second copy still leaves a question about who is allowed to touch the first
+one, and answering it with a service boundary rather than a code review is what makes the guarantee
+hold.

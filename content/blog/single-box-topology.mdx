@@ -1,60 +1,83 @@
 ---
-title: "The topology that isn't there: why this site runs on one box"
-summary: A personal site's real traffic and cost profile doesn't justify a multi-service cloud topology — and a topology sized for scale it'll never see isn't a stronger engineering statement, just a more expensive one.
+title: "The topology that isn't there: what one box actually costs"
+summary: This site runs every service on a single EC2 instance. That's the right call for its traffic — and it buys a specific, nameable set of problems that are worth stating rather than glossing.
 category: Infra
-date: "2026-08-14"
+date: "2026-08-28"
 tags: [Docker, AWS, Infra]
 draft: false
 ---
 
-{/* Draft for your review — grounded in this portfolio's real deploy topology, kept
-    high-level: no literal instance IDs or account details. */}
+The default shape for "real infrastructure" is several managed services: containers on managed
+compute, a managed database, a managed cache, a load balancer in front. This site runs Next.js, a
+Go API, Redis, and TimescaleDB as Docker Compose services on one EC2 instance behind Caddy.
 
-It's easy to default to a multi-service cloud topology for a portfolio site — separate containers on
-separate managed compute, a managed database, a load balancer in front of it — because that's the
-shape "real infrastructure" is supposed to have. This site runs on one EC2 box, behind Caddy, via
-Docker Compose. That's a deliberate choice, not the version that was settled for.
+That's a deliberate choice rather than a compromise, but the case for it is usually made
+dishonestly — as though the alternative buys nothing. It buys plenty. It just doesn't buy anything
+this workload needs, and the cost of not having it is specific enough to write down.
 
-## Match the topology to the traffic
+## Sizing to the traffic that exists
 
-A personal site's traffic is small and predictable. The engineering question isn't "what's the most
-impressive topology I can stand up" — it's "what does this workload actually need." For this site,
-that's one box: enough compute to run Next.js, the Ticker backend, Redis, and TimescaleDB
-comfortably, with room to spare, and no idle managed services billing by the hour for capacity nothing
-is using.
+A personal site's traffic is small and predictable. Two vCPUs and two gigabytes of memory run all
+five services with room left over, and the marginal cost of the entire market-data pipeline is
+approximately zero, because the box was already there for the site.
 
-```text
-Internet ──▶ Caddy (TLS) ──▶ Docker Compose
-                                 ├─ Next.js
-                                 ├─ Go API
-                                 ├─ Redis
-                                 └─ TimescaleDB
-```
+Horizontal scaling solves two problems: surviving load one instance can't take, and isolating
+failure between services with genuinely different risk profiles. Neither is in evidence here.
+Provisioning for them anyway would mean more AWS surface to secure, more independently failing
+parts, and a monthly bill for headroom that sits idle — in exchange for nothing measurable.
 
-## What a bigger topology would actually buy here
+## What it costs
 
-Nothing this site needs. Horizontal scaling exists to survive load a single instance can't handle,
-or to isolate blast radius between services with genuinely different failure profiles. Neither
-applies at this traffic level — a multi-service topology here would mean more surface to secure, more
-things that can independently fail, and more monthly cost, in exchange for headroom that will sit
-unused indefinitely.
+**Every deploy is a small outage.** `docker compose up -d` replaces containers in place. It's
+seconds, and nobody notices, but "zero-downtime deploys" is not a property this has, and claiming
+otherwise would be a lie about a real limitation.
 
-## Caddy earns the "why not more services" argument
+**One instance is one failure domain.** An AZ event, a bad kernel update, or an instance
+retirement takes down the site, the API, the database and the cache simultaneously. Recovery is
+Terraform plus a deploy, which is fast and rehearsed, but it is not automatic and it is not
+instant.
 
-One box behind Caddy gets automatic Let's Encrypt TLS and simple routing without a load balancer or a
-service mesh to configure and pay for. Docker Compose gets every service defined declaratively in one
-place, restartable and reproducible without an orchestrator whose main job, at this scale, would be
-managing complexity the orchestrator itself introduced.
+**The services contend.** Postgres and Redis and a Node process share two gigabytes. Nothing
+enforces a boundary between them, so a memory-hungry query and a traffic spike can interfere in
+ways that separate services simply couldn't. At this scale that headroom is comfortable; it is not
+guaranteed.
 
-## The honest framing
+**Data durability is bounded rather than guaranteed.** The database sits on a separate EBS volume,
+so it survives an instance replacement, and a nightly `pg_dump` goes to S3 from the host crontab
+using the instance's own role. That puts the recovery point objective at roughly twenty-four
+hours. It's an accepted bound rather than an oversight, but it is a bound: there's no
+point-in-time recovery and no standby, so losing the volume between two backups loses a day.
 
-This isn't "couldn't afford better infra." It's recognizing that a topology sized for scale a personal
-site will never see doesn't demonstrate more engineering judgment than one box run correctly — it
-demonstrates less, because it ignores the first question any real infrastructure decision has to
-answer: what does this actually need to handle.
+**The stream fan-out can't scale past this instance.** The SSE hub holds connections in one
+process. The coordination for running more than one ingesting replica exists and is tested, but
+the box it would scale onto doesn't.
 
-## Where this came from
+## What makes it survivable anyway
 
-This is the real topology behind everything on this domain — this page, the About and Projects
-pages, and the live Market dashboard — one Terraform-provisioned EC2 instance, Docker Compose, and
-Caddy, chosen because it matches what the site actually has to serve.
+The failure modes above are bounded rather than open-ended, and that's mostly down to unglamorous
+choices. Every service is `restart: unless-stopped`. Timescale has a real healthcheck, and the
+services that depend on it wait for it rather than racing it. The migration step runs as a
+one-shot that must complete successfully before the API starts. The whole instance is described in
+Terraform, so recreating it is a command rather than an archaeology project, and what runs on it
+is a single Compose file in version control.
+
+None of that prevents an outage. It makes the recovery boring, which at this scale is the property
+actually worth buying.
+
+## When I'd split it
+
+Concretely, rather than as a principle:
+
+- **When a deploy dropping requests starts mattering** — that's two instances and a load balancer,
+  and it's the first thing I'd add.
+- **When the database's failure profile diverges from everything else's.** A managed Postgres buys
+  automated backups, point-in-time recovery, and a failover story that a cron job and a dump file
+  do not. That's the upgrade I'd make first if this held data anyone depended on.
+- **When one service's resource appetite becomes another's problem** — that's the signal that
+  shared memory has stopped being free.
+- **When more than one person deploys.** Single-box operations rely on nobody else needing to do
+  something at the same time.
+
+The argument for one box isn't that distributed systems are overkill. It's that the right topology
+is the smallest one whose failure modes you can name — and every one above is named, bounded, and
+priced.

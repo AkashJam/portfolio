@@ -4,12 +4,12 @@ import { BrandIcon } from "@/components/site/BrandIcon";
  * Decorative icon banner below Home's hero (portfolio.md §17/§18, mockups/v2
  * design refresh) — replaces both the old word-cloud marquee and the
  * clickable tech-icon grid. Purely decorative (aria-hidden): what actually
- * built this site, not an interactive skill index — that's `data/skills.ts`,
- * kept for when `/blog` tag-filtering exists to link into (Days 10-12).
+ * built this site, not an interactive skill index — there isn't one
+ * currently (the unused `data/skills.ts` taxonomy was deleted as dead code).
  *
  * Exact 14-item order matches mockups/v2/home.html's committed list
- * (design-pass/CHANGES.md "v4") — a curated "built with" set, distinct from
- * data/skills.ts's broader résumé taxonomy.
+ * (design-pass/CHANGES.md "v4") — a curated "built with" set, not the
+ * broader résumé taxonomy an interactive index would need.
  */
 const ITEMS: { name: string; icon: string }[] = [
   { name: "TypeScript", icon: "siTypescript" },

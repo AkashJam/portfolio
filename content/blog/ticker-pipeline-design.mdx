@@ -1,65 +1,107 @@
 ---
-title: "A pipeline built for the source it doesn't have yet"
-summary: Ticker's ingestion pipeline is built around a pluggable source interface and at-least-once delivery from day one, even though v1 only ever runs a simulated feed — because retrofitting idempotency after a real feed shows up is the wrong order to do it in.
+title: "One tick, five candles: aggregating a feed you can't trust to arrive once"
+summary: How Ticker's aggregator turns a stream of ticks into OHLCV bars at five intervals at once, why it writes on every tick instead of on close, and what it takes to stay correct when the same tick can arrive twice.
 category: Architecture
-date: "2026-08-11"
+date: "2026-08-24"
 tags: [Go, Redis, TimescaleDB, Architecture]
 draft: false
 ---
 
-{/* Draft for your review — grounded in Ticker's real pipeline (this portfolio's own
-    build), kept conceptual: no literal package paths. */}
+Ticker's aggregator sits between a Redis Stream of price ticks and a TimescaleDB table of
+candles. Its job sounds like a one-liner — group ticks into time buckets, compute
+open/high/low/close/volume — and most of the interesting decisions are in the parts that sentence
+skips.
 
-Ticker's ingestion pipeline has one job: turn a stream of ticks into candles, reliably, whether the
-ticks come from a simulator or a real market-data provider. v1 only ever runs the simulator. The
-pipeline is built as if that were temporary, because it is.
+## One tick becomes five candles
 
-## A source is an interface, not a fact
+Every tick updates five bars at once: a configured finest interval, plus a fixed 5m/15m/1h/1d
+set. Bucketing is just truncation — a tick's timestamp rounded down to the interval gives the bar
+it belongs to, so no bucket boundaries need tracking and a tick that arrives slightly late still
+lands in the right bar.
 
-The pipeline doesn't know or care where a tick came from — a `MarketSource` interface sits between
-the ingestion loop and whatever's actually producing ticks. v1 implements it with a simulated source;
-a real provider adapter drops in later behind the same interface, with zero changes to anything
-downstream of it. Coupling the pipeline to "how ticks arrive" would mean a rewrite the day a real feed
-shows up. Coupling it to an interface means a new file.
+State is a map keyed by symbol and interval, each entry holding one open bar. A tick either
+extends the current bar (high becomes a max, low a min, close the latest price, volume a running
+sum) or, if its bucket is later than the one being held, closes the old bar and seeds a fresh one
+from that tick. Open, high, low and close are each set-once, max, min, or last-write. Volume is
+the only field that accumulates, which turns out to matter more than it looks.
 
-```text
-MarketSource (interface)
-      │
-      ├── sim source (v1)
-      └── real provider adapter (later, same downstream)
-```
+## Writing on every tick, not on close
 
-## Streams over channels, on purpose
+The obvious design writes a bar to the database when it closes. This one writes on every single
+tick.
 
-Ticks flow through a Redis Stream rather than an in-process channel — a choice that only pays off once
-there's more than one consumer or more than one instance, which v1 isn't. It's built that way anyway,
-because a Stream is the primitive that makes horizontal scale possible later without a pipeline
-rewrite, and an in-process channel is a wall you hit the moment you need a second process.
+That's more writes by a wide margin, and it buys one specific thing: the current, still-forming
+bar in the database is always accurate. A server-rendered page that queries the last hour of
+candles gets live data, not a bar frozen at the last boundary crossing. Without it, the newest
+candle on a freshly loaded chart would be stale by up to a full interval, and the fix would be a
+second code path reading the in-memory state — which only works while the reader and the
+aggregator are the same process.
 
-## At-least-once means candles have to be idempotent
+Upserting full state rather than a delta is what makes this affordable. Each write says what the
+bar *is*, not what changed, so repeating one is harmless and a failed one is repaired by the next
+tick in that bucket.
 
-Redis Streams guarantee at-least-once delivery, not exactly-once — a redelivered tick is a real
-possibility, not an edge case to shrug off. The aggregator that turns ticks into OHLCV candles upserts
-idempotently across every interval it maintains, so a duplicate tick produces the same candle twice,
-not a corrupted one. Designing for that from the start is cheap; discovering you need it after ticks
-are already flowing is a production incident.
+## Only the finest interval streams
 
-```text
-tick ──▶ aggregator ──▶ upsert candle (idempotent)
-              │
-     duplicate tick redelivered ──▶ same upsert, same result
-```
+When a bar updates, only the finest interval is published for live streaming. The coarser four are
+fetched over REST when someone switches tabs.
 
-## Why build for scale you don't have yet
+The reasoning is that only the default view needs to move in real time. Streaming all five would
+multiply the message rate by five to keep four charts fresh that nobody is looking at. A tab
+switch is a request boundary anyway, so the data is at most one request old at exactly the moment
+it becomes visible.
 
-Every piece of this — the pluggable source, the Stream instead of a channel, the idempotent upsert —
-is over-engineered for v1's actual load: one process, one simulated feed. The bet is that the honest
-cost of building it right the first time is smaller than the cost of retrofitting correctness into a
-pipeline that's already carrying real, duplicated, at-least-once data.
+Bucket close does trigger one piece of work beyond the write: the cached indicator series for that
+symbol and interval is invalidated, because a closed bar changes every EMA and RSI value computed
+over that window.
 
-## Where this came from
+## Delivery semantics, honestly
 
-This is Ticker's actual ingestion design: a `MarketSource` interface, a Redis Stream, and an
-idempotent aggregator, built before a real feed ever existed to justify any of it. The interesting
-decision wasn't the simulator — it was refusing to let "we only have a sim source right now" be a
-reason to skip the parts of the design that only matter once that stops being true.
+The aggregator reads through a Redis Stream consumer group, which promises at-least-once delivery.
+Getting that guarantee is not the same as being handed it.
+
+A consumer group only redelivers if something claims entries that were read but never
+acknowledged. Reading with `>` returns new messages only, so a tick whose processing fails is not
+retried by default — it sits in the pending list indefinitely, which is silent data loss wearing
+the costume of a durability guarantee. Making at-least-once real takes a periodic reclaim pass
+that claims entries idle beyond a threshold and pushes them back through the same handling path.
+
+Which then creates the problem the design has to actually solve. Reprocessing a tick recomputes
+high, low and close to the same values, because max, min and last-write don't care how many times
+you apply them. Volume doesn't work that way. A re-applied tick adds its volume twice and the bar
+quietly inflates — and because the write is a full-state upsert, the database faithfully records
+the wrong number.
+
+So processing is deduplicated by stream ID before anything accumulates. A tick whose ID has
+already been applied is acknowledged and skipped rather than re-run. The idempotent upsert
+everyone points at is real, but it protects the *write*, not the accumulation in front of it, and
+only the second of those was ever at risk.
+
+A tick is also applied to all five intervals before any of them is written. Applying and writing
+interval by interval means a failure partway through leaves some bars updated and the rest
+permanently missing that tick — and since Go iterates maps in random order, which bars diverge
+changes every time.
+
+## Shutting down
+
+On termination every open bar is flushed to the database. This is a safety net rather than a
+load-bearing batch write, since each tick already wrote synchronously; it exists so a deploy can't
+lose the few seconds between the last tick and the process exiting.
+
+## Where a different shape fits
+
+- **The database can do the bucketing.** TimescaleDB's continuous aggregates compute rollups from
+  raw rows, which removes the in-memory state machine entirely. That trades write volume and
+  query-time cost for a much smaller application, and it's the better answer if you're storing
+  every tick anyway.
+- **Exactly-once is genuinely required.** Dedupe keys carried through to a transactional write get
+  you there. It costs a write-path uniqueness check on every message, which is real money at tick
+  rates.
+- **Late data matters.** Truncation is processing-time-ish bucketing that happens to work because
+  ticks carry their own timestamps and arrive in near-order. A feed that replays hours late needs
+  event-time windows with an explicit lateness bound, and bars that can be revised after they
+  close.
+
+The aggregator is small, and nearly all of it is the same idea from different angles: write the
+whole truth every time, so that being handed the same tick twice, or dying halfway through, costs
+you nothing you can't recompute.

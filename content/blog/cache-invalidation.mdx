@@ -1,58 +1,103 @@
 ---
-title: "Death by cache invalidation: rescuing a data-viz tool's load times"
-summary: How an internal dashboard's caching layer went from a 5-second load to 3 seconds by fixing invalidation scope and eliminating N+1 queries.
-category: Engineering · Performance
-date: "2026-08-08"
-tags: [Vue, Go, Caching, Performance]
+title: "Five-minute queries behind a sixty-second timeout: unwinding a cache cascade"
+summary: A client-facing analytics dashboard cached its subqueries to stay fast, and that's precisely why it got slow — every write to a base table invalidated everything stacked above it. Fixing it meant preloading, splitting the fetch, and warming the cache before anyone asked.
+category: Performance
+date: "2026-07-02"
+tags: [Vue, Go, Redash, Caching, Performance]
 draft: false
 ---
 
-{/* DRAFT — dramatization, needs your fact-check on every specific.
-    Grounded in one real, documented fact (data/experience.ts, Lifeed):
-    "Cut dashboard API response time 40% (5s → 3s) by redesigning the
-    Redis caching layer and eliminating N+1 queries." I don't have the
-    full incident story — what the dashboard actually was, what the real
-    root cause and debugging path looked like, or real before/after
-    numbers beyond the résumé's 5s→3s figure. Everything below the
-    résumé bullet is a plausible reconstruction, not a verified account.
-    Rewrite freely or discard. */}
+The tool was a data visualization product: clients opened it to explore charts and graphs built on
+their own employee data. Vue on the front, Go behind it, and the analytics layer was Redash, which
+caches query results in Redis so an expensive query doesn't have to run again for the next person
+who asks for it.
 
-An internal dashboard that Customer Success used daily had quietly become the thing everyone
-complained about in standup. Every dashboard load took close to five seconds. Nobody had touched
-the caching layer in months, and nothing about the underlying data had grown dramatically — so
-why did it feel like the system was falling over?
+Then it stopped loading at all.
 
-## The cache that ate itself
+## Why subquery caching looks like the right answer
 
-The caching layer had been added early, with good intentions: cache the expensive aggregate
-queries, invalidate on write, keep things fast. The problem was invalidation scope. A single
-write to one customer record was invalidating cache entries far beyond that customer — entire
-aggregate views were getting torn down and recomputed on the next read, even when the actual
-data those views depended on hadn't changed.
+The dashboard's queries were layered. Expensive base aggregations at the bottom, and on top of
+them, queries that read those results and sliced them further for each chart.
+
+Caching the bottom layer is the obvious move. Compute the costly aggregation once, let every query
+above it read a cached result, and a page full of charts costs one hard computation instead of a
+dozen. For a while that is exactly what happens, which is what makes the failure mode so easy to
+walk into.
+
+## How it collapsed
+
+The cache was keyed to queries, and the queries had dependencies the cache understood only
+crudely. Any change to a table sitting underneath a cached subquery invalidated it — and
+everything built on top of that subquery had to recompute too.
+
+On a live product, those base tables change constantly. So the cached layer that was supposed to
+absorb the expensive work was being torn down and rebuilt continuously, and every query stacked
+above it inherited the cost. The main queries drifted out to around five minutes.
+
+They never got to finish. The request timeout was sixty seconds, so what users experienced wasn't
+a slow dashboard — it was a dashboard that failed.
 
 <Callout variant="warn" label="Root cause">
-  Invalidation was scoped to entities, not to the specific aggregates that actually depended on
-  them — so a narrow write triggered a wide cache wipe, and the "cache" spent more time
-  recomputing than it did serving from memory.
+  Invalidation followed table dependencies, not data relevance. A write to any base table
+  cascaded upward through every query layered on it, so the cache spent its time recomputing
+  rather than serving.
 </Callout>
 
-## Fix 1 — stop blocking the first paint
+## The frontend made the worst case the first case
 
-The first fix wasn't about caching at all — it was about not making the user wait on the
-slowest query before showing anything. Splitting the dashboard's data fetching so the shell and
-fast-loading widgets rendered immediately, with the expensive aggregate views streaming in
-afterward, made the perceived load time drop even before the caching fix landed.
+Compounding it, the page fetched everything before rendering anything. Many separate result sets,
+all requested up front, all blocking the first paint.
 
-## Fix 2 — key on inputs, not outputs
+That meant the very first visit — a cold cache, every query computing from scratch, nothing
+allowed to render until all of them returned — was the single worst path through the system. It
+was also the path every new client took. The load that most needed to succeed was the one
+guaranteed to time out.
 
-The real fix was re-scoping cache keys to the actual query inputs rather than the entity being
-displayed, so a write only invalidated the cache entries whose *inputs* had actually changed.
-Paired with fixing the N+1 query pattern underneath the aggregates — batching what had been a
-loop of individual queries into a single query per aggregate — the combination is what took the
-response time from five seconds to three.
+## Three fixes, in the order they mattered
 
-## What I'd do first next time
+**Preload the relationships.** The queries were doing per-row lookups that could be satisfied in
+one pass. Eager-loading what the aggregation actually needed removed a whole class of repeated
+round-trips from inside the expensive layer, which is the cheapest kind of win available: same
+results, far less work.
 
-Cache invalidation scope is worth designing deliberately, up front, rather than defaulting to
-"invalidate broadly to be safe." Broad invalidation feels safer in the moment and turns into the
-exact failure mode it was meant to avoid once the system has been running for a while.
+**Split the fetch and make it asynchronous.** Rendering no longer waited on everything. Each chart
+requested its own data, and the page painted as soon as the parts it needed were ready rather than
+when the slowest query in the set finished. This didn't make anything faster. It stopped the
+slowest thing on the page from setting the speed of the whole page, which users experience as
+roughly the same thing.
+
+**Warm the cache before anyone asks.** A scheduled job calls the API with each client's parameters
+on a cadence, so the expensive queries run on the cron's time rather than a user's. A cold cache
+stops being a customer-facing event and becomes a background one.
+
+The combination took the p95 load down to about thirty seconds.
+
+## Thirty seconds is not fast
+
+That number is the honest end of the story, and it's worth not dressing up. Going from *times out
+and shows nothing* to *loads in half a minute* is the difference between a broken product and a
+usable one, and it was the right thing to chase first. It is not the same as making the thing
+quick.
+
+The remaining thirty seconds are structural. Caching query results — however well you warm them —
+is still a bet that someone asked the same question recently. The queries themselves are still
+computing aggregations over raw rows every time they run, and the cache is only hiding that
+latency, not removing it.
+
+## Where a different shape fits
+
+- **Materialized views, or a rollup table.** Precompute the aggregation as data, refreshed on a
+  schedule or incrementally on write, and the dashboard reads rows instead of triggering
+  computation. That converts the problem from "how long does this query take" to "how fresh is
+  this table," which is a much easier question to answer.
+- **A warehouse rather than the operational database.** Analytical queries over the same tables
+  serving live product traffic will always contend. Separating them removes the constraint that
+  makes aggressive caching necessary in the first place.
+- **Invalidation that follows relevance, not dependency.** The cascade happened because the cache
+  knew which tables a query touched but not whether the specific change mattered to it. A cache
+  keyed on the inputs that actually affect a result invalidates far less — at the cost of having
+  to state those inputs explicitly, which nothing does for you.
+
+The lesson I'd carry forward isn't that caching was the wrong tool. It's that a cache layered on
+top of a dependency graph inherits that graph's fan-out, and if you haven't looked at the fan-out
+you haven't sized the cache — you've just moved the cost somewhere it's harder to see.

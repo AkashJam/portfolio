@@ -1,0 +1,87 @@
+---
+title: "Taking engineers off the critical path for changing a word"
+summary: Localized copy lived as per-locale rows in a database, and changing any of it needed an engineer and a content creator in the same room. Moving the source of truth into the tool designers already worked in turned a scheduled task into a publish button.
+category: Workflow
+date: "2026-06-11"
+tags: [Localization, Figma, Go, Caching]
+draft: false
+---
+
+Every piece of user-facing text in the product existed as rows in a database, one per locale. To
+change a sentence, an engineer edited those rows. To know *which* sentence, and what it should say
+in each language, they needed the content creator there with them.
+
+That's a workflow problem wearing the costume of a technical one, and it cost more than it looked
+like it cost.
+
+## What changing a word actually required
+
+Two people, scheduled together. A careful pass over database entries, because the text was
+identified by keys rather than by where it appeared, and getting the wrong row meant changing the
+wrong screen. Then the same again for every locale.
+
+The people who *owned* the words — designers and content creators — couldn't touch them. They could
+only describe what they wanted to someone who could. Every copy fix, however small, queued behind
+an engineer's availability, and small copy fixes are not rare. They're most of what changes about a
+product's surface.
+
+The failure mode wasn't errors so much as *deferral*: text that everyone agreed was wrong stayed
+wrong, because fixing it cost a meeting.
+
+## Move the source of truth to where the work already happens
+
+The change was to stop treating copy as data the engineering team maintains and start treating it
+as a design artifact, owned where design happens.
+
+Ditto is a localization service that connects to Figma frames, so a string lives attached to the
+component it appears in rather than in a keyed row someone has to look up. Designers and content
+creators write and translate copy in the same place they lay out the screen, see it in context,
+and publish when it's ready. The collaboration stops being a handoff and becomes the normal way
+they already work.
+
+## The engineering half is deliberately small
+
+At the boundary, a script in the BFF calls the service's API for the strings the app needs and
+caches the result, so the same text isn't fetched repeatedly for every request that renders it.
+
+That's the whole integration. It is not clever, and it shouldn't be — the value here isn't in the
+code, it's in what the code makes unnecessary. Once publishing in the localization tool is what
+makes text live, an engineer is no longer a participant in a copy change. Not a faster participant.
+Not one. The deployment doesn't change, the database doesn't change, and nobody schedules a meeting.
+
+## What it costs
+
+**A third party is now on the path to rendering your product.** The cache absorbs the normal case,
+but the failure case is real: the service being unreachable when a cache is cold has to degrade to
+something, and "something" needs deciding rather than discovering.
+
+**Cached text is stale text.** Publishing and appearing are now two events separated by a cache
+lifetime. That's usually fine and occasionally confusing, particularly to the person who just
+published and is refreshing to check.
+
+**Production copy is editable without review.** This is the honest one. Removing engineers from the
+loop removes the review that came with them. A typo, or a sentence that means something different
+in one locale, now reaches users without anyone technical seeing it. That's the *intent* — it's
+also a real change in who can affect production, and it's worth naming rather than pretending the
+change was purely upside.
+
+**Vendor lock-in on your product's words.** The strings live in someone else's system now. Getting
+them back is an export, and export formats are a promise vendors make rather than a guarantee.
+
+## Where a different shape fits
+
+- **Copy should go through review.** Then locale files in the repository, edited via pull request,
+  keep the review and still remove the database step. Slower for the content team, much better for
+  regulated or legally sensitive text.
+- **Content is structured, not just strings.** A headless CMS covers copy plus everything around it
+  — images, ordering, conditional blocks — where a localization tool covers only the words. If
+  you're already running a CMS, adding a second system for text is a real question.
+- **The design tool isn't the source of truth.** This approach works precisely because Figma was
+  where copy was actually decided. On a team where copy is written in a doc and design is
+  downstream, attaching strings to frames puts them in the wrong place, and the same workflow
+  problem reappears with an extra tool attached.
+
+The lesson I'd carry is that "an engineer has to do it" is a design decision, even when nobody
+decided it. It's worth asking, for anything a non-engineer needs changed regularly, whether the
+engineer is contributing judgment or just access — and if it's access, that's a workflow to fix,
+not a queue to manage.

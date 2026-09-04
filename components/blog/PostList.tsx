@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { cn } from "@/lib/utils";
 import type { Blog } from "content-collections";
@@ -10,10 +11,15 @@ import type { Blog } from "content-collections";
  * Domain filter chips + post list (portfolio.md §18 `/blog`) — domains
  * ship as tags/categories here, not a separate `/blog/[domain]` route
  * (portfolio.md decision #4; mockups/v2 folds the dropped `blog-domain`
- * page into this index's chip filter).
+ * page into this index's chip filter). Filter state lives in the `tag`
+ * search param (portfolio.md:156's `/blog?tag=<domain>` deep link) rather
+ * than local state, so the filtered view is bookmarkable/shareable.
  */
 export function PostList({ posts }: { posts: Blog[] }) {
-  const [domain, setDomain] = React.useState<string | null>(null);
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const domain = searchParams.get("tag");
 
   const domains = React.useMemo(
     () => Array.from(new Set(posts.flatMap((p) => p.category.split(" · ")))).sort(),
@@ -21,6 +27,10 @@ export function PostList({ posts }: { posts: Blog[] }) {
   );
 
   const filtered = domain ? posts.filter((p) => p.category.split(" · ").includes(domain)) : posts;
+
+  function setDomain(d: string | null) {
+    router.replace(d ? `${pathname}?tag=${encodeURIComponent(d)}` : pathname, { scroll: false });
+  }
 
   return (
     <div className="flex flex-col gap-8">

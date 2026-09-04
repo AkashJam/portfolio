@@ -1,0 +1,123 @@
+---
+title: "Four products, four rendering strategies, and none of them was a preference"
+summary: A plain SPA for two internal tools, a PWA for a learner-facing product, and static generation with ISR for this site. Each was right, and the reasons had almost nothing to do with the merits of the technique.
+category: Frontend
+date: "2026-09-02"
+tags: [Vue, Next.js, Frontend, Architecture]
+draft: false
+---
+
+Over about two years I've shipped four products that render in four different ways: two plain
+single-page apps, a progressive web app, and a statically generated site with incremental
+regeneration. It would be tidy to say I learned something and moved up a ladder. That isn't what
+happened. Each choice was right in its context, and the contexts differed on things that have
+nothing to do with rendering.
+
+## Two internal tools, both plain SPAs
+
+The internal admin platform gives Sales and Customer Success self-serve tooling. The data
+visualization product lets clients explore charts built on their own employee data. Both are Vue
+frontends over Go backends, both plain SPAs, and for both that's the correct answer.
+
+Everything about the audience says so. Every user is authenticated, so there is no crawler to
+serve and no first-impression bounce to fear. They're using the tool as work, repeatedly, across a
+session lasting an hour rather than a visit lasting twelve seconds. That means the JavaScript
+bundle is downloaded once and cached, and its cost is amortized across everything the user does
+afterward. And the interaction is genuinely stateful — filters, drill-downs, cross-chart selection
+— which is exactly what a client-side app is good at and what server-rendered pages have to work
+around.
+
+Server rendering would have bought nothing here. There's no SEO. There's no cold visitor. There's
+no shareable URL whose preview matters. The entire benefit is inapplicable, and the cost — a
+rendering layer, a hydration boundary, a second place state can live — is not.
+
+## Where the SPA shape did bite
+
+The data visualization tool still had a serious first-load problem, and it's worth being precise
+about whose fault that was.
+
+The page fetched every dataset it needed before rendering anything. On a cold cache, with the
+analytics queries recomputing, that meant a blank screen for as long as the slowest query took —
+and the slowest queries were taking minutes against a sixty-second timeout. Users didn't see a
+slow dashboard. They saw a dashboard that failed.
+
+That isn't the SPA's fault exactly, but the SPA shape makes it easy. With no server render there's
+no partial HTML to fall back on, so "nothing has arrived yet" and "nothing renders" are the same
+state by default. Server-rendered pages get progressive disclosure for free — the markup exists
+before the data does. A client-rendered app has to build that behaviour deliberately.
+
+Which is what the fix was: split the fetch, let each part of the page render when its own data
+arrived rather than when the last query returned. That's an SPA hand-rolling what the server
+rendering model gives you as a side effect. The lesson isn't "should have used SSR." It's that
+choosing client rendering means inheriting the responsibility for staged rendering, and the
+default is the worst possible version of it.
+
+## The third one was a PWA because of notifications
+
+Microlearning is a learner-facing product used by tens of thousands of people, built with Vue and
+Quasar as an installable progressive web app. The reason it's a PWA has nothing to do with
+rendering.
+
+The product's actual problem is the one every course platform has: people start and don't finish.
+Bite-sized lessons only work if learners come back for the next one, so the product needs to
+reach out and remind them — on a phone, where they are, not in an inbox they'll read on Thursday.
+That requirement is a push notification.
+
+And web push runs on a service worker, which is the thing that makes an app a PWA. So the chain
+runs entirely backwards from how these decisions are usually described: a completion-rate problem
+demanded re-engagement, re-engagement demanded push, push demanded a service worker, and a service
+worker is a progressive web app. Nobody chose a rendering strategy. They chose to be able to
+remind someone about lesson four, and the rendering strategy came attached.
+
+iOS is where that chain tightens into a knot. Safari only gained web push in iOS 16.4, and only
+for web apps the user has added to their Home Screen — so on iPhones, installability isn't a
+nicety layered on top of the notification feature, it *is* the delivery mechanism. No install, no
+reminder, no re-engagement, and the product problem stays unsolved for a large share of learners.
+
+The alternative that delivers push everywhere is native apps, which means two more codebases and
+two more release processes to send a message saying "you have a lesson waiting." A PWA covers
+iPhone, Android and desktop from the single Vue codebase that already existed. That's the trade,
+and framed that way it isn't close.
+
+The limitation is the same one the other client-rendered apps have, and it's real: first load is
+heavy, and a learner opening it for the first time on a poor connection waits for the bundle
+before anything is useful. Every launch after that is fast. Front-load the cost, amortize it over
+months of use — a terrible trade for something opened once, an obvious one for something opened
+weekly for a year.
+
+## This site needs the opposite of all of that
+
+Everything true of those three is false here. Visitors arrive cold, once, often from a search
+result or a link someone shared. Crawlers matter. The content is mostly static prose that changes
+when I write something, not when a user does anything.
+
+So this site is statically generated, with React Server Components as the default, and
+incremental regeneration for the handful of things that read live data. The HTML is complete when
+it arrives, which is what both a crawler and a first-time visitor on a slow connection need.
+
+It has its own trap, and it's the mirror image of the SPA one. Because static-versus-dynamic is
+inferred from what a route fetches rather than declared, a single uncached fetch in shared code
+silently converts a static page into one rendered on every request. No error, no warning — just a
+site quietly paying server time for HTML it could have generated once. I hit that twice.
+
+## What actually decides it
+
+Reading back, none of the four decisions turned on which rendering strategy is better. They turned
+on four questions:
+
+- **Who's asking?** A crawler or a cold visitor needs HTML on arrival. An authenticated user in
+  their eighth session today does not.
+- **Have they already paid the bundle cost?** Repeat usage amortizes client-side rendering.
+  One-time visits don't.
+- **How stale can it be?** Content that changes when the author changes it can be generated ahead
+  of time. Data that changes per user, per second, cannot.
+- **How interactive is it, really?** Cross-filtering charts want a client app. Prose does not.
+
+And sometimes not even those. The PWA wasn't chosen by any of the four — it was chosen by needing
+to send a notification, which required a service worker, which decided the rest before rendering
+entered the conversation. A required capability outranks all of it, because you can argue about
+trade-offs and you cannot argue a browser into delivering push without one.
+
+Get those questions right and the rendering strategy mostly falls out of them. Get them wrong and
+no amount of framework sophistication rescues it — which is roughly what a dashboard that fetches
+everything before painting anything is: the right technique, aimed at the wrong question.

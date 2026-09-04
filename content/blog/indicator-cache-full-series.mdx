@@ -1,52 +1,88 @@
 ---
-title: "The cache was scoped to one job — that's why extending it was cheap"
-summary: A Redis cache built to hold each indicator's latest value had to grow to hold a full series once the frontend needed a real chart line. The requirement change was bigger than the fix, because the cache wrapper had never assumed more than one shape.
+title: "Widening a primitive: when a cache had to hold a series instead of a number"
+summary: Ticker's indicator cache stored each indicator's latest value until a chart overlay needed the whole line. The change touched seven files — and was still cheap, because the new shape contained the old one.
 category: Backend
-date: "2026-08-12"
+date: "2026-08-26"
 tags: [Redis, Go, Caching]
 draft: false
 ---
 
-{/* Draft for your review — grounded in Ticker's real build (this portfolio's own
-    project), kept conceptual: no literal cache-key formats or file paths. */}
+Ticker computes EMA and Wilder-smoothed RSI(14) from stored candles on read rather than
+maintaining them as ticks arrive, and caches the result in Redis. Compute-on-read keeps the
+ingestion path free of indicator logic, and the cache is what stops every chart load paying for
+the arithmetic again.
 
-Ticker computes EMA and Wilder-smoothed RSI(14) on read and caches the result in Redis. The first
-version of that cache stored exactly one thing per indicator: its latest computed value. That was
-correct for the requirement at the time — a live markets table showing current numbers — and wrong
-for the requirement that showed up next.
+## What the cache actually holds
 
-## The requirement that broke the assumption
+One entry per symbol, interval, and *set* of requested indicators. The requested names are sorted
+before the key is built, so asking for `rsi,ema` and asking for `ema,rsi` hit the same entry
+rather than fragmenting into two copies of identical work.
 
-Once the frontend needed an actual chart line for an indicator overlay, not just a single current
-number, "cache the latest value" stopped being enough. A chart needs a series. The cache, as built,
-had nowhere to put one.
+Entries expire after five minutes, but that TTL is a ceiling rather than the real invalidation
+path. When a candle closes, the aggregator deletes the cached entries for that symbol and interval
+by prefix, because a closed bar changes every value computed over that window. The TTL only
+catches whatever that misses.
 
-```text
-v1 cache:  indicator ──▶ latest value
+A corrupt or unexpected cache entry falls through to recomputation instead of failing the request,
+and a failed cache write is non-fatal — the caller still gets a correct freshly-computed answer.
+Neither is clever, but both mean Redis being unhappy degrades the endpoint's speed rather than its
+availability.
 
-needed:    indicator ──▶ full series (for the chart)
-                      └▶ latest value (for the table, still)
-```
+## The requirement that changed the shape
 
-## Why the fix was smaller than it could have been
+The first version stored exactly what the first requirement needed: each indicator's latest value,
+as a number, because the live markets table showed current readings and nothing else.
 
-The instinct when a cache's shape is wrong is to assume the fix touches everything that reads from
-it. It didn't, here, because the cache wrapper had only ever been scoped to one job — compute an
-indicator, cache the result — and every caller went through that one wrapper rather than reaching
-into Redis directly. Extending the wrapper to store and serve a full series meant changing the
-wrapper's internals and its return shape once, not chasing down every call site that had quietly
-assumed "single value" as a contract.
+Then the chart needed an EMA overlay. An overlay isn't a number, it's a line — one value per
+candle, aligned to the candles already being plotted. The cache had nowhere to put that, and no
+amount of reading it differently would produce it.
 
-## The lesson isn't "cache more"
+## What the change actually cost
 
-It's that a cache abstraction's blast radius when requirements change is a direct function of how
-many places bypassed it. One choke point — one function every caller goes through, no direct Redis
-access scattered through the codebase — is what turned "the frontend needs a different shape of data"
-from a multi-file refactor into a local change.
+Seven files, give or take two hundred lines. That's more than "we changed the cache," and it's
+worth being accurate about where the work landed:
 
-## Where this came from
+- The cache gained a series method, and its old single-value method became a thin derivation of it.
+- The **registry contract changed**. Its extension point had been "given candles, return a value";
+  it became "given candles, return a series."
+- Both indicator implementations had to grow series variants, and both sets of tests followed.
+- The API handler gained a branch for the new response shape.
 
-This actually happened during Ticker's build: the indicator cache was written to hold one number per
-indicator, then had to grow to hold a full series once the chart needed an overlay line instead of a
-single point. The fix landed smaller than expected specifically because nothing outside the cache
-wrapper had ever assumed it knew the cache's internal shape.
+What didn't happen is the thing that usually makes this expensive: nothing that consumed the cache
+had to be rewritten to keep working. The single-value response still exists, still returns the same
+JSON, and still goes through the same call.
+
+## Why the new shape contained the old one
+
+That's the part worth generalizing. A series isn't a different kind of answer from a latest value —
+it's strictly more information. Once the series existed, the value was recoverable from it by
+taking the last element, so the old shape survived as a projection rather than as a second code
+path to maintain.
+
+Widening a primitive this way costs you the implementations and their tests, which is real work
+and shows up honestly in the diff. What it doesn't cost is every consumer downstream, because none
+of them lost anything. Compare that to the alternative shape of this change — adding a *parallel*
+series cache next to the value cache — which would have kept the diff smaller and left two caches
+to invalidate, two things to keep consistent, and a permanent question about which one to read.
+
+There's a small piece of evidence sitting in the repo for exactly this. The registry's old
+`Compute` helper, the one that returned a single value, is still there and nothing calls it
+anymore. The derivation moved into the cache when the primitive widened, and the original was left
+behind — cheap to delete, and a fair marker of where the seam actually moved.
+
+## Where a different shape fits
+
+- **Reads vastly outnumber candle closes.** Precompute on close and store the series alongside
+  the candles, rather than computing on read and caching. It costs storage and a backfill path for
+  history, and it removes the cold-start latency entirely.
+- **The indicator set grows.** The key is per requested *set*, so N indicators means up to 2ⁿ−1
+  cached combinations, each recomputing its members independently with nothing shared between
+  them. At two indicators that's three keys and irrelevant. At six it's sixty-three, and caching
+  per indicator and composing the response would be the better trade.
+- **The window is unbounded.** Recomputing from candles is only cheap because the candle window is
+  bounded. Indicators over an open-ended history want incrementally maintained state, updated per
+  candle close, rather than a recomputation the cache is hiding.
+
+The lesson isn't that the cache was well factored, though it was. It's that a requirement change
+lands softly when the new shape is a superset of the old one, and lands hard when it's merely
+adjacent — and you often get to choose which of those you're building.

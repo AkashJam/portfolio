@@ -22,53 +22,59 @@ sitting in CI waiting to leak.
 ## Approach
 
 - Next.js App Router with Server Components as the default, not the exception — pages fetch data
-  server-side and ship minimal client JavaScript; client components are reserved for genuinely
-  interactive pieces (the command palette, the mobile drawer, live charts), not the whole tree.
-- Design tokens are single-sourced as CSS custom properties in `globals.css`, mapped into
-  Tailwind v4's `@theme`. The design mockups are a visual reference only — where a mockup and the
-  token layer disagreed, the tokens in code won, never the other way around.
-- shadcn/ui, built on Radix-family primitives, themed to those same tokens — accessibility (focus
-  trapping, keyboard navigation, ARIA wiring) comes from the primitives by construction, not from
-  hand-rolled logic layered on top.
+  server-side and ship minimal client JavaScript. Client components are reserved for genuinely
+  interactive pieces: the command palette, the mobile drawer, the live charts.
+- Design tokens are single-sourced as CSS custom properties, mapped into Tailwind v4's `@theme`,
+  with the radius scale derived from a single base value. The mockups are a visual reference only —
+  where a mockup and the token layer disagreed, the tokens won.
+- shadcn/ui on Radix-family primitives, themed to those same tokens, so focus trapping, keyboard
+  navigation and ARIA wiring come from the primitives rather than hand-rolled logic.
 - `/projects` and `/blog` run on Content Collections + MDX: Zod-validated structured frontmatter
-  plus free-form MDX body, so publishing a new case study or post is a new file, not a schema
+  plus a free-form MDX body, so publishing a case study or post is a new file rather than a schema
   migration or a CMS deploy.
-- Keyless CI/CD: GitHub Actions assumes an AWS IAM role over OIDC on every push, builds a
-  multi-arch image, pushes it to ECR, and triggers a deploy over SSM — no static AWS access keys
-  live in either repo's secrets.
-- One EC2 box runs the whole stack behind Caddy (automatic Let's Encrypt TLS) via Docker Compose —
-  deliberately not a multi-service cloud topology. A personal portfolio's real traffic and cost
-  profile doesn't justify one, and a topology sized for scale it'll never see isn't a stronger
-  engineering statement, just a more expensive one.
+- Keyless CI/CD: GitHub Actions assumes an AWS IAM role over OIDC on every push, builds an arm64
+  image to match the Graviton host, pushes to ECR, and triggers a deploy over SSM. No static AWS
+  access keys exist in either repository's secrets.
+- One EC2 box runs the whole stack behind Caddy via Docker Compose. That's sized to the traffic a
+  personal site actually sees, and it buys a specific set of costs — deploys that replace
+  containers in place, one failure domain, and services sharing memory with nothing enforcing a
+  boundary between them.
 
 ## Results
 
 - Everything you're looking at — Home, About, a live streaming Market dashboard (see the Ticker
   case study), Projects, and Blog — served from one box for a few dollars a month.
-- Every push either lints, typechecks, and builds cleanly, or the pipeline fails it — no separate
-  "works on my machine" step between writing code and it being live.
-- Zero long-lived cloud credentials anywhere in either GitHub repo — OIDC-issued, short-lived
-  tokens only, scoped per workflow run.
+- Every push runs lint, typecheck, build, and unit tests, then contract tests against a real Ticker
+  container and Playwright accessibility checks. A change that fails any of them doesn't ship.
+- Zero long-lived cloud credentials anywhere in either GitHub repository — OIDC-issued short-lived
+  tokens only, scoped per workflow run, with the role's trust policy pinned to the exact repository
+  and branch allowed to assume it.
 
 ## Lessons
 
-- GitHub's OIDC subject claim isn't what most walkthroughs assume — see the "Keyless deploys" post
-  for the exact shape of the bug that cost during the real build.
-- Building the design system as CSS custom properties mapped into Tailwind's `@theme`, instead of
-  hardcoding color values through the JSX, is what turned a mid-build design refresh (new ambient
-  elements, a reworked color usage pass across two full pages) into a targeted diff instead of a
-  search-and-replace across dozens of files.
+- GitHub's OIDC subject claim isn't the shape most walkthroughs assume, and the failure is
+  maximally unhelpful: every value in the trust policy reads as correct and the request is still
+  denied. The tempting fix — wildcarding the whole claim — turns a deploy role into one any
+  stranger can assume.
+- An automated accessibility check found a contrast failure inside the design tokens themselves,
+  not in a component. Darkening the brand colour would have degraded the four roles it was already
+  fine for — borders, rings, links, glows — to fix the one it wasn't. Splitting it into a second
+  token by role cost nothing downstream, because nothing had ever referred to the colour by value.
+  Tokens didn't make the site accessible; they made the fix cheap.
+- Static-versus-dynamic rendering is inferred from what a route fetches, not declared. One uncached
+  fetch in shared code silently converts a statically generated page into one rendered per request,
+  with no error and no warning — a thing you only notice if you read the build output deliberately.
 - A personal site is a legitimate place to hold production-grade discipline — leader election,
-  shutdown-flush semantics, honest data-provenance flags. None of that is overkill for a
-  portfolio if the entire point is demonstrating how the real thing would actually get built.
+  shutdown-flush semantics, honest data-provenance flags. None of that is overkill if the point is
+  demonstrating how the real thing would get built.
 
 ## Go deeper
 
 <DeeperLinks
   items={[
-    { label: "Architecture", description: "App shell & rendering strategy", href: "/blog/rsc-and-seo" },
-    { label: "Decision", description: "Single-box Docker Compose topology", href: "/blog/single-box-topology" },
-    { label: "Decision", description: "Tokens single-sourced in code", href: "/blog/design-tokens-in-code" },
-    { label: "Infrastructure", description: "Terraform & keyless CI/CD", href: "/blog/oidc-subject-claim" },
+    { label: "Architecture", description: "One fetch away from dynamic: what RSC decides for you", href: "/blog/rsc-and-seo" },
+    { label: "Decision", description: "What one box actually costs", href: "/blog/single-box-topology" },
+    { label: "Frontend", description: "Driving a live canvas chart from React", href: "/blog/canvas-chart-in-react" },
+    { label: "Infrastructure", description: "Keyless deploys and the subject-claim gotcha", href: "/blog/oidc-subject-claim" },
   ]}
 />

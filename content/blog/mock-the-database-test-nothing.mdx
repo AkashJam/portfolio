@@ -1,65 +1,86 @@
 ---
 title: "If your correctness lives in SQL, mocking the database tests nothing"
-summary: When the rules are enforced by constraints, unique indexes, and query-level access checks, a mocked database validates your mocks — not the behavior that actually ships. The fix is a real database as the merge gate.
+summary: When the rules are enforced by constraints, unique indexes, and access checks in the query layer, a mocked database validates your mocks rather than what ships. A real Postgres as the merge gate — and coverage aimed at what matters instead of at a percentage.
 category: Testing
-date: "2026-08-21"
+date: "2026-08-11"
 tags: [PostgreSQL, Testing, Backend]
 draft: false
 ---
 
-{/* Draft for your review — general testing-philosophy lesson from the Lifeed admin tool's
-    merge gate, kept high-level. Adjust the date. */}
-
 There's a comfortable style of test that stubs the database out: the repository returns canned rows,
-the service does its thing, you assert on the result. It's fast, it's isolated, and it feels
-disciplined. For a certain kind of system it's also a test of almost nothing — because if the
-behavior you care about is enforced *by the database*, a mock that hands back whatever you told it to
-will never touch the part that can actually break.
+the service does its thing, you assert on the result. Fast, isolated, disciplined-feeling. For a
+certain kind of system it also tests almost nothing — because if the behaviour you care about is
+enforced *by the database*, a mock handing back whatever you told it to will never reach the part
+that can break.
 
 ## Where the correctness actually lives
 
-In a data-heavy service, a surprising amount of the specification isn't in the application code at
-all:
+In a data-heavy service, a surprising amount of the specification isn't in application code at all:
 
 - Uniqueness is a unique index.
 - "This can't exist without that" is a foreign key.
 - "At least one of these is required" is a constraint.
 - "You can only see rows you're allowed to" is a join in the query.
 
-Mock the database and every one of those rules evaporates. The mock happily returns two rows with the
-same key, or a child with no parent, or a row the caller should never have been able to see — it has
-no constraints to violate. Your assertions pass. The invariant is still broken in production.
+Mock the database and every one of those evaporates. The mock cheerfully returns two rows with the
+same key, a child with no parent, or a row the caller should never have been able to reach — it has
+no constraints to violate. The assertions pass. The invariant is still broken in production.
 
-## Mocks test the shape you imagined
+## Mocks encode the assumption you're trying to test
 
-A mocked DB encodes *your assumption* about what the database would do. But the bugs worth catching
-are exactly the cases where that assumption is wrong: the constraint you forgot to add, the race two
-concurrent transactions hit, the access join that leaks a row under a filter you didn't picture. A
-mock can't surface any of them, because you built the mock out of the same beliefs as the code it's
-checking. Green means "the code agrees with my assumptions," not "the system is correct."
+A mocked database is a statement of what you *believe* the database would do. The bugs worth
+catching are precisely the cases where that belief is wrong: the constraint nobody added, the race
+two concurrent transactions hit, the access join that leaks a row under a filter you didn't
+picture.
 
-## The merge gate: a real database
+A mock can't surface any of them, because it was built out of the same beliefs as the code it's
+checking. Green means "this code agrees with my assumptions," not "this system is correct." Those
+are different claims and only one of them is worth a merge.
 
-So the rule is blunt: anything that touches the data layer is tested against a real Postgres, and
-that's the gate a change has to clear to merge. Pure logic still gets fast unit tests — there's no
-reason to boot a database to test a formatting helper. But the moment a test's outcome depends on a
-constraint, a transaction, or a query, it runs against the real engine, typically an ephemeral
-containerized instance spun up per run.
+## The merge gate
 
-## What it costs, and why it's worth it
+So the rule is blunt: anything touching the data layer is tested against a real Postgres, and that's
+the gate a change clears to merge. Pure logic still gets fast unit tests — there's no reason to boot
+a database to test a formatting helper. But the moment an outcome depends on a constraint, a
+transaction, or a query, it runs against the real engine.
 
-- **It's slower.** A real database per run is seconds you didn't spend mocking. You buy them back the
-  first afternoon you *don't* spend chasing a constraint violation that only shows up in production.
+## Coverage is a tool, not a score
+
+The related decision, and the one that gets more argument: coverage is deliberately not
+comprehensive. It's aimed at the functionality where being wrong actually costs something —
+contract validity, access checks, the lifecycle transitions Customer Success can trigger — rather
+than spread evenly until a percentage looks respectable.
+
+Chasing a number produces tests of getters. It also produces a suite slow enough that people stop
+running it locally, and a figure that reassures without corresponding to risk. A test exists to
+tell you when something important broke, and "important" is not evenly distributed across a
+codebase.
+
+The honest version of that position is that it requires judgment, repeatedly, about what matters —
+which is harder to defend in a review than a threshold, and harder to fake.
+
+## What it costs
+
+- **It's slower.** A real database per run is seconds you didn't spend mocking. You buy them back
+  the first afternoon you don't spend chasing a constraint violation that only appeared in
+  production.
 - **You need fixtures and isolation** — a clean schema per run, transactional rollback or a fresh
-  database between tests. That's genuine setup, and it's a one-time cost you amortize across every
-  test written afterward.
-- **The payoff:** the suite exercises the same constraints, transactions, and queries that ship.
-  When it's green, the thing that's green is the actual system — not a diorama of it.
+  database between tests. Genuine setup, paid once and amortized over every test written after.
+- **Untested paths are a decision, not an oversight** — which only works if the decision is
+  revisited. Targeted coverage degrades into accidental coverage the moment nobody is asking what
+  moved into the "matters" column since last quarter.
 
-## Where this came from
+## Where a different shape fits
 
-This is the merge-gate rule for Lifeed's internal admin tool. Its correctness genuinely lives in the
-schema — derived-validity predicates, uniqueness guards that double as business rules, access checks
-pushed down into the query layer — so mocked-DB tests were rejected as the primary strategy. A suite
-that mocked all of that away would be green and meaningless. The whole point of the tests is to fail
-when the database would.
+- **The database is a detail.** If the schema is a bag of columns and every rule lives in
+  application code, mocks test the thing that can break and a real database is ceremony. The
+  question is always where the invariants are, not which style is more rigorous.
+- **The suite outgrows the gate.** Real-database tests scale in wall-clock time. Past a point the
+  answer is parallel databases per worker or a subset gate on pull requests with the full suite on
+  main — not a retreat to mocks.
+- **Contract tests across a service boundary.** Where correctness spans two services rather than
+  one schema, neither a mock nor a real database catches the mismatch. That needs a shared contract
+  both sides verify against, which is a different tool for a different failure.
+
+The point of the suite is to fail when the database would. Anything that can't do that is
+measuring something, but it isn't measuring whether the thing works.

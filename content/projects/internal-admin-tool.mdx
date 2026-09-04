@@ -1,17 +1,13 @@
 ---
 title: Internal Admin Tool
-summary: A from-scratch admin control plane that gave Lifeed's Customer Success team self-serve ownership of clients, contracts, and entitlements — a Postgres-backed domain model where the invariants live in the database, not the form.
+summary: A from-scratch admin platform giving Lifeed's Customer Success team self-serve ownership of clients, contracts, and entitlements — a Postgres-backed domain model where the invariants live in the database, not the form.
 slug: internal-admin-tool
 year: 2026
-role: Solo
+role: Full-Stack Engineer
 focus: Backend · Platform
 status: Live
 tags: [Go, PostgreSQL, Vue, TypeScript, REST]
 ---
-
-{/* Draft for your review. Lifeed (employer) work, kept high-level per your call —
-    no literal schema, column names, or SQL. `year` (desc) drives ordering on /projects and
-    `featured` promotes a card, so adjust both to taste. */}
 
 ## Problem
 
@@ -26,34 +22,37 @@ The goal was self-serve tooling for a non-engineering team — and, harder than 
 that *can't be talked into an invalid state*. When you hand a form to someone who isn't going to
 read the code, the form has to make the wrong thing impossible, not merely discouraged.
 
+I built this one alone, from the domain model and interface design through to implementation.
+
 ## Approach
 
 <ArchFlow
-  nodes={["Customer Success", "Admin UI", "API · authz", "Postgres", "Learner app"]}
-  highlight="Postgres"
+  nodes={["Customer Success", "Admin UI", "Admin server · authz", "Postgres"]}
+  highlight="Admin server · auth"
 />
 
-- The admin tool is a **control plane**: Customer Success edits clients and contracts through it, and
-  the learner-facing product reads the same source of truth. One domain model, two consumers — so a
-  contract configured in the admin tool is exactly what the product enforces, with no second copy to
-  drift.
+- **The admin server owns the database outright.** Customer Success edits clients and contracts
+  through it, and the learner-facing platform never touches those tables — when the platform needs
+  to know whether someone's access is valid, it sends an internal request and gets an answer. The
+  platform can't construct a query, so it can't construct a wrong one, and authorization exists in
+  exactly one codebase.
 - **Invariants live in the database, not the form.** Uniqueness, required relationships, and the
-  rules that make a contract coherent are enforced by constraints — the last line of defense sits
+  rules that make a contract coherent are enforced by constraints — the last line of defence sits
   below the UI, below the API, and below any future caller, where nothing can bypass it.
 - **Expiry is derived, not stored.** A contract's validity is computed from its status and its date
-  window at read time, in exactly one place, rather than saved as a status that a scheduled job has
-  to keep flipping. There's no window where the database says "active" and reality disagrees.
+  window at read time, in a single function every caller routes through, rather than saved as a
+  status a scheduled job keeps flipping. There's no window where the database says "active" and
+  reality disagrees.
 - **The lifecycle is an explicit state machine** — draft, active, suspended — with no hard delete.
   Cancellation is a reversible suspension, so an accidental change is recoverable and the history
-  stays intact. That matters when the thing you almost deleted was a paying customer's access.
-- **Registration mode is a consequence of the data, not a separate switch.** Whether a client is open
-  to self-registration or restricted to specific email domains follows from whether any domain rules
-  exist — so the two facts can never contradict each other.
+  stays intact. It also removes delete's special-cased code path: suspension is governed by the same
+  authorization and audit logic as every other transition, because it *is* every other transition.
+- **Registration mode is a consequence of the data, not a separate switch.** Whether a client is
+  open to self-registration or restricted to specific email domains follows from whether any domain
+  rules exist — so the two facts can never contradict each other.
 - **Optimistic concurrency with a version guard.** Two Customer Success users editing the same
   contract get a clean conflict instead of a silent last-write-wins overwrite. The one who loses the
   race is told, rather than discovering later that their change simply vanished.
-- **Access checks are part of the data-access path.** Who can see and touch what is enforced in the
-  query layer, so the rule holds no matter which endpoint reaches for the data.
 
 ## Results
 
@@ -63,27 +62,32 @@ read the code, the form has to make the wrong thing impossible, not merely disco
 - The system's invariants are guaranteed by the database, so a mistaken edit fails loudly at the
   boundary instead of quietly producing a client whose contract doesn't add up.
 - Manual, engineer-gated operations became a tool a non-engineering team owns outright — the
-  operational flexibility compounded as the platform and its customer base grew.
+  operational flexibility compounding as the platform and its customer base grew.
 
 ## Lessons
 
-- **Derived state beats stored state for anything you can compute.** Storing "expired" as a status
-  buys you a synchronization problem and a cron job; computing it from the dates you already have
-  buys you one source of truth.
+- **Removing a duplicate copy isn't the same as deciding who may touch the original.** One database
+  with two systems reading it has no sync problem and a real authorization problem. Putting a
+  service boundary in front of the data — rather than trusting every consumer to scope its own
+  queries — is what makes the guarantee hold.
+- **Derived state beats stored state for anything you can compute**, and the cost is knowing what
+  you gave up: a predicate involving the current time can't be indexed or stored as a generated
+  column, so you index its inputs and let the planner do the comparison.
 - **When correctness lives in SQL and constraints, tests that mock the database test your mocks.**
-  The merge gate here runs integration tests against a real Postgres for anything touching the data
-  layer — mocked-DB tests were rejected as the primary strategy on purpose.
-- **Building for non-engineers raises the bar on the model, not just the UI.** There's no engineer in
-  the loop to catch a bad edit, so "make invalid states unrepresentable" stops being a slogan and
-  becomes the actual specification.
+  Anything touching the data layer clears a merge gate against a real Postgres. Coverage is aimed at
+  the functionality where being wrong costs something rather than spread evenly to reach a
+  percentage — which takes more judgment to defend than a threshold does, and is worth more.
+- **Building for non-engineers raises the bar on the model, not just the UI.** There's no engineer
+  in the loop to catch a bad edit, so "make invalid states unrepresentable" stops being a slogan and
+  becomes the specification.
 
 ## Go deeper
 
 <DeeperLinks
   items={[
+    { label: "Architecture", description: "One database, one owner, and why the product asks instead of reads", href: "/blog/control-plane-data-plane" },
     { label: "Decision", description: "Expiry as derived state, not a stored status", href: "/blog/derived-expiry" },
-    { label: "Testing", description: "Why mocked-DB tests are rejected here", href: "/blog/mock-the-database-test-nothing" },
-    { label: "Architecture", description: "One model, a control plane and a data plane", href: "/blog/control-plane-data-plane" },
-    { label: "Decision", description: "Lifecycle as a state machine, no hard delete", href: "/blog/no-hard-delete-lifecycle" },
+    { label: "Decision", description: "A lifecycle you can walk back, with no hard delete", href: "/blog/no-hard-delete-lifecycle" },
+    { label: "Testing", description: "Why mocked-database tests are rejected here", href: "/blog/mock-the-database-test-nothing" },
   ]}
 />

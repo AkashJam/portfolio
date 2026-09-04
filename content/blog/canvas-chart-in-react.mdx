@@ -1,0 +1,110 @@
+---
+title: "The canvas can't read your CSS: driving a live chart from React"
+summary: A candlestick chart that server-renders, then updates over SSE, using a charting library that owns its own canvas imperatively. Three boundaries have to be crossed carefully, and the design tokens are only one of them.
+category: Frontend
+date: "2026-08-29"
+tags: [React, Next.js, SSE, Frontend]
+draft: false
+---
+
+The market pages on this site render a candlestick chart with a volume histogram and an EMA
+overlay, seeded on the server and updated live as ticks arrive. The charting library draws to a
+canvas and owns it imperatively, which puts it at odds with React on almost every axis: it doesn't
+re-render from props, it doesn't reconcile, and it holds handles you have to hang onto and dispose
+of yourself.
+
+Most of the interesting work is at the seams between that library, React's lifecycle, and a stream
+that arrives whenever it feels like it.
+
+## Server-rendered first, streamed after
+
+The page fetches candles and indicator series on the server and passes them into the chart as
+initial data. The stream only ever supplies updates.
+
+The alternative — mounting an empty chart and fetching on the client — costs a visible empty state
+on every load and puts the first meaningful paint behind a round trip that didn't need to be
+there. Switching interval is the only thing that triggers a client fetch, because that's the only
+case where the server's data genuinely doesn't cover what's being asked for.
+
+When that switch fetch fails, the previous interval's data stays on screen rather than being
+cleared. A chart that empties itself on a transient network blip is worse than a chart showing
+data labelled as the interval you just left.
+
+## The stream comes through a proxy, and that's a runtime decision
+
+The browser never talks to the backend directly. A route in the app proxies the event stream
+same-origin, which means no CORS configuration and no public backend surface.
+
+Two lines of that route matter more than the rest. It's pinned to the Node runtime rather than
+edge, because it passes a streaming response body straight through. And it's marked explicitly
+dynamic, because a cached event stream is not an event stream. Both are the kind of thing that
+works fine in development and quietly breaks in production if you leave the defaults to guess.
+
+## Reconnecting is your job
+
+`EventSource` retries on its own, which sounds like it removes work. It doesn't, quite: the retry
+is a fixed delay, and the server controls it. A backend that's down doesn't get to specify a
+sensible retry interval, so a fleet of browsers hammers it at whatever the last interval was.
+
+So the wrapper drives reconnection itself: close on error, wait, reconnect, double the delay each
+time to a thirty-second ceiling, and reset to the base delay the moment a connection actually
+opens. The doubling step is extracted as a plain function that takes a delay and returns the next
+one, purely so it can be tested without standing up an `EventSource` at all.
+
+Every event is also parsed and schema-validated before it reaches a handler. A malformed payload
+is dropped rather than thrown, because a live chart should degrade by missing an update, not by
+unmounting itself inside an error boundary.
+
+## Two effects, not one
+
+The chart component runs two separate effects on purpose.
+
+The first owns the chart's lifetime: create it, add the series, set initial data, and on cleanup
+call the library's own disposal method and null out the refs. It re-runs when the symbol, the
+initial candles, or the indicators change — a full teardown and rebuild, which is the simplest
+correct behaviour for a library that isn't a React component and has no meaningful diffing story.
+
+The second owns the subscription, and its dependencies are only the symbol and the interval. If
+both concerns shared one effect, every arrival of new initial data would tear down and re-establish
+the stream, which is exactly the kind of thing that looks fine locally and turns into a reconnect
+storm the moment data changes often.
+
+## The canvas can't read your CSS
+
+This is where a design-token system actually gets tested.
+
+Every colour on this site is a CSS custom property. A canvas can't use them — the library needs
+literal colour values to draw with, and `var(--market-up)` means nothing to it. The tempting move
+is to hardcode the hex codes in the chart component, and now the palette has two homes and one of
+them drifts.
+
+Instead the component reads the computed styles off the document root at mount and pulls the real
+token values out, with hardcoded fallbacks only for the case where a token is missing entirely.
+The chart's grid lines, its up and down candle colours, and its EMA line are the same values as
+everything else on the page because they *are* the same values, resolved at runtime rather than
+copied at authoring time.
+
+## The guard that stops a one-minute tick corrupting a daily bar
+
+The backend only streams its finest interval. Coarser intervals are fetched over REST when you
+switch to them.
+
+The chart can be displaying any of five intervals. So an incoming candle carries an interval label
+and the handler drops anything that doesn't match what's on screen — otherwise a one-minute update
+would be applied to a daily bar, silently, and the chart would show a plausible number that is
+simply wrong.
+
+That's a contract spanning two services in two languages, enforced by one line in a client-side
+event handler. It's the kind of thing that only becomes obvious after you've watched a chart
+produce nonsense.
+
+## Where a different shape fits
+
+- **The updates are bidirectional.** SSE is one-way and rides ordinary HTTP, which is why it needs
+  no special infrastructure. Anything the client sends back wants a WebSocket.
+- **The chart doesn't need canvas.** A React-native charting library removes every seam in this
+  post. It also gives up the rendering performance that matters once a series gets long, which is
+  the trade candlesticks specifically tend to lose.
+- **The tick rate goes up.** Applying every update straight to the chart is fine at a few per
+  second. Past that, updates want batching to animation frames, and the parse work wants to happen
+  somewhere that isn't the main thread.

@@ -1,0 +1,101 @@
+---
+title: "The retention system we found while moving house"
+summary: A data-residency migration turned into an audit of what the platform actually did — which surfaced a support tool already paid for, already installed, and doing a fraction of what it could. Wiring the learner journey into it as events lifted retention and completion by 12%.
+category: Product
+date: "2026-06-23"
+tags: [Intercom, Events, Retention, Backend]
+draft: false
+---
+
+This didn't start as a growth project. It started as a migration: moving the platform's data
+hosting from the US to the EU, which is the kind of work that has no visible upside and a great
+deal of downside if you get it wrong.
+
+What migrations do give you is a reason to inventory everything. You cannot move a system you
+haven't enumerated, so you go through every integration, every workflow, every third-party service
+someone wired in at some point, and you ask what it does and whether it still needs to exist.
+
+That's how the retention work got found.
+
+## A support tool doing a fraction of its job
+
+Intercom was already in the stack. It had been installed for support conversations — the chat
+widget, the inbox, the thing a learner uses when something is broken. It was doing that job fine.
+
+It also has event tracking and workflow automation, which nobody was using. The company was
+already paying for a product that could watch what users did and act on it, and it was being used
+as a message box.
+
+That reframes the project considerably. The question stopped being "should we invest in retention
+tooling" — with the procurement, evaluation, and integration that implies — and became "should we
+use the thing we already have." Those get different answers, and they get them at different
+speeds.
+
+## Tracking a journey, not pageviews
+
+The work was defining what actually matters in a learner's path and emitting those as events:
+where someone is in a course, what they finished, what they started and left, the moments that
+distinguish a learner who is progressing from one who has quietly stopped.
+
+Page views would have been easier and useless. "Visited a page" doesn't tell you whether to reach
+out or what to say. "Started a session four days ago and hasn't returned" does, and the difference
+between those two is entirely in the modelling rather than the plumbing.
+
+Those events become the vocabulary everything downstream speaks. A workflow is a sentence in that
+vocabulary — this event, then that delay, then this message, unless that other event happens
+first.
+
+## Personalisation falls out of the events
+
+Because each event carries the detail of what happened, the message triggered by it can say
+something specific. Not "come back to your course," but the actual thing, at the point they left
+it.
+
+That's a small implementation detail with a disproportionate effect, and the reason is not
+technical. A generic reminder is indistinguishable from marketing, and people have thoroughly
+learned to ignore marketing. A message that demonstrates the system knows where you are reads as a
+service rather than a campaign.
+
+## The number, and how much to trust it
+
+Retention and course completion improved by 12%.
+
+I'd want to be careful about how that's read. It's a real measured improvement and it's the figure
+the business tracked, but it wasn't a controlled experiment — there was no held-back cohort
+receiving nothing, so it doesn't isolate the notifications from everything else changing in the
+same period. Seasonality, content releases, and client onboarding all move the same metric.
+
+What I'd claim is that a platform which previously never contacted a lapsing learner started doing
+so, and the number went up meaningfully. What I wouldn't claim is that 12% is attributable to the
+workflows alone with any precision. The honest version of a metric is more useful than the
+impressive one, particularly when someone is going to ask about methodology.
+
+## What it costs
+
+**The event schema becomes a contract.** Once workflows depend on events, renaming or dropping one
+silently breaks an automation that nobody is watching. Events are an API, and they need the same
+care about compatibility — which is not obvious at the point you're just emitting them.
+
+**Attention is finite and non-renewable.** Every notification spends a little of a learner's
+willingness to hear from you. Workflows that fire too eagerly train people to ignore the channel,
+and by the time that shows up in the metrics it's expensive to undo.
+
+**You're building product logic inside a third-party tool.** The workflows live in Intercom, not in
+the repository. They aren't code-reviewed, aren't version-controlled, and don't appear in any
+diff. That's exactly what makes them fast to change, and exactly what makes them easy to get
+wrong quietly.
+
+## Where a different shape fits
+
+- **Analysis matters more than messaging.** A dedicated product analytics tool answers "why do
+  people drop off" far better than a support platform does. If the goal is understanding rather
+  than reacting, that's the better spend.
+- **Messaging volume grows.** Support tools price for support. Once outbound messaging is the
+  primary use, a dedicated messaging platform is usually cheaper and better at the parts that
+  matter — deliverability, template management, send-time optimisation.
+- **The nudge belongs in the product.** An email competes with every other email. An in-product
+  prompt at the moment of hesitation doesn't, and doesn't need a deliverability strategy either.
+
+The reusable part of this isn't Intercom. It's that a migration is one of the few times anyone
+looks at the whole system honestly — and the audit that made it possible to move was the same
+audit that showed what was already there and idle.

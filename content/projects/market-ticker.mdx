@@ -31,20 +31,23 @@ dashboard at all.
 - A pluggable `MarketSource` interface decouples the pipeline from where ticks actually come from.
   v1 runs a simulated source (four regime symbols, five seeded cost-of-living cities); a real
   Finnhub adapter drops in later behind the same interface with no pipeline changes.
-- Ticks flow through a Redis Stream rather than an in-process channel, with a Redis `SET NX PX`
-  leader lock gating who's allowed to ingest. At v1's scale — one instance — the lock is
+- Ticks flow through a Redis Stream rather than an in-process channel, with a `SET NX PX` leader
+  lease gating who's allowed to ingest. At v1's scale — one instance — the lease is
   non-load-bearing, but it's built for the horizontal-scale case on purpose, not retrofitted later.
-- An aggregator maintains OHLCV candles across multiple intervals at once (a configurable finest
-  window, plus a fixed 5m/15m/1h/1d set) and upserts them idempotently into TimescaleDB — required
-  because Redis Streams only guarantees *at-least-once* delivery, so a duplicate tick must never
-  produce a duplicate candle.
-- EMA and Wilder-smoothed RSI(14) are computed on read and cached in Redis. The cache was extended
-  mid-build to store each indicator's *full* series, not just its latest value, once the frontend
-  needed a real chart line rather than a single number — one cache entry now serves both shapes.
+- An aggregator maintains OHLCV candles across five intervals at once (a configurable finest
+  window, plus a fixed 5m/15m/1h/1d set), writing on every tick rather than on candle close so a
+  server-rendered page always sees the live bar rather than a stale one.
+- Because a Redis Stream consumer group promises at-least-once delivery, processing is
+  deduplicated by stream ID before anything accumulates, and candle writes are full-state upserts.
+  High, low and close survive reprocessing on their own; volume is the one field that doesn't,
+  which is exactly why the dedupe sits in front of it rather than relying on the upsert alone.
+- EMA and Wilder-smoothed RSI(14) are computed on read and cached in Redis, keyed per symbol,
+  interval, and requested indicator set.
 - The browser never talks to the Go API directly. A single Next.js route proxies the SSE stream
   same-origin, so there's no public backend, no CORS, and no auth surface to manage.
 - On `SIGTERM`, the aggregator flushes every in-flight candle to Timescale and the ingestion loop
-  releases its leader lock before the process exits — a deploy loses zero data, not "usually zero."
+  releases its leader lease before the process exits, so a deploy hands over rather than dropping
+  whatever was mid-flight.
 
 ## Results
 
@@ -55,30 +58,36 @@ dashboard at all.
   Caddy together, effectively $0 marginal infrastructure cost beyond the box that was already there.
 - Every simulated value carries a `simulated: true` flag end-to-end, from the Go API through to a
   visible badge in the UI — it can't silently pass itself off as a real market feed.
+- Contract tests run against a real Ticker container in CI, so the frontend's assumptions about the
+  API are checked against the API rather than against a fixture of it.
 
 ## Lessons
 
-- The RSI Wilder-smoothing bug is a real, well-documented trap: a plain SMA-based RSI *looks*
-  correct and quietly isn't. Validating against a hand-computed worked example (not just internal
-  consistency) is what actually catches it.
-- A cache that only ever stores the latest computed value doesn't survive a UI requirement change
-  gracefully. When the chart needed a full series instead of one point, the fix ended up smaller
-  than expected — because the cache wrapper was already scoped to one job, extending it didn't
-  mean touching everything that called it.
-- Getting server rendering and a live stream right *together* is easy to get subtly wrong: fetching
-  "live" data from a shared layout can silently make an entire site render dynamically instead of
-  statically. This actually happened twice during the build — once feeding the command palette's
-  symbol list, once feeding the homepage's live-stat pill — and both times the fix was the same
-  shape: move the fetch into its own route, or behind an explicit revalidate window, rather than a
-  `no-store` fetch sitting in code every page shares.
+- The RSI Wilder-smoothing trap is real and well documented: a plain SMA-based RSI *looks* correct
+  and quietly isn't. Validating against a hand-computed worked example — not just internal
+  consistency — is what actually catches it.
+- Widening a primitive is cheaper than adding a parallel one. When the chart needed a full
+  indicator series rather than a single latest value, the change touched seven files, including the
+  registry contract and both indicator implementations. Nothing downstream broke, because the new
+  shape *contained* the old one: the latest value became the last element of the series rather than
+  a second thing to maintain.
+- Getting server rendering and a live stream right *together* is easy to get subtly wrong. Fetching
+  live data from shared code can silently make an entire site render dynamically instead of
+  statically — no error, no warning. It happened twice during the build, once feeding the command
+  palette's symbol list and once the homepage's live-stat pill, and both fixes were the same shape:
+  move the fetch into its own route, or behind an explicit revalidate window.
+- An at-least-once guarantee is something you implement, not something you're handed. A consumer
+  group only redelivers if something claims entries that were read and never acknowledged, and the
+  idempotent write everyone points at protects the write — not the accumulation sitting in front
+  of it.
 
 ## Go deeper
 
 <DeeperLinks
   items={[
-    { label: "Architecture", description: "Pipeline, from sim source to SSE fan-out", href: "/blog/ticker-pipeline-design" },
-    { label: "Decision", description: "Redis leader lease, not consensus", href: "/blog/redis-leader-lease" },
-    { label: "Decision", description: "Caching the full indicator series, not just the latest point", href: "/blog/indicator-cache-full-series" },
-    { label: "Infrastructure", description: "One box, AWS & Terraform", href: "/blog/ticker-aws-terraform" },
+    { label: "Architecture", description: "One tick, five candles, and surviving redelivery", href: "/blog/ticker-pipeline-design" },
+    { label: "Decision", description: "A Redis lease instead of a consensus system", href: "/blog/redis-leader-lease" },
+    { label: "Decision", description: "Widening a cache from one value to a whole series", href: "/blog/indicator-cache-full-series" },
+    { label: "Infrastructure", description: "Deploying to a box with no SSH and one open port", href: "/blog/ticker-aws-terraform" },
   ]}
 />

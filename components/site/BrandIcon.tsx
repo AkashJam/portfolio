@@ -4,7 +4,6 @@ import {
   siGithubactions,
   siGo,
   siGraphql,
-  siKubernetes,
   siNextdotjs,
   siNodedotjs,
   siPostgresql,
@@ -21,9 +20,9 @@ import {
 // third-party redistribution of the logo) — "aws" falls back to a generic
 // lucide icon instead of a brand mark.
 //
-// siVuedotjs/siKubernetes have no current renderer (data/skills.ts's grid
-// that used them was retired — portfolio.md §19 still documents that data
-// model, so the entries stay rather than being deleted as dead code).
+// siVuedotjs has no current renderer — TechBanner is scoped to what built
+// this site, and this site is Next.js. Kept because the About page's skills
+// block names Vue, so a mark may be wanted here later.
 const ICONS: Record<string, { path: string; title: string }> = {
   siTypescript,
   siGo,
@@ -31,7 +30,6 @@ const ICONS: Record<string, { path: string; title: string }> = {
   siNextdotjs,
   siVuedotjs,
   siTailwindcss,
-  siKubernetes,
   siDocker,
   siTerraform,
   siPostgresql,

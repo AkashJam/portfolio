@@ -1,64 +1,102 @@
 ---
 title: "Keyless deploys: OIDC from GitHub Actions to AWS, and the subject-claim gotcha"
-summary: A real IAM trust policy denial caused by assuming GitHub's OIDC subject claim was the mutable OWNER/REPO form, when it's actually the immutable OWNER@id/REPO@id form.
+summary: How CI authentication moved from long-lived access keys to short-lived OIDC tokens, how this site's deploy path uses that, and the subject-claim format that denied every request while looking entirely correct.
 category: Infra
-date: "2026-06-30"
+date: "2026-08-19"
 tags: [AWS, Terraform, CI/CD]
 draft: false
 ---
 
-{/* DRAFT for your review, but fully real — this bug was actually hit and
-    fixed during Days 1-2 of the real build (phase1.md, "IAM OIDC trust
-    policies" row). No fabricated specifics; needs a normal editorial pass. */}
+Every deploy pipeline has to answer one question before it does anything useful: how does a build
+runner prove to a cloud account that it belongs there. For most of the last decade the answer was
+an IAM user's access key pasted into the CI provider's secret store, and it's still one checkbox
+away in most tutorials.
 
-Wiring GitHub Actions to assume an AWS IAM role over OIDC means writing a trust policy that
-checks the token's `sub` (subject) claim — a condition that says, in effect, "only let this role
-be assumed by workflows running in this specific repo." Get the claim format wrong and the
-failure mode isn't a helpful error about a malformed policy. It's `AssumeRoleWithWebIdentity`
-denied, with every individual value in the policy looking correct.
+## Why static keys were the default
 
-## What the trust policy assumed
+An access key is a password that never expires. That's the appeal — it works everywhere and needs
+no federation setup — and it's also the problem. The credential outlives the job it was issued
+for, so a leak through a build log or a stale `.env` stays exploitable until somebody notices.
+Rotation is manual, so in practice it doesn't happen. And one key usually serves every workflow in
+the repo, so its permissions drift toward the union of everything any pipeline ever needed.
 
-The natural first guess for the claim's shape is `repo:OWNER/REPO:ref:refs/heads/main` — and
-that's what most quick examples show. It's also wrong for anything that isn't a static,
-never-renamed repository, because it isn't actually the claim GitHub issues.
+## What OIDC federation changed
 
-## What GitHub actually sends
+The current standard stores no secret at all. GitHub Actions runs its own OpenID Connect provider,
+minting a short-lived token per job that describes which repository, ref, and environment asked
+for it. AWS trusts that issuer, and `sts:AssumeRoleWithWebIdentity` exchanges the token for
+temporary credentials. GCP calls it Workload Identity Federation and Azure a federated credential;
+the shape is the same.
 
-GitHub's OIDC token issues the subject claim using **immutable IDs**, not the human-readable
-owner and repo names:
+The security then lives entirely in the trust policy's conditions, because a role that trusts
+GitHub's issuer and nothing else will hand credentials to any repository on GitHub.
+
+## How this site is wired
+
+Two roles, split by blast radius. A CI role, assumable from the application repos on any ref,
+authenticates to ECR and pushes to specific repository ARNs. A deploy role, assumable only from
+the infrastructure repo on `refs/heads/main`, calls `ssm:SendCommand` against instances carrying
+one Name tag. A build can't deploy, and a feature branch can't deploy at all. Both pin the
+audience claim to `sts.amazonaws.com`.
+
+## The claim isn't what the examples show
+
+Both policies were written against the format every quick-start prints:
+
+```
+repo:OWNER/REPO:ref:refs/heads/main
+```
+
+`AssumeRoleWithWebIdentity` was denied — not with a complaint about a malformed policy, just a
+denial, with the role present, the provider registered, and every value in the condition correct
+when read on its own.
+
+With GitHub's immutable-ID subject claims enabled, the `sub` carries numeric IDs alongside the
+names:
 
 ```
 repo:OWNER@owner_id/REPO@repo_id:ref:refs/heads/main
 ```
 
-A `StringEquals` condition built against the plain `OWNER/REPO` form will never match this,
-because the actual claim has `@owner_id`/`@repo_id` suffixes baked in that a naive
-copy-the-docs-example trust policy has no way to anticipate.
+IDs survive renames and transfers, which is the point of the feature. But both forms exist
+depending on whether a repository has it switched on, and `StringEquals` against the plain form
+cannot match the ID form at all. The only way to see the mismatch from outside is to decode a
+token GitHub actually issued and compare its literal `sub` against what the policy expects.
 
 ## The fix
 
-Two changes, both necessary:
-
-1. Switch the condition operator from `StringEquals` to `StringLike`, since an exact match can't
-   tolerate the ID suffixes at all.
-2. Wildcard around the owner and repo segments specifically, rather than trying to hardcode the
-   numeric IDs (which is possible, but brittle — a repo transfer or an org rename changes them):
+`StringLike`, matching both forms explicitly:
 
 ```json
 "StringLike": {
-  "token.actions.githubusercontent.com:sub": "repo:*/*:ref:refs/heads/main"
+  "token.actions.githubusercontent.com:sub": [
+    "repo:OWNER/REPO:ref:refs/heads/main",
+    "repo:OWNER@*/REPO@*:ref:refs/heads/main"
+  ]
 }
 ```
 
-Scoped loosely enough to actually match GitHub's real claim shape, tightened elsewhere in the
-policy (the audience condition, the role's own permission boundary) rather than trying to make
-the subject-claim match do all the access-control work by itself.
+Two shortcuts are worth refusing. `repo:*/*:...` matches every repository on GitHub owned by
+anyone, turning a deploy role into one a stranger can assume by pushing a workflow. And
+`repo:OWNER*/REPO*:...` looks pinned but isn't — `OWNER*` matches any account name *beginning*
+with those characters, and GitHub account names are first-come. Wildcarding after the `@` is safe:
+neither account nor repository names may contain one, so it can only ever stand in for the numeric
+ID, which stays out of version control.
 
-## Why this is worth knowing before you hit it
+## Where a different shape fits
 
-The failure is maximally unhelpful to debug from the outside: every value in the trust policy is
-individually correct-looking, the role exists, the OIDC provider is configured, and the request
-still gets denied. The only way to actually see the mismatch is to decode a real token GitHub
-issued and compare its literal `sub` claim against what the policy expects — at which point the
-`@owner_id/@repo_id` suffixes are obvious, but only once you know to look for them.
+That suits this pipeline — two repositories, one account, deploys gated on a branch. Change any of
+those and the answer moves:
+
+- **A human in the loop.** Scope on a GitHub Environment (`repo:OWNER/REPO:environment:prod`) for
+  required reviewers and wait timers a branch condition can't express.
+- **Shared reusable workflows.** The `job_workflow_ref` claim pins the workflow file itself,
+  which is a tighter statement than "some job in this repo."
+- **Several accounts or environments.** A provider and role per account, rather than one role
+  whose conditions try to encode the distinction.
+- **Self-hosted runners, or workloads already inside AWS.** Skip federation entirely; an instance
+  profile or an EKS service-account role hands credentials over directly.
+
+Keyless authentication relocates the risk rather than removing it. There's no secret left to leak,
+so the trust policy's conditions *are* the credential — and a wildcard written to clear an error
+message is worth about as much as a key committed to the repository.

@@ -7,15 +7,23 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MDXRenderer } from "@/components/mdx/MDXRenderer";
 
+const isDev = process.env.NODE_ENV !== "production";
+
+function findProject(slug: string) {
+  const project = allProjects.find((p) => p.slug === slug);
+  if (!project || (project.draft && !isDev)) return null;
+  return project;
+}
+
 export function generateStaticParams() {
-  return allProjects.map((p) => ({ project: p.slug }));
+  return allProjects.filter((p) => isDev || !p.draft).map((p) => ({ project: p.slug }));
 }
 
 export async function generateMetadata({
   params,
 }: PageProps<"/projects/[project]">): Promise<Metadata> {
   const { project: slug } = await params;
-  const project = allProjects.find((p) => p.slug === slug);
+  const project = findProject(slug);
   return project
     ? { title: `${project.title} — Projects — Akash James`, description: project.summary }
     : {};
@@ -23,7 +31,7 @@ export async function generateMetadata({
 
 export default async function ProjectPage({ params }: PageProps<"/projects/[project]">) {
   const { project: slug } = await params;
-  const project = allProjects.find((p) => p.slug === slug);
+  const project = findProject(slug);
   if (!project) notFound();
 
   return (
@@ -36,6 +44,11 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[proj
       </p>
 
       <div className="rounded-2xl border border-hairline bg-panel p-6 sm:p-8">
+        {project.draft && (
+          <Badge variant="outline" className="mb-3 border-simulated bg-simulated/10 text-simulated">
+            Draft — pending review
+          </Badge>
+        )}
         <h1 className="text-3xl font-light text-text">{project.title}</h1>
         <p className="mt-2 max-w-[60ch] text-text-muted">{project.summary}</p>
 
