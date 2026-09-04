@@ -9,6 +9,7 @@ export const symbolSchema = z.object({
   name: z.string(),
   type: z.string(),
   exchange: z.string(),
+  regime: z.string(),
 });
 export type Symbol = z.infer<typeof symbolSchema>;
 export const symbolsResponseSchema = z.array(symbolSchema);

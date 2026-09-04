@@ -71,6 +71,11 @@
   --animate-float: float 9s ease-in-out infinite;
   --animate-sphere: sphere 12s ease-in-out infinite;
   --color-read: var(--read);
+
+  /* Live-tick flash (components/site/LiveChip.tsx, market card/detail
+     surfaces) — a brief scale+opacity pulse on a real SSE event, keyed per
+     tick so it restarts instead of looping. */
+  --animate-tick: tick 0.6s ease-out;
 }
 
 @keyframes loading-sweep {
@@ -106,6 +111,16 @@
 @keyframes marquee {
   to {
     transform: translateX(-50%);
+  }
+}
+@keyframes tick {
+  0% {
+    transform: scale(1.5);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
   }
 }
 /* About's live-signal ambient (components/site/LiveSignal.tsx) — a
@@ -149,6 +164,9 @@
   /* mockups/html/about.html — brighter body text for dense bullet lists
      (Experience cards), distinct from --text-muted's broader role elsewhere. */
   --read: #c7cbd1;
+  /* mockups/v3 card-elevation pass — the 1px top highlight inside
+     .panel-elevated below (and the live-chip tick flash above). */
+  --hi: rgba(255, 255, 255, 0.05);
 
   --background: var(--canvas);
   --foreground: var(--text);
@@ -270,6 +288,21 @@
 .glow-bar--down {
   background: linear-gradient(90deg, transparent, var(--market-down), transparent);
   box-shadow: 0 0 18px 2px color-mix(in oklab, var(--market-down) 45%, transparent);
+}
+
+/* mockups/v3 card-elevation pass — a top-lit gradient wash + 1px inset
+   highlight + a soft drop shadow, layered over --panel. Applied to the
+   market symbol cards and cost-of-living surfaces (Days 13+); the same
+   class is reusable on ProjectCard/SkillsCapabilities later without
+   redefining the treatment. */
+.panel-elevated {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.022), transparent 120px),
+    var(--panel);
+  border: 1px solid var(--hairline);
+  box-shadow:
+    inset 0 1px 0 var(--hi),
+    0 1px 2px rgba(0, 0, 0, 0.45);
 }
 
 /* Continuous horizontal scroll (components/site/TechBanner.tsx) — a plain

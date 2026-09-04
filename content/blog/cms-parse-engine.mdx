@@ -1,0 +1,58 @@
+---
+title: "Skip what you don't recognize: a parse engine for CMS-authored content"
+summary: When content is authored as open-ended, typed blocks, hardcoding a layout per module means every new block type is a frontend deploy. A parse engine that maps types to components — and skips what it doesn't know — decouples the two.
+category: Frontend
+date: "2026-08-25"
+tags: [Vue, TypeScript, Frontend, CMS]
+draft: false
+---
+
+{/* Draft for your review — grounded in Microlearning's real frontend architecture (Lifeed),
+    kept high-level: no literal block-type names or component internals. */}
+
+Microlearning's content — sessions, reflective missions, journaling prompts, achievements — is
+authored in a CMS as trees of typed "blocks" and "cards," not as fixed pages. That's the right call
+for a content team that wants to ship new module shapes without waiting on engineering. It also means
+the frontend can never assume it has seen every block type the CMS will ever send.
+
+## The naive version breaks on day one of new content
+
+Hardcode a layout per module and you've coupled the frontend release cycle to the content team's
+publishing cadence — every new block type is a deploy, and a CMS author who ships ahead of the
+frontend takes the app down mid-session for whoever's using it. That's the actual failure mode a
+content-driven product has to design around, not a hypothetical.
+
+## A parser per type, one pipeline
+
+The fix is a set of parsers, each responsible for one block type, each mapping its input to a
+concrete Vue component with normalized props. Adding a new kind of content is adding a parser and a
+component — the rendering pipeline that walks the content tree and dispatches to the right parser
+never changes.
+
+```text
+CMS block tree ──▶ parser (by type) ──▶ normalized props ──▶ Vue component
+                         │
+                         └─ unrecognized type ──▶ skip, don't throw
+```
+
+## The one line that matters most: skip, don't throw
+
+An unrecognized type degrading gracefully — rendered as nothing, logged, moved past — instead of
+throwing is what actually decouples content from code. Without that one behavior, a content author
+shipping ahead of a frontend release doesn't just get a blank spot; they take down every learner
+mid-session on whatever screen renders that block. With it, the worst case of an eager CMS publish is
+a missing widget, not a crashed app.
+
+## What this buys the content team
+
+New block, card, and wizard types become additive on the CMS side — no frontend rewrite required to
+support them, and no coordination window where a content change has to wait for a deploy. The
+frontend's job shrinks to "know how to skip what it doesn't recognize," which is a much smaller
+promise to keep than "recognize everything, forever."
+
+## Where this came from
+
+This is Microlearning's actual parse engine, serving 50,000+ learners' sessions, journaling, and
+achievement flows off content the CMS team publishes independently. The engineering payoff wasn't a
+clever parser — it was the discipline of never letting an unknown type become a thrown exception on a
+learner's screen.

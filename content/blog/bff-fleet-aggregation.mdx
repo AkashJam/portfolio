@@ -1,0 +1,62 @@
+---
+title: "One BFF, eight services: aggregation as the actual hard part"
+summary: A learner-facing screen needing data from eight internal services isn't a fan-out problem you solve with more client-side requests — it's a reason to put one stateless aggregator between the browser and the fleet.
+category: Architecture
+date: "2026-08-24"
+tags: [Go, BFF, Architecture, Backend]
+draft: false
+---
+
+{/* Draft for your review — grounded in Microlearning's real architecture (Lifeed), kept
+    high-level: no service names, no internal routes, no package paths. */}
+
+A single learner screen in Microlearning — progress, profile, entitlements, assessment state,
+notifications — needs data that lives behind roughly eight separate internal services. The obvious
+shape is "the frontend calls what it needs." The obvious shape is also wrong the moment you look at
+what it costs.
+
+## What fan-out from the browser actually buys you
+
+Nothing, and it charges for the privilege. Eight services means eight sets of credentials that would
+have to live somewhere the browser can reach — which means in the browser. It means eight CORS
+configurations, eight token-refresh paths, eight places a client-side bug can leak or mishandle a
+credential. And it means the public internet gets a direct line to eight internal surfaces instead of
+one, because "the frontend talks to what it needs" is also "an attacker talks to what the frontend
+could reach."
+
+## The BFF is a trust boundary, not a proxy
+
+A Backend-for-Frontend that just relays requests one-for-one doesn't solve this — it's the same
+fan-out with an extra hop. The version that earns its keep is a stateless aggregator: one request in
+from the browser, one resolved identity threaded through every downstream call, one composed
+response out. Every downstream credential lives in the BFF's environment and never crosses into
+client-side code. The browser has exactly one origin to trust.
+
+```text
+Learner PWA ──▶ Go BFF (auth, aggregation) ──▶ [progress · profile · entitlements ·
+                                                  assessments · identity · notifications · …]
+```
+
+## Why stateless matters as much as the aggregation
+
+The BFF holds no database of its own. It resolves who the caller is, fans the request out, composes
+what comes back, and forgets everything the moment the response is sent. That keeps the
+security-sensitive component small enough to actually reason about, and it makes horizontal scaling a
+non-event — there's no state to shard or replicate, just more identical processes doing the same
+stateless work.
+
+## Identity resolved once, not eight times
+
+The alternative to a shared identity-resolution step is each downstream call re-deriving "who is this
+and what should they see" from a raw token, independently, eight times, with eight chances to get it
+subtly wrong. Resolving locale, contract, and onboarding state once per request and threading that
+resolved context downstream means every service gets a consistent view of the caller instead of
+re-implementing the same derivation.
+
+## Where this came from
+
+This is Microlearning's actual shape: a Go BFF in front of roughly eight internal services, serving
+50,000+ learners, with every downstream credential kept server-side. The interesting engineering
+wasn't any individual screen — it was accepting that the aggregation and the trust boundary are the
+same component, and building that component to be boring, stateless, and easy to scale rather than
+clever.

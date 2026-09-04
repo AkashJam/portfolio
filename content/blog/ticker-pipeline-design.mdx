@@ -1,0 +1,65 @@
+---
+title: "A pipeline built for the source it doesn't have yet"
+summary: Ticker's ingestion pipeline is built around a pluggable source interface and at-least-once delivery from day one, even though v1 only ever runs a simulated feed — because retrofitting idempotency after a real feed shows up is the wrong order to do it in.
+category: Architecture
+date: "2026-08-11"
+tags: [Go, Redis, TimescaleDB, Architecture]
+draft: false
+---
+
+{/* Draft for your review — grounded in Ticker's real pipeline (this portfolio's own
+    build), kept conceptual: no literal package paths. */}
+
+Ticker's ingestion pipeline has one job: turn a stream of ticks into candles, reliably, whether the
+ticks come from a simulator or a real market-data provider. v1 only ever runs the simulator. The
+pipeline is built as if that were temporary, because it is.
+
+## A source is an interface, not a fact
+
+The pipeline doesn't know or care where a tick came from — a `MarketSource` interface sits between
+the ingestion loop and whatever's actually producing ticks. v1 implements it with a simulated source;
+a real provider adapter drops in later behind the same interface, with zero changes to anything
+downstream of it. Coupling the pipeline to "how ticks arrive" would mean a rewrite the day a real feed
+shows up. Coupling it to an interface means a new file.
+
+```text
+MarketSource (interface)
+      │
+      ├── sim source (v1)
+      └── real provider adapter (later, same downstream)
+```
+
+## Streams over channels, on purpose
+
+Ticks flow through a Redis Stream rather than an in-process channel — a choice that only pays off once
+there's more than one consumer or more than one instance, which v1 isn't. It's built that way anyway,
+because a Stream is the primitive that makes horizontal scale possible later without a pipeline
+rewrite, and an in-process channel is a wall you hit the moment you need a second process.
+
+## At-least-once means candles have to be idempotent
+
+Redis Streams guarantee at-least-once delivery, not exactly-once — a redelivered tick is a real
+possibility, not an edge case to shrug off. The aggregator that turns ticks into OHLCV candles upserts
+idempotently across every interval it maintains, so a duplicate tick produces the same candle twice,
+not a corrupted one. Designing for that from the start is cheap; discovering you need it after ticks
+are already flowing is a production incident.
+
+```text
+tick ──▶ aggregator ──▶ upsert candle (idempotent)
+              │
+     duplicate tick redelivered ──▶ same upsert, same result
+```
+
+## Why build for scale you don't have yet
+
+Every piece of this — the pluggable source, the Stream instead of a channel, the idempotent upsert —
+is over-engineered for v1's actual load: one process, one simulated feed. The bet is that the honest
+cost of building it right the first time is smaller than the cost of retrofitting correctness into a
+pipeline that's already carrying real, duplicated, at-least-once data.
+
+## Where this came from
+
+This is Ticker's actual ingestion design: a `MarketSource` interface, a Redis Stream, and an
+idempotent aggregator, built before a real feed ever existed to justify any of it. The interesting
+decision wasn't the simulator — it was refusing to let "we only have a sim source right now" be a
+reason to skip the parts of the design that only matter once that stops being true.

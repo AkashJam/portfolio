@@ -1,0 +1,52 @@
+---
+title: "The cache was scoped to one job — that's why extending it was cheap"
+summary: A Redis cache built to hold each indicator's latest value had to grow to hold a full series once the frontend needed a real chart line. The requirement change was bigger than the fix, because the cache wrapper had never assumed more than one shape.
+category: Backend
+date: "2026-08-12"
+tags: [Redis, Go, Caching]
+draft: false
+---
+
+{/* Draft for your review — grounded in Ticker's real build (this portfolio's own
+    project), kept conceptual: no literal cache-key formats or file paths. */}
+
+Ticker computes EMA and Wilder-smoothed RSI(14) on read and caches the result in Redis. The first
+version of that cache stored exactly one thing per indicator: its latest computed value. That was
+correct for the requirement at the time — a live markets table showing current numbers — and wrong
+for the requirement that showed up next.
+
+## The requirement that broke the assumption
+
+Once the frontend needed an actual chart line for an indicator overlay, not just a single current
+number, "cache the latest value" stopped being enough. A chart needs a series. The cache, as built,
+had nowhere to put one.
+
+```text
+v1 cache:  indicator ──▶ latest value
+
+needed:    indicator ──▶ full series (for the chart)
+                      └▶ latest value (for the table, still)
+```
+
+## Why the fix was smaller than it could have been
+
+The instinct when a cache's shape is wrong is to assume the fix touches everything that reads from
+it. It didn't, here, because the cache wrapper had only ever been scoped to one job — compute an
+indicator, cache the result — and every caller went through that one wrapper rather than reaching
+into Redis directly. Extending the wrapper to store and serve a full series meant changing the
+wrapper's internals and its return shape once, not chasing down every call site that had quietly
+assumed "single value" as a contract.
+
+## The lesson isn't "cache more"
+
+It's that a cache abstraction's blast radius when requirements change is a direct function of how
+many places bypassed it. One choke point — one function every caller goes through, no direct Redis
+access scattered through the codebase — is what turned "the frontend needs a different shape of data"
+from a multi-file refactor into a local change.
+
+## Where this came from
+
+This actually happened during Ticker's build: the indicator cache was written to hold one number per
+indicator, then had to grow to hold a full series once the chart needed an overlay line instead of a
+single point. The fix landed smaller than expected specifically because nothing outside the cache
+wrapper had ever assumed it knew the cache's internal shape.

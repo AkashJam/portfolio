@@ -1,0 +1,55 @@
+---
+title: "Go, Redis, TimescaleDB, and Next.js on one box: sizing infra to the traffic it'll actually see"
+summary: Ticker runs its entire pipeline — ingestion, storage, indicators, SSE, and the frontend — alongside the rest of this portfolio on a single t4g.small, provisioned by the same Terraform as everything else on the site.
+category: Infra
+date: "2026-08-13"
+tags: [AWS, Terraform, Docker, Infra]
+draft: false
+---
+
+{/* Draft for your review — grounded in this portfolio's real deploy topology, kept
+    high-level: no literal instance IDs, security-group names, or account details. */}
+
+A live streaming market-data pipeline sounds like it wants a distributed topology — separate compute
+for ingestion, a managed database, a managed cache, autoscaling for the stream fan-out. Ticker runs on
+one `t4g.small`, alongside the rest of this portfolio, and that's not a corner cut — it's sized to the
+traffic it actually has.
+
+## What "production-style" doesn't have to mean
+
+Production-style, here, means the pipeline behaves the way the real thing would: idempotent
+processing, leader election, graceful shutdown, honest data provenance. It doesn't mean provisioning
+for load that a personal portfolio will never see. A topology sized for horizontal scale it doesn't
+need isn't a stronger engineering statement than one box run well — it's a more expensive one, and the
+extra AWS surface is more to secure and more to pay for without a corresponding benefit.
+
+## One Terraform-managed box, several processes
+
+Go, Redis, TimescaleDB, and Next.js all run via Docker Compose behind Caddy on the same instance that
+serves the rest of the site. The instance itself, its networking, and its access are provisioned by
+the same Terraform that stood up the site's infra spine — Ticker isn't a separate deploy target, it's
+another set of containers on infrastructure that already exists.
+
+```text
+t4g.small
+ ├─ Caddy (TLS)
+ ├─ Next.js (site + market UI)
+ ├─ Go API (Ticker)
+ ├─ Redis (stream + indicator cache)
+ └─ TimescaleDB (candles)
+```
+
+## The real cost story
+
+Marginal infrastructure cost for the entire pipeline is effectively zero beyond the box that was
+already running the rest of the site. That's the actual point being demonstrated: the engineering
+discipline (idempotency, leader locks, flush-on-shutdown) is real and independent of the topology it
+runs on, and pretending otherwise — reaching for managed services and multi-instance scale to look
+more "production" — would be spending money to make the same argument less convincingly.
+
+## Where this came from
+
+This is the real deploy shape of both this site and Ticker: one EC2 instance, Terraform-provisioned,
+running every service behind Caddy via Docker Compose. The infrastructure decision that mattered
+wasn't picking managed services — it was being honest about what scale the project actually needs and
+refusing to provision past it.

@@ -21,7 +21,7 @@ export const experience: ExperienceEntry[] = [
     location: "Milan, Italy",
     start: "October 2023",
     summary:
-      "Sole engineer owning a Go + Vue/TypeScript eLearning platform end-to-end — from user-facing PWA to backend services and the AWS/Kubernetes infrastructure beneath it — serving 50,000+ learners.",
+      "Lead engineer owning a Go + Vue/TypeScript eLearning platform end-to-end — from user-facing PWA to backend services and the AWS/Kubernetes infrastructure beneath it — serving 50,000+ learners.",
     responsibilities: [
       "Owned the full-stack eLearning platform end-to-end: Go REST APIs, a Vue.js/TypeScript PWA, PostgreSQL, and AWS.",
       "Designed and maintained the backend — REST APIs, background workers, and authentication/authorization systems.",

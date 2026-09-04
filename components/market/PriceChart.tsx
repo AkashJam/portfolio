@@ -35,10 +35,12 @@ function readTokens() {
 
 export function PriceChart({
   symbol,
+  interval,
   initialCandles,
   initialIndicators,
 }: {
   symbol: string;
+  interval: string;
   initialCandles: Candle[];
   initialIndicators: IndicatorSeriesResponse | null;
 }) {
@@ -120,6 +122,12 @@ export function PriceChart({
   React.useEffect(() => {
     return subscribeToStream([symbol], {
       onCandle: (candle) => {
+        // The backend only ever streams its finest interval's live-updating
+        // bar (aggregate/candles.go's publishCandle) — coarser intervals
+        // are REST-fetched on switch, not also streamed. Without this
+        // check, a finest-interval tick would silently corrupt whatever
+        // coarser interval (e.g. 1d) happens to be displayed.
+        if (candle.interval !== interval) return;
         const time = toUTCTimestamp(candle.time);
         candleSeriesRef.current?.update({
           time,
@@ -136,7 +144,7 @@ export function PriceChart({
         });
       },
     });
-  }, [symbol]);
+  }, [symbol, interval]);
 
   return <div ref={containerRef} className="h-100 w-full" />;
 }

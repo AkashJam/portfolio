@@ -1,0 +1,60 @@
+---
+title: "The topology that isn't there: why this site runs on one box"
+summary: A personal site's real traffic and cost profile doesn't justify a multi-service cloud topology — and a topology sized for scale it'll never see isn't a stronger engineering statement, just a more expensive one.
+category: Infra
+date: "2026-08-14"
+tags: [Docker, AWS, Infra]
+draft: false
+---
+
+{/* Draft for your review — grounded in this portfolio's real deploy topology, kept
+    high-level: no literal instance IDs or account details. */}
+
+It's easy to default to a multi-service cloud topology for a portfolio site — separate containers on
+separate managed compute, a managed database, a load balancer in front of it — because that's the
+shape "real infrastructure" is supposed to have. This site runs on one EC2 box, behind Caddy, via
+Docker Compose. That's a deliberate choice, not the version that was settled for.
+
+## Match the topology to the traffic
+
+A personal site's traffic is small and predictable. The engineering question isn't "what's the most
+impressive topology I can stand up" — it's "what does this workload actually need." For this site,
+that's one box: enough compute to run Next.js, the Ticker backend, Redis, and TimescaleDB
+comfortably, with room to spare, and no idle managed services billing by the hour for capacity nothing
+is using.
+
+```text
+Internet ──▶ Caddy (TLS) ──▶ Docker Compose
+                                 ├─ Next.js
+                                 ├─ Go API
+                                 ├─ Redis
+                                 └─ TimescaleDB
+```
+
+## What a bigger topology would actually buy here
+
+Nothing this site needs. Horizontal scaling exists to survive load a single instance can't handle,
+or to isolate blast radius between services with genuinely different failure profiles. Neither
+applies at this traffic level — a multi-service topology here would mean more surface to secure, more
+things that can independently fail, and more monthly cost, in exchange for headroom that will sit
+unused indefinitely.
+
+## Caddy earns the "why not more services" argument
+
+One box behind Caddy gets automatic Let's Encrypt TLS and simple routing without a load balancer or a
+service mesh to configure and pay for. Docker Compose gets every service defined declaratively in one
+place, restartable and reproducible without an orchestrator whose main job, at this scale, would be
+managing complexity the orchestrator itself introduced.
+
+## The honest framing
+
+This isn't "couldn't afford better infra." It's recognizing that a topology sized for scale a personal
+site will never see doesn't demonstrate more engineering judgment than one box run correctly — it
+demonstrates less, because it ignores the first question any real infrastructure decision has to
+answer: what does this actually need to handle.
+
+## Where this came from
+
+This is the real topology behind everything on this domain — this page, the About and Projects
+pages, and the live Market dashboard — one Terraform-provisioned EC2 instance, Docker Compose, and
+Caddy, chosen because it matches what the site actually has to serve.

@@ -1,0 +1,66 @@
+---
+title: "Don't store what you can derive: expiry as computed state"
+summary: Storing an "expired" status means a scheduled job, two sources of truth, and a window where the flag disagrees with reality. Deriving validity from the dates you already have removes all three.
+category: Architecture
+date: "2026-08-19"
+tags: [PostgreSQL, Data Modeling, Backend]
+draft: false
+---
+
+{/* Draft for your review — general modeling lesson drawn from the Lifeed admin tool,
+    kept high-level (generic column names, textbook predicate). Adjust the date. */}
+
+The tempting way to model an entitlement that ends — a contract, a subscription, a trial — is a
+status column you flip to `expired` when the clock runs out. It reads well, it's easy to query, and
+it feels like state should be stored. It's also a small trap: you've just signed up for a scheduled
+job, two sources of truth, and a stretch of time where the column and reality disagree.
+
+## The stored-status version, and why it drifts
+
+A status you *write* needs something to write it. That something is a cron or scheduled job scanning
+for newly-expired rows and flipping them. Between the moment an end date passes and the moment the
+job next runs, the row says `active` and the truth says otherwise. Shorten the interval and you burn
+more compute for the privilege; lengthen it and you widen the lie. Either way you now have two facts
+— the dates and the status — that can disagree, and every consumer downstream has to quietly hope
+the job ran on time.
+
+## Derive it instead
+
+Validity isn't independent state. It's a function of data you already store: the thing is active,
+and *now* falls inside its window.
+
+```sql
+-- validity is computed, never stored
+status = 'active' AND now() BETWEEN start_date AND end_date
+```
+
+No job, no second source of truth, no drift window. The dates are the fact; validity is computed
+from them the instant you ask. Nothing to keep in sync because there's nothing stored to fall out of
+sync.
+
+## Compute it in exactly one place
+
+Derived state has its own failure mode: five callers each re-implementing the predicate slightly
+differently, one of them forgetting the `status` half, another getting the boundary wrong. So the
+predicate lives *once* — a single function, or a database view or generated column — and everything
+routes through it. One definition of "valid," used everywhere, is the whole point; scatter it and
+you've traded a sync problem for a consistency problem.
+
+## The tradeoffs you're accepting
+
+- **You can't `WHERE status = 'expired'` against a stored column anymore.** If you need to filter or
+  index on validity, express it as a generated column or a view over the same predicate — still one
+  definition, now indexable.
+- **Every read path has to go through the one predicate.** That's a discipline cost. It's also the
+  same discipline that makes the guarantee hold, so it's not really extra.
+- **"Now" is an input.** Tests pin it; anything auditable records the value it used. Deriving from
+  the clock means being explicit about *which* clock, rather than pretending time isn't a parameter.
+
+## Where this came from
+
+At Lifeed, contract validity in the internal admin tool is computed exactly this way — a status plus
+a date window, evaluated in one place — rather than stored as a status a job maintains. The admin
+tool hands contract configuration to a non-engineering team, and "is this contract valid right now"
+is precisely the kind of fact you don't want drifting between a column and the calendar while a
+customer's access hangs on the answer. Store the dates, which are real; derive the verdict, which
+isn't.

@@ -1,0 +1,97 @@
+---
+title: "The browser shouldn't hold your JWT: per-request auth in a BFF"
+summary: The SPA holds only an HttpOnly encrypted cookie; the Go BFF verifies a Cognito JWT per request, resolves the user's context, and injects downstream credentials the browser never sees. Cookie-and-CSRF at the edge, JWT only upstream.
+category: Security
+date: "2026-08-23"
+tags: [Auth, JWT, Go, Security]
+draft: false
+---
+
+{/* Draft for your review — auth-model deep-dive from Lifeed's Microlearning BFF, kept
+    high-level (generic Gin sketch, no internal package/env/secret names). Adjust the date. */}
+
+The default way a single-page app does auth is to get a JWT, stash it in `localStorage` or a
+JS-readable cookie, and attach it to every API call. It works, it's in every tutorial, and it puts a
+bearer token — the thing that *is* the user's session — inside reach of any script that runs on the
+page. There's a different arrangement that hands the browser no token at all and moves every
+interesting auth decision to one server-side place: a Backend-for-Frontend.
+
+## A cookie at the edge, a JWT upstream
+
+The browser authenticates into an **HttpOnly, signed-and-encrypted session cookie** plus a CSRF
+token. That's the entire set of things it holds. It never sees the JWT. Behind it, a BFF is the only
+component the browser talks to — the actual access token (a Cognito JWT, in this case) lives in the
+encrypted server-side session, and the BFF is what presents it, or a downstream credential, to
+internal services.
+
+The browser's job shrinks to "send my cookie." Everything that used to be the SPA's auth
+responsibility — holding the token, validating it, refreshing it, attaching credentials to the right
+service — moves behind the boundary.
+
+## Per-request resolution in middleware
+
+On every request, auth middleware does three things before any real work happens:
+
+1. Pulls the access token out of the **encrypted session**, not a header the client controls.
+2. **Verifies it against the identity provider's JWKS** — selecting the RSA public key by the
+   token's `kid`, rebuilding that key, checking the signature. The key set is fetched once and cached.
+3. Rejects anything missing or invalid with a `401`.
+
+Then a shared routine resolves the user's *context* — locale, tenant/contract, first-run flags — so
+every downstream call is made as a fully-resolved identity instead of a raw token the next service
+has to re-interpret.
+
+```go
+func (a *Auth) Middleware(c *gin.Context) {
+    token := a.session(c).Get("access") // from the encrypted cookie, not a header
+    claims, err := a.parseJWT(token)     // JWKS: pick the RSA key by kid, verify
+    if err != nil {
+        c.AbortWithStatusJSON(http.StatusUnauthorized, errorBody)
+        return
+    }
+    c.Set("user", a.resolveContext(claims)) // locale, contract, first-run flags
+    c.Next()
+}
+```
+
+The `resolveContext` step is the quiet workhorse: one place that decides who the user is and what
+they should see, so eight downstream handlers don't each reimplement it slightly differently.
+
+## The refresh dance stays server-side
+
+Tokens expire. Instead of the SPA juggling refresh tokens, the BFF owns the lifecycle and the client
+just retries. A single response interceptor turns a `401` into a one-shot refresh — mint a fresh CSRF
+token, call the refresh endpoint, replay the original request, and only bounce to the login page if
+that fails. A module-level guard flag stops a failing refresh from looping. The browser never
+handles a refresh token; it just occasionally notices a request took two hops instead of one.
+
+## What you get
+
+- **XSS can't steal the session.** There's no token in JS storage to read. An injected script can
+  still act *as* the user while the page is open — it's same-origin — but it can't exfiltrate a
+  credential to replay later. That's the difference between a contained incident and a stolen
+  session that outlives the tab.
+- **One place for auth.** Verification, context resolution, refresh, and downstream credential
+  injection all live in the BFF. The SPA's entire auth footprint is "retry on 401."
+- **Downstream services get a clean identity.** They receive a resolved user context, not a raw
+  third-party JWT each of them has to validate independently.
+
+## What it costs
+
+- **CSRF is back on the menu.** Cookies get attached automatically, which is exactly what CSRF
+  abuses — so you need the double-submit token (and `SameSite`, ideally both). A JWT-in-a-header SPA
+  sidesteps CSRF precisely *because* the browser doesn't auto-send the credential; with cookies, it
+  does.
+- **The BFF is on the critical path** for every request, and it's stateful about sessions (that
+  encrypted cookie) even when it's otherwise a stateless aggregator.
+- **You depend on the JWKS being reachable and cached,** with a real plan for key rotation — a `kid`
+  you don't recognize should trigger a re-fetch, not a hard failure that locks everyone out.
+
+## Where this came from
+
+This is the auth model for Lifeed's Microlearning BFF: a Vue PWA that holds only an encrypted cookie
+session, and a Go gateway that verifies a Cognito JWT per request, resolves the learner's context,
+and fans out to internal services with credentials the browser never sees. "Cookie and CSRF at the
+edge, JWT only upstream" is a deliberate trade — you take on CSRF handling in exchange for deleting
+an entire class of token-theft-from-the-client bugs. For a product holding reflective, personal
+learning data, that trade is an easy one to make.

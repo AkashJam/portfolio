@@ -1,0 +1,65 @@
+---
+title: "If your correctness lives in SQL, mocking the database tests nothing"
+summary: When the rules are enforced by constraints, unique indexes, and query-level access checks, a mocked database validates your mocks — not the behavior that actually ships. The fix is a real database as the merge gate.
+category: Testing
+date: "2026-08-21"
+tags: [PostgreSQL, Testing, Backend]
+draft: false
+---
+
+{/* Draft for your review — general testing-philosophy lesson from the Lifeed admin tool's
+    merge gate, kept high-level. Adjust the date. */}
+
+There's a comfortable style of test that stubs the database out: the repository returns canned rows,
+the service does its thing, you assert on the result. It's fast, it's isolated, and it feels
+disciplined. For a certain kind of system it's also a test of almost nothing — because if the
+behavior you care about is enforced *by the database*, a mock that hands back whatever you told it to
+will never touch the part that can actually break.
+
+## Where the correctness actually lives
+
+In a data-heavy service, a surprising amount of the specification isn't in the application code at
+all:
+
+- Uniqueness is a unique index.
+- "This can't exist without that" is a foreign key.
+- "At least one of these is required" is a constraint.
+- "You can only see rows you're allowed to" is a join in the query.
+
+Mock the database and every one of those rules evaporates. The mock happily returns two rows with the
+same key, or a child with no parent, or a row the caller should never have been able to see — it has
+no constraints to violate. Your assertions pass. The invariant is still broken in production.
+
+## Mocks test the shape you imagined
+
+A mocked DB encodes *your assumption* about what the database would do. But the bugs worth catching
+are exactly the cases where that assumption is wrong: the constraint you forgot to add, the race two
+concurrent transactions hit, the access join that leaks a row under a filter you didn't picture. A
+mock can't surface any of them, because you built the mock out of the same beliefs as the code it's
+checking. Green means "the code agrees with my assumptions," not "the system is correct."
+
+## The merge gate: a real database
+
+So the rule is blunt: anything that touches the data layer is tested against a real Postgres, and
+that's the gate a change has to clear to merge. Pure logic still gets fast unit tests — there's no
+reason to boot a database to test a formatting helper. But the moment a test's outcome depends on a
+constraint, a transaction, or a query, it runs against the real engine, typically an ephemeral
+containerized instance spun up per run.
+
+## What it costs, and why it's worth it
+
+- **It's slower.** A real database per run is seconds you didn't spend mocking. You buy them back the
+  first afternoon you *don't* spend chasing a constraint violation that only shows up in production.
+- **You need fixtures and isolation** — a clean schema per run, transactional rollback or a fresh
+  database between tests. That's genuine setup, and it's a one-time cost you amortize across every
+  test written afterward.
+- **The payoff:** the suite exercises the same constraints, transactions, and queries that ship.
+  When it's green, the thing that's green is the actual system — not a diorama of it.
+
+## Where this came from
+
+This is the merge-gate rule for Lifeed's internal admin tool. Its correctness genuinely lives in the
+schema — derived-validity predicates, uniqueness guards that double as business rules, access checks
+pushed down into the query layer — so mocked-DB tests were rejected as the primary strategy. A suite
+that mocked all of that away would be green and meaningless. The whole point of the tests is to fail
+when the database would.

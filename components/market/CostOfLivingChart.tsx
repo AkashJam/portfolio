@@ -47,7 +47,7 @@ export function CostOfLivingChart({ detail }: { detail: CostOfLivingDetail }) {
         </div>
       </div>
 
-      <div className="h-64 w-full">
+      <div className="panel-elevated h-64 w-full rounded-2xl p-4">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={data}>
             <XAxis
@@ -73,12 +73,12 @@ export function CostOfLivingChart({ detail }: { detail: CostOfLivingDetail }) {
         </ResponsiveContainer>
       </div>
 
-      <div className="space-y-2">
+      <div className="panel-elevated space-y-2 rounded-2xl p-6">
         <h3 className="text-sm font-medium text-text-muted">Expense basket</h3>
         {detail.basket.map((item) => (
           <div key={item.label} className="flex items-center gap-3 text-sm">
             <span className="w-40 shrink-0 truncate">{item.label}</span>
-            <div className="h-2 flex-1 overflow-hidden rounded-full bg-panel">
+            <div className="h-2 flex-1 overflow-hidden rounded-full bg-panel-2">
               <div
                 className="h-full bg-simulated"
                 style={{ width: `${(item.value / basketTotal) * 100}%` }}

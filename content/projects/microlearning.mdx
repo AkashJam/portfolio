@@ -1,0 +1,115 @@
+---
+title: Microlearning
+summary: Lifeed's learner-facing PWA — bite-sized, CMS-authored modules for 50k+ learners — fronted by a Go Backend-for-Frontend that is the single trust boundary, verifying auth per request and aggregating a fleet of internal services behind one session-based API.
+slug: microlearning
+year: 2025
+role: Lead
+focus: Frontend · Backend
+status: Live
+tags: [Vue, Quasar, TypeScript, Go, AWS, PWA]
+---
+
+{/* Draft for your review. Lifeed (employer) work, kept high-level per your call — no
+    internal package paths, env/secret names, account IDs, or pool IDs. `role: Lead` is a
+    placeholder; adjust to how you want to represent team/employer work.
+    Set `featured: true` if you'd rather this flagship product lead the grid. */}
+
+## Problem
+
+Microlearning is the learner-facing half of Lifeed's platform — an installable PWA that delivers
+bite-sized, CMS-authored modules to more than 50,000 learners: sessions, reflective missions,
+journaling, achievements and certificates, reminders. The hard part isn't any one screen. It's that
+a single learner view needs data from roughly eight separate internal services — progress, profiles,
+client entitlements, assessments, identity, notifications, and more — each with its own auth and its
+own response shape.
+
+Letting the browser talk to all of them directly would scatter credentials into client-side
+JavaScript, multiply the CORS and token-refresh problems by eight, and hand the public internet a
+much larger attack surface than anyone wanted to defend. And the content itself is authored in a CMS
+as open-ended, typed "blocks" — so the frontend can't hardcode a layout per module and hope the
+shape never changes.
+
+## Approach
+
+<ArchFlow
+  nodes={["Learner PWA", "Go BFF · auth", "Internal services"]}
+  highlight="Go BFF · auth"
+/>
+
+- **A Go Backend-for-Frontend is the only thing the browser talks to.** It's the single trust
+  boundary between the public internet and Lifeed's service mesh — every downstream credential lives
+  in the BFF's environment, never in the client, and one session-based API stands in front of the
+  whole fleet.
+- **Auth is a cookie session at the edge, a JWT only upstream.** The browser holds an HttpOnly,
+  signed-and-encrypted session cookie plus a CSRF token — never a bearer token. The BFF verifies the
+  access token server-side on every request and owns the entire token lifecycle, including a refresh
+  the SPA triggers transparently when a request comes back unauthorized.
+- **Identity and context are resolved per request.** One shared routine answers "who is this user
+  and what should they see" — locale, contract, first-run onboarding and wizard flags — and threads
+  that resolved context into every downstream call, so each service gets a consistent identity
+  instead of re-deriving one from a raw token.
+- **The BFF is a stateless aggregator — no database.** It fans one request out to the downstream
+  services and composes their responses; all state lives behind it. That keeps the
+  security-sensitive component small and makes horizontal scaling a non-event.
+- **The frontend is a CMS-driven parse engine.** Content arrives as trees of typed blocks and cards;
+  a set of parsers map each type to a concrete Vue component with normalized props, and **unknown
+  types are skipped rather than throwing**. Adding a new kind of content is extending a parser and
+  adding a component — the rendering pipeline never changes.
+- **Delivered as an installable PWA** — Quasar service worker and manifest, with push notifications
+  for reminders, because a learning habit lives or dies on the nudge.
+
+## Results
+
+- One session-based API in front of a fleet of internal services: a single origin for the PWA to
+  talk to, one auth model to reason about, and no upstream secret ever reaching the browser.
+- A content model the CMS team can extend without a frontend rewrite — new block, card, and wizard
+  types are additive, and an unrecognized type degrades gracefully instead of breaking a learner's
+  session mid-flow.
+- Powers the sessions, journaling, reflective-mission, and achievement experience for 50,000+
+  learners, installable and push-capable on mobile.
+
+## Lessons
+
+- **The BFF pattern earns its keep the moment you have more than one downstream and a credential you
+  don't want in the browser.** Concentrating auth, secrets, and aggregation in one server-side
+  component turns "N services, N auth surfaces in the client" into one.
+- **Keeping the browser away from bearer tokens is a security posture, not a detail.** An HttpOnly,
+  encrypted cookie can't be read out by injected JavaScript the way a token in JS storage can — and
+  it puts refresh logic where it belongs, on the server.
+- **A parse engine that skips what it doesn't recognize is what lets content and code ship
+  independently.** The frontend never assumes it knows every block type the CMS will send it, so an
+  eager content author can't take the app down with a type the client hasn't learned yet.
+
+## Where it stands
+
+Microlearning is a 2025 system, and it's worth being honest about where the engineering is strongest
+and where I'd invest next. The architecture and the security-at-the-edge model — one trust boundary,
+no browser-held tokens, auth verified per request — are what I'd keep untouched. The maturity I'd add
+is operational:
+
+- **Test against real dependencies, not mocks.** The suite doubles every downstream, so a contract
+  drift upstream only surfaces at runtime. Integration tests against contract-faithful downstreams —
+  plus table-driven coverage on the parse engine, which degrades silently on unknown types — are the
+  highest-value gap to close.
+- **Observability beyond health checks.** For a gateway whose health is dominated by the services
+  behind it, per-downstream latency and error metrics, tracing, and a few real SLOs turn "something's
+  slow" into "*this* dependency is slow."
+- **Retention and tested erasure.** The product handles genuinely sensitive reflective data, so a
+  coordinated, audited deletion path across services deserves to be first-class rather than ad hoc.
+- **Resilience budgets.** Per-dependency timeouts and retry / circuit-breaking, so one slow upstream
+  can't pin the whole gateway behind a single shared ceiling.
+
+Much of this is discipline I leaned into harder on the [Internal Admin Tool](/projects/internal-admin-tool)
+a year later — real-database testing as a merge gate, invariants pushed into the data layer — and it's
+the direction this system would grow.
+
+## Go deeper
+
+<DeeperLinks
+  items={[
+    { label: "Decision", description: "Cookie + CSRF at the edge, JWT only upstream", href: "/blog/browser-should-not-hold-your-jwt" },
+    { label: "Architecture", description: "One BFF aggregating a fleet of services", href: "/blog/bff-fleet-aggregation" },
+    { label: "Frontend", description: "CMS blocks → Vue components via a parse engine", href: "/blog/cms-parse-engine" },
+    { label: "Security", description: "Encrypted cookie sessions + CSRF protection", href: "/blog/browser-should-not-hold-your-jwt" },
+  ]}
+/>

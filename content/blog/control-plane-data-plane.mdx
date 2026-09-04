@@ -1,0 +1,57 @@
+---
+title: "One model, two consumers: a control plane that can't drift from the product"
+summary: When Customer Success edits data through an admin tool and the product reads the same source of truth, there's no second copy of the truth to drift — the alternative isn't safer, it's just a sync bug waiting to happen.
+category: Architecture
+date: "2026-08-22"
+tags: [PostgreSQL, Backend, Architecture]
+draft: false
+---
+
+{/* Draft for your review — grounded in the Lifeed internal admin tool's real architecture,
+    kept high-level: no schema, no literal table names. */}
+
+Give a non-engineering team self-serve tooling and there's a tempting shortcut: build the admin
+surface against its own copy of the data, sync it to the product on a schedule or via an event queue,
+and call it done. It's tempting because it's decoupled — the admin tool and the product can each move
+at their own pace. It's also how you end up debugging why a client's contract looks active in one
+place and expired in another.
+
+## The shortcut's real cost is a synchronization problem
+
+Two copies of the same fact need something to keep them in agreement, and that something is either a
+sync job that can lag or fail, or an event pipeline that can be dropped or reordered. Either way
+you've traded "one place to look" for "two places that are supposed to agree, usually do, and you
+find out when they don't."
+
+## A control plane and a data plane, one model
+
+The alternative is structural, not procedural: Customer Success edits clients and contracts through
+the admin tool, and the learner-facing product reads that exact same source of truth. There's no
+sync step because there's nothing to sync — one domain model, two consumers, no second copy anywhere
+to drift from the first.
+
+```text
+Customer Success ──▶ Admin UI ──▶ API / authz ──▶ Postgres ◀── Learner app (reads)
+```
+
+## What this forecloses, on purpose
+
+It forecloses the class of bug where the admin tool says one thing and the product enforces another,
+because there is structurally nowhere for that disagreement to live. It also means a contract
+misconfigured in the admin tool is immediately what the product does — which is exactly the property
+you want when the whole point is handing configuration to people who aren't going to read the
+enforcing code.
+
+## The tradeoff this accepts
+
+A shared model means the admin tool and the product move together — a schema change touches both
+consumers, not one. That coupling is a real cost. It's the cost of removing a class of bug that a
+sync layer can hide for a long time before it surfaces as a customer whose access doesn't match what
+Customer Success configured.
+
+## Where this came from
+
+This is the actual shape of Lifeed's internal admin tool: one Postgres-backed domain model, edited by
+Customer Success and read by the learner-facing product, with no second copy of client or contract
+state anywhere in the system. The engineering choice that mattered wasn't the admin UI — it was
+refusing to let a second source of truth exist in the first place.

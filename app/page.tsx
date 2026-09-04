@@ -14,7 +14,7 @@ export default async function Home() {
 
   return (
     <>
-      <Hero symbolCount={symbols?.length ?? null} />
+      <Hero symbols={symbols?.map((s) => s.symbol) ?? null} />
       <TechBanner />
       {/* Featured Projects (portfolio.md §18) intentionally not built yet —
           content/projects/ only has a placeholder MDX; fabricating project
