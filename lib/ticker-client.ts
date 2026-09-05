@@ -1,4 +1,5 @@
 import "server-only";
+import { unstable_rethrow } from "next/navigation";
 import type { z } from "zod";
 
 import {
@@ -43,6 +44,14 @@ async function get<Schema extends z.ZodType>(
     }
     return schema.parse(await res.json());
   } catch (error) {
+    // Next throws DynamicServerError from inside fetch() itself to mark a
+    // route dynamic (portfolio.md §8's no-store/revalidate:0 reads) — a
+    // control-flow signal, not a real failure. Swallowing it here (like any
+    // other fetch error) stops Next from ever seeing the bailout, so the
+    // route can't resolve as dynamic and these reads render stale/empty
+    // instead of live. unstable_rethrow lets that signal (and
+    // redirect/notFound/postpone) pass through untouched.
+    unstable_rethrow(error);
     console.error(`ticker-client: ${path} failed`, error);
     return null;
   }
