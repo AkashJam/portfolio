@@ -27,8 +27,15 @@ jobs:
 
       - run: npm ci
       - run: npm run lint
-      - run: npm run typecheck
+      # build before typecheck (swapped from before Sentry landed): standalone
+      # `next typegen` hangs once next.config.ts is wrapped with
+      # withSentryConfig (reproduced directly — content-collections' codegen
+      # never even starts, times out indefinitely), so `typecheck` (now just
+      # `tsc --noEmit`, see package.json) relies on `build` having already
+      # generated content-collections' virtual module and Next's route
+      # types, rather than regenerating them itself via typegen.
       - run: npm run build
+      - run: npm run typecheck
       - run: npm run test
 
       - if: github.ref == 'refs/heads/main' && github.event_name == 'push'
