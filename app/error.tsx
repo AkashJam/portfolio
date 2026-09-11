@@ -1,5 +1,6 @@
 "use client";
 
+import * as Sentry from "@sentry/nextjs";
 import * as React from "react";
 
 import { Glow } from "@/components/site/Glow";
@@ -13,8 +14,7 @@ export default function ErrorPage({
   reset: () => void;
 }) {
   React.useEffect(() => {
-    // TODO(days 13-14): Sentry.captureException(error) once error tracking lands.
-    console.error(error);
+    Sentry.captureException(error);
   }, [error]);
 
   return (

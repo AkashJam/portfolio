@@ -46,6 +46,17 @@ FROM node:24-trixie-slim AS build
 ENV NODE_ENV=production
 WORKDIR /workspace
 
+# ARG alone isn't visible to RUN — re-declaring as ENV is what actually
+# exposes these to `next build` (which inlines NEXT_PUBLIC_SENTRY_DSN into
+# the client bundle) and to next.config.ts's withSentryConfig (which reads
+# SENTRY_AUTH_TOKEN for source-map upload). Neither is secret to have as a
+# build arg: the DSN by design (see .env.example), and a missing/empty
+# auth token just makes the upload step skip with a warning, not fail.
+ARG SENTRY_AUTH_TOKEN
+ARG NEXT_PUBLIC_SENTRY_DSN
+ENV SENTRY_AUTH_TOKEN=$SENTRY_AUTH_TOKEN
+ENV NEXT_PUBLIC_SENTRY_DSN=$NEXT_PUBLIC_SENTRY_DSN
+
 COPY --from=deps /workspace/node_modules ./node_modules
 COPY . .
 RUN npm run build
