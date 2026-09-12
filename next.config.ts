@@ -20,6 +20,12 @@ export default withContentCollections(
   withSentryConfig(nextConfig, {
     org: "akash-0g",
     project: "javascript-nextjs",
+    // .dockerignore excludes .git from the build context, so the plugin's
+    // own git-based auto-detection finds nothing and uploads under the
+    // literal release "undefined" otherwise — breaking release/deploy
+    // tracking and suspect-commit correlation. ci.yml passes the same git
+    // SHA already used for the ECR image tag via this build-arg.
+    release: { name: process.env.SENTRY_RELEASE },
     // Undefined (no SENTRY_AUTH_TOKEN) is fine — the plugin skips source-map
     // upload with a warning instead of failing the build, which is exactly
     // what every local/PR build does (only the main-branch Docker build in

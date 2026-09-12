@@ -46,16 +46,37 @@ FROM node:24-trixie-slim AS build
 ENV NODE_ENV=production
 WORKDIR /workspace
 
+# sentry-cli (a standalone binary bundled with @sentry/nextjs, not Node) uses
+# the OS cert store for its own HTTPS calls to Sentry's API — Node's own
+# fetch/https works fine on this base image without it, which is why nothing
+# else in this stage ever needed it before. Without it: "SSL certificate
+# problem: unable to get local issuer certificate", and the source-map
+# upload silently fails (non-fatal to the build itself, but no source maps
+# ever reach Sentry).
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends ca-certificates \
+ && rm -rf /var/lib/apt/lists/*
+
 # ARG alone isn't visible to RUN — re-declaring as ENV is what actually
 # exposes these to `next build` (which inlines NEXT_PUBLIC_SENTRY_DSN into
 # the client bundle) and to next.config.ts's withSentryConfig (which reads
 # SENTRY_AUTH_TOKEN for source-map upload). Neither is secret to have as a
 # build arg: the DSN by design (see .env.example), and a missing/empty
 # auth token just makes the upload step skip with a warning, not fail.
+#
+# SENTRY_RELEASE: .dockerignore excludes .git from the build context (small,
+# standard practice), so the Sentry plugin's own git-based auto-detection of
+# the release name finds nothing and silently uploads under the literal
+# release "undefined" — breaking release/deploy tracking and suspect-commit
+# correlation entirely. ci.yml passes the same git SHA already used for the
+# ECR image tag, so the release name actually matches a real commit Sentry's
+# connected GitHub repo can look up.
 ARG SENTRY_AUTH_TOKEN
 ARG NEXT_PUBLIC_SENTRY_DSN
+ARG SENTRY_RELEASE
 ENV SENTRY_AUTH_TOKEN=$SENTRY_AUTH_TOKEN
 ENV NEXT_PUBLIC_SENTRY_DSN=$NEXT_PUBLIC_SENTRY_DSN
+ENV SENTRY_RELEASE=$SENTRY_RELEASE
 
 COPY --from=deps /workspace/node_modules ./node_modules
 COPY . .
