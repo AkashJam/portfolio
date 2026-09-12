@@ -64,6 +64,7 @@ jobs:
           REGISTRY: ${{ steps.ecr-login.outputs.registry }}
         run: |
           docker buildx build --platform linux/arm64 --target runtime \
+            --progress=plain \
             --build-arg SENTRY_AUTH_TOKEN="${{ secrets.SENTRY_AUTH_TOKEN }}" \
             --build-arg NEXT_PUBLIC_SENTRY_DSN="${{ vars.NEXT_PUBLIC_SENTRY_DSN }}" \
             -t "$REGISTRY/portfolio:${{ github.sha }}" \
