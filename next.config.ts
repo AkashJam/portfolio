@@ -25,7 +25,17 @@ export default withContentCollections(
     // what every local/PR build does (only the main-branch Docker build in
     // ci.yml passes this).
     authToken: process.env.SENTRY_AUTH_TOKEN,
-    silent: !process.env.CI,
+    // NOT !process.env.CI — that was wrong: CI=true is set on the GitHub
+    // Actions *runner*, but this build runs inside `docker buildx build`'s
+    // isolated container, which never inherits the runner's shell env
+    // unless explicitly passed as a --build-arg (CI isn't one of the ones
+    // we pass). So process.env.CI is always undefined here, making this
+    // permanently silent regardless of environment — which is exactly why
+    // the actual upload error (turned out to be a real one) never showed up
+    // in the Docker build log. Silent only when there's truly nothing to
+    // attempt (no token); verbose whenever a token is present, since that's
+    // precisely when you want to see whether the upload actually worked.
+    silent: !process.env.SENTRY_AUTH_TOKEN,
     widenClientFileUpload: true,
     // Proxies Sentry's beacon through a same-origin route instead of calling
     // ingest.sentry.io directly — sidesteps ad-blockers that drop that
