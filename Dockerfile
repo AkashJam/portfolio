@@ -57,12 +57,22 @@ RUN apt-get update \
  && apt-get install -y --no-install-recommends ca-certificates \
  && rm -rf /var/lib/apt/lists/*
 
-# ARG alone isn't visible to RUN — re-declaring as ENV is what actually
-# exposes these to `next build` (which inlines NEXT_PUBLIC_SENTRY_DSN into
-# the client bundle) and to next.config.ts's withSentryConfig (which reads
-# SENTRY_AUTH_TOKEN for source-map upload). Neither is secret to have as a
-# build arg: the DSN by design (see .env.example), and a missing/empty
-# auth token just makes the upload step skip with a warning, not fail.
+# Both of these are consumed by `next build` (which inlines
+# NEXT_PUBLIC_SENTRY_DSN into the client bundle) and so have to reach the
+# *build* step, not the running container. Neither is a secret: the DSN is
+# public by design (see .env.example — it can submit events, never read Sentry
+# data) and ships in the browser bundle anyway; SENTRY_RELEASE is a git SHA.
+# The ENV re-declaration is belt-and-braces — an ARG is already visible to RUN
+# within the stage that declares it — but it keeps the value explicit at the
+# point of use.
+#
+# SENTRY_AUTH_TOKEN is deliberately NOT one of these. It is a real credential
+# (it can read the Sentry project, not just write to it), and build args are
+# recorded in image metadata and `docker history`. It arrives instead as a
+# BuildKit secret mounted onto the `npm run build` RUN below, which leaves no
+# trace in any layer. A build with no secret provided simply leaves it unset,
+# and the plugin skips the source-map upload with a warning rather than
+# failing — which is what every local and PR build does.
 #
 # SENTRY_RELEASE: .dockerignore excludes .git from the build context (small,
 # standard practice), so the Sentry plugin's own git-based auto-detection of
@@ -71,10 +81,8 @@ RUN apt-get update \
 # correlation entirely. ci.yml passes the same git SHA already used for the
 # ECR image tag, so the release name actually matches a real commit Sentry's
 # connected GitHub repo can look up.
-ARG SENTRY_AUTH_TOKEN
 ARG NEXT_PUBLIC_SENTRY_DSN
 ARG SENTRY_RELEASE
-ENV SENTRY_AUTH_TOKEN=$SENTRY_AUTH_TOKEN
 ENV NEXT_PUBLIC_SENTRY_DSN=$NEXT_PUBLIC_SENTRY_DSN
 ENV SENTRY_RELEASE=$SENTRY_RELEASE
 
@@ -89,7 +97,8 @@ ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
 
 COPY --from=deps /workspace/node_modules ./node_modules
 COPY . .
-RUN npm run build
+RUN --mount=type=secret,id=sentry_auth,env=SENTRY_AUTH_TOKEN \
+    npm run build
 
 # --- runtime: standalone output only, non-root, PORT 3000 ------------------
 
