@@ -13,6 +13,12 @@ import { RESUME_HREF } from "@/lib/contact";
 
 export const metadata: Metadata = {
   title: "About — Akash James",
+  // Previously inherited the root description, which is written for Home's
+  // "this site runs the thing it describes" pitch — the wrong framing on a
+  // page about the person. Evidence rather than claim: the figures are the
+  // ones already in data/experience.ts.
+  description:
+    "I build and run the Go, Vue and AWS systems behind an eLearning platform for 50,000+ learners — and the live market dashboard on this site.",
 };
 
 export default function AboutPage() {

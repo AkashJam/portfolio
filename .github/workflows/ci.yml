@@ -68,6 +68,7 @@ jobs:
             --build-arg SENTRY_AUTH_TOKEN="${{ secrets.SENTRY_AUTH_TOKEN }}" \
             --build-arg NEXT_PUBLIC_SENTRY_DSN="${{ vars.NEXT_PUBLIC_SENTRY_DSN }}" \
             --build-arg SENTRY_RELEASE="${{ github.sha }}" \
+            --build-arg NEXT_PUBLIC_SITE_URL="${{ vars.NEXT_PUBLIC_SITE_URL || 'https://akjames.dev' }}" \
             -t "$REGISTRY/portfolio:${{ github.sha }}" \
             -t "$REGISTRY/portfolio:latest" \
             --push \

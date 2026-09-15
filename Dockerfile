@@ -78,6 +78,15 @@ ENV SENTRY_AUTH_TOKEN=$SENTRY_AUTH_TOKEN
 ENV NEXT_PUBLIC_SENTRY_DSN=$NEXT_PUBLIC_SENTRY_DSN
 ENV SENTRY_RELEASE=$SENTRY_RELEASE
 
+# NEXT_PUBLIC_SITE_URL: the same build-time story as the DSN above.
+# infra/docker-compose.yml also sets it as a *runtime* container env var, but
+# that copy arrives too late — `next build` inlines NEXT_PUBLIC_ references, so
+# without this ARG the image bakes in the "http://localhost:3000" fallback and
+# metadataBase (app/layout.tsx), sitemap.ts and robots.ts all emit localhost
+# URLs in production. Not a secret: it is the site's own public origin.
+ARG NEXT_PUBLIC_SITE_URL
+ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
+
 COPY --from=deps /workspace/node_modules ./node_modules
 COPY . .
 RUN npm run build
