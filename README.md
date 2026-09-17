@@ -53,7 +53,7 @@ flowchart TD
 
 ```bash
 npm ci
-cp .env.example .env      # TICKER_API_URL=http://localhost:8080
+cp .env.example .env.local   # TICKER_API_URL=http://localhost:8080
 make dev                  # next dev on :3000
 ```
 

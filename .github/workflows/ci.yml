@@ -80,8 +80,15 @@ jobs:
       # bare image push here wouldn't otherwise redeploy anything. This
       # closes that gap (it predates ticker; likely why the Days 3-4 image
       # needed a manual workflow_dispatch to go live — see phase3.md).
-      # Conditioned on the secret existing — deferred setup (INFRA_DISPATCH_TOKEN
-      # not created yet) skips this cleanly instead of failing the run.
+      # Gated on the secret existing — and it deliberately doesn't. Dispatching
+      # across repos needs a long-lived PAT with Contents:write on infra, which
+      # is write access to infra's deploy.yml, which holds an SSM root shell on
+      # the prod box (tag-scoped, no IAM/Terraform rights, but still the box and
+      # its SSM SecureStrings). Not worth a standing credential to save a click
+      # on a deploy done a few times a month, so this step stays skipped and
+      # releases are run by hand: infra -> Actions -> Deploy -> Run workflow,
+      # after this job has pushed the image. Creating INFRA_DISPATCH_TOKEN is
+      # the only change needed to switch automatic deploys back on.
       - if: github.ref == 'refs/heads/main' && github.event_name == 'push' && env.HAS_INFRA_TOKEN == 'true'
         name: Trigger infra deploy
         uses: peter-evans/repository-dispatch@v3

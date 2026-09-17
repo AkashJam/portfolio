@@ -3,11 +3,7 @@ import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import "./globals.css";
 import { AppShell } from "@/components/shell/AppShell";
-
-// Same pattern (and same fallback) as app/robots.ts and app/sitemap.ts — a
-// localhost default so a build that never received the var fails visibly in
-// dev instead of quietly advertising the production origin.
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+import { SITE_URL } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Akash James",

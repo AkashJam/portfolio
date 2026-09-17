@@ -1,8 +1,9 @@
 import type { MetadataRoute } from "next";
 import { allBlogs, allProjects } from "content-collections";
 
+import { SITE_URL } from "@/lib/site";
+
 const isDev = process.env.NODE_ENV !== "production";
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
 const STATIC_ROUTES = ["/", "/about", "/projects", "/blog", "/market"];
 
