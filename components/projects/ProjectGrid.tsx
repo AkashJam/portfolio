@@ -16,8 +16,10 @@ import type { Project } from "content-collections";
  * nothing. Just search + tag filtering for now; the grid itself is already
  * shaped to take a third card without changes.
  *
- * Grid is the only view built — "Showcase" (v2's scroll-snap alternate
- * layout) is undefined in the mock itself, out of scope this pass.
+ * Grid is the only view — "Showcase" (v2's scroll-snap alternate layout) is
+ * deliberately dropped, not deferred: at four projects a full-viewport
+ * scroll-snap mode conceals how short the list is, which a grid handles
+ * gracefully (portfolio.md §17).
  */
 export function ProjectGrid({ projects }: { projects: Project[] }) {
   const [query, setQuery] = React.useState("");
@@ -76,7 +78,7 @@ export function ProjectGrid({ projects }: { projects: Project[] }) {
       </div>
 
       {filtered.length > 0 ? (
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-2">
           {filtered.map((project) => (
             <ProjectCard key={project.slug} project={project} />
           ))}

@@ -12,6 +12,8 @@ import {
 } from "@/components/ui/sheet";
 import { navLinks } from "@/lib/nav";
 import { CONTACT_EMAIL, GITHUB_URL, LINKEDIN_URL, RESUME_HREF } from "@/lib/contact";
+import { IdentityMark } from "@/components/shell/IdentityMark";
+import { heroRole } from "@/data/profile";
 
 export function MobileDrawer({
   open,
@@ -25,8 +27,14 @@ export function MobileDrawer({
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="left" className="w-3/4 max-w-xs">
-        <SheetHeader>
-          <SheetTitle>Menu</SheetTitle>
+        <SheetHeader className="gap-3 border-b border-hairline">
+          <div className="flex items-center gap-2.5">
+            <IdentityMark className="size-7.5 rounded-[9px]" />
+            <p className="font-mono text-[11px] tracking-widest text-text-muted">
+              {heroRole} · Milan
+            </p>
+          </div>
+          <SheetTitle className="sr-only">Menu</SheetTitle>
           <SheetDescription className="sr-only">
             Site navigation and search
           </SheetDescription>

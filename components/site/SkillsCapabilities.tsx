@@ -4,73 +4,79 @@ interface Capability {
   summary: string;
 }
 
-// Originally mockups/v2/about.html's editorial block verbatim; since rewritten
-// to match data/experience.ts rather than the mockup. Every tag here is
-// something with production or shipped-project evidence behind it — the
-// previous version claimed Node.js services (none exist: the backends are Go
-// and, earlier, .NET), WebSockets (Ticker deliberately uses SSE instead),
-// Core Web Vitals budgets (Lighthouse CI isn't wired into CI) and time-series
-// "at scale" (one t4g.small against a simulated source), while omitting Vue —
-// three years and three products of it.
+// Every tag here is something with production or shipped-project evidence
+// behind it — the previous (superseded v2) mock claimed Node.js services
+// (none exist: the backends are Go and, earlier, .NET Core), WebSockets
+// (Ticker deliberately uses SSE instead), Core Web Vitals budgets
+// (Lighthouse CI isn't wired into CI) and time-series "at scale" (one
+// t4g.small against a simulated source), while omitting Vue — three years
+// and three products of it. Node.js is the one deliberate exception:
+// listed for its job-posting relevance rather than shipped-project
+// evidence — every other tag here still is evidenced.
+//
+// Four rows (portfolio.md §15 Phase 6 acceptance criteria), not five —
+// Reliability's content (Playwright, Prometheus, Grafana) folds into
+// Infra's summary rather than getting its own row.
 const CAPABILITIES: Capability[] = [
   {
     category: "Frontend",
-    tags: ["Vue", "TypeScript", "Quasar", "React / Next.js", "Tailwind"],
+    tags: ["TypeScript", "Vue", "Quasar", "React", "Next.js", "Tailwind"],
     summary:
-      "Vue and TypeScript across three production apps, one an installable PWA; React with Server Components on this site.",
+      "Accessible product interfaces held to WCAG 2.1 AA — Vue and Quasar on the learning platform, React and RSC on this site.",
   },
   {
     category: "Backend",
-    tags: ["Go", "REST", "GraphQL", "SSE"],
+    tags: ["Go", "Node.js", "GraphQL", "SSE", ".NET Core"],
     summary:
-      "Go services, and a Backend-for-Frontend aggregating a fleet of internal APIs behind one auth boundary.",
+      "Streaming Go services with SSE fan-out to the browser, and GraphQL where content had to decouple from code.",
   },
   {
     category: "Infra",
-    tags: ["AWS", "Terraform", "Docker", "CI/CD"],
+    tags: ["AWS", "Terraform", "Docker", "CI/CD", "Prometheus", "Grafana"],
     summary:
-      "EC2 and RDS at work; Terraform and keyless OIDC deploys onto single-box Docker Compose here.",
+      "Keyless CI/CD to AWS over OIDC, the whole estate in Terraform, one box running Docker Compose and watched by Prometheus.",
   },
   {
     category: "Data",
-    tags: ["PostgreSQL", "Redis", "TimescaleDB"],
+    tags: ["PostgreSQL", "TimescaleDB", "Redis", "MySQL"],
     summary:
-      "Invariants enforced in the schema, Redis for coordination and caching, Timescale hypertables for candles.",
-  },
-  {
-    category: "Reliability",
-    tags: ["Integration testing", "Playwright", "Prometheus", "Grafana"],
-    summary:
-      "A real database as the merge gate, browser and contract tests in CI, and monitoring that made uptime a defended target.",
+      "Time-series at scale — Timescale hypertables for candles, Redis for caching and leader leases, and relational schemas tuned when queries drifted.",
   },
 ];
 
-/** About's "Skills & Capabilities" editorial block (portfolio.md §18, mockups/v2 design refresh). */
+// Column geometry (190px label / content) matches Experience's timeline
+// directly above it (components/site/Timeline.tsx) so the two sections
+// share one right-aligned spine, rather than a card of its own.
 export function SkillsCapabilities() {
   return (
-    <div className="rounded-2xl border border-hairline bg-panel/70 p-6 backdrop-blur-sm sm:p-8">
-      <div className="flex flex-col divide-y divide-hairline">
-        {CAPABILITIES.map((cap) => (
-          <div key={cap.category} className="grid gap-3 py-5 first:pt-0 last:pb-0 sm:grid-cols-[150px_1fr] sm:gap-6">
-            <h3 className="font-mono text-xs tracking-[0.2em] text-brand-hover uppercase">
-              {cap.category}
-            </h3>
-            <div className="flex flex-col gap-3">
-              <div className="flex flex-wrap gap-2">
-                {cap.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="rounded-full border border-hairline bg-panel-2 px-2.5 py-1 text-xs text-text-muted"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-              <p className="max-w-[60ch] text-sm text-read">{cap.summary}</p>
+    <div className="mt-6">
+      {CAPABILITIES.map((cap, i) => (
+        <div
+          key={cap.category}
+          className={
+            i === 0
+              ? "grid grid-cols-1 gap-2.5 py-1.5 lg:grid-cols-[190px_minmax(0,1fr)] lg:gap-x-8 lg:gap-y-0 lg:py-0"
+              : "grid grid-cols-1 gap-2.5 border-t border-hairline py-5 lg:grid-cols-[190px_minmax(0,1fr)] lg:gap-x-8 lg:gap-y-0"
+          }
+        >
+          <h3 className="font-mono text-xs leading-normal tracking-[0.14em] text-brand-hover uppercase lg:text-right lg:leading-[1.9]">
+            {cap.category}
+          </h3>
+          <div className="flex max-w-[64ch] flex-col gap-2.5">
+            <div className="flex flex-wrap gap-[7px]">
+              {cap.tags.map((tag) => (
+                <span
+                  key={tag}
+                  className="rounded-full border border-hairline bg-panel-2 px-2.5 py-1 text-xs text-text-muted"
+                >
+                  {tag}
+                </span>
+              ))}
             </div>
+            <p className="text-pretty text-sm text-text-muted">{cap.summary}</p>
           </div>
-        ))}
-      </div>
+        </div>
+      ))}
     </div>
   );
 }

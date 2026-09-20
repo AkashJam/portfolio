@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowRight, ArrowUpRight } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -22,11 +22,17 @@ export function ProjectCard({ project }: { project: Project }) {
     <article
       className={cn(
         "flex flex-col gap-4 rounded-2xl border border-hairline bg-panel p-6",
-        project.featured && "sm:col-span-2"
+        project.featured &&
+          "border-brand/28 bg-[linear-gradient(180deg,color-mix(in_oklab,var(--brand)_6%,transparent),transparent_130px),var(--panel)]"
       )}
     >
       <div className="flex items-center justify-between font-mono text-xs text-text-muted">
-        <span>{project.year}</span>
+        <span className="flex items-center gap-2.5">
+          <span>{project.year}</span>
+          {project.featured && (
+            <span className="tracking-widest text-brand-hover uppercase">Featured</span>
+          )}
+        </span>
         <span className={STATUS_COLOR[project.status]}>
           {STATUS_MARK[project.status]} {project.status}
         </span>
@@ -54,8 +60,11 @@ export function ProjectCard({ project }: { project: Project }) {
             See it live <ArrowUpRight className="size-3.5" />
           </a>
         )}
-        <Link href={`/projects/${project.slug}`} className="text-text-muted hover:text-text">
-          Case study →
+        <Link
+          href={`/projects/${project.slug}`}
+          className="inline-flex items-center gap-1 text-text-muted hover:text-text"
+        >
+          Case study <ArrowRight className="size-3.5" />
         </Link>
       </div>
     </article>

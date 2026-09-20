@@ -1,13 +1,16 @@
 import type { Metadata } from "next";
 import { Download } from "lucide-react";
 
+import { AboutStats } from "@/components/site/AboutStats";
+import { Asterism } from "@/components/site/Asterism";
 import { EducationCard } from "@/components/site/EducationCard";
 import { ExperienceCard } from "@/components/site/ExperienceCard";
-import { LiveSignal } from "@/components/site/LiveSignal";
 import { Reveal } from "@/components/site/Reveal";
 import { SkillsCapabilities } from "@/components/site/SkillsCapabilities";
-import { education } from "@/data/education";
-import { experience } from "@/data/experience";
+import { Timeline } from "@/components/site/Timeline";
+import { Container } from "@/components/shell/Container";
+import { education, type EducationEntry } from "@/data/education";
+import { experience, type ExperienceEntry } from "@/data/experience";
 import { bio, statement, workAuthorization } from "@/data/profile";
 import { RESUME_HREF } from "@/lib/contact";
 
@@ -21,71 +24,85 @@ export const metadata: Metadata = {
     "I build and run the Go, Vue and AWS systems behind an eLearning platform for 50,000+ learners — and the live market dashboard on this site.",
 };
 
-export default function AboutPage() {
+function TimelineWhen({
+  start,
+  end,
+  location,
+}: Pick<ExperienceEntry | EducationEntry, "start" | "end" | "location">) {
   return (
     <>
-      <section className="relative overflow-hidden pt-16 pb-8">
-        <LiveSignal />
-        <div className="relative z-10 mx-auto max-w-6xl px-4">
-          <p className="mb-4 text-xs tracking-[0.2em] text-text-muted uppercase">About</p>
-          <h1 className="max-w-[20ch] text-[clamp(30px,4.4vw,52px)] leading-tight font-light text-text">
-            {statement.headline}
-          </h1>
-          <p className="mt-4 max-w-[48ch] text-lg text-text-muted">{statement.subheadline}</p>
-          <div className="mt-6 flex max-w-[56ch] flex-col gap-5">
-            {bio.map((paragraph, i) => (
-              <p key={i} className="text-text-muted">
-                {paragraph}
-              </p>
-            ))}
-          </div>
-          <a
-            href={RESUME_HREF}
-            className="mt-6 inline-flex w-fit items-center gap-2 rounded-lg border border-brand bg-[#141733] px-4 py-2 text-sm text-text transition-shadow hover:shadow-[0_0_24px_-8px_var(--brand)] focus-visible:shadow-[0_0_24px_-8px_var(--brand)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
-          >
-            <Download className="size-4" />
-            Download Résumé (PDF)
-          </a>
-          <p className="mt-4 text-sm text-text-muted">{workAuthorization}</p>
-        </div>
-      </section>
+      {start}
+      <br />— {end ?? "Present"}
+      {location && <div className="mt-2 text-xs text-text-muted">{location}</div>}
+    </>
+  );
+}
 
-      <section className="py-16">
-        <div className="mx-auto max-w-6xl px-4">
-          <h2 className="mb-8 text-xs tracking-[0.2em] text-text-muted uppercase">Experience</h2>
-          <div className="flex flex-col gap-6">
-            {experience.map((entry) => (
+export default function AboutPage() {
+  return (
+    // portfolio.md §15 Phase 6 step 4: the asterism is a sibling of the
+    // copy below, not a wrapper around it — LiveSignal's old inset-0
+    // treatment sat over the reading column and degenerated on mobile.
+    <section className="relative overflow-hidden pt-16 pb-16">
+      <Asterism />
+      <Container className="relative z-10">
+        <p className="mb-4 text-xs tracking-[0.2em] text-text-muted uppercase">About</p>
+        <h1 className="max-w-[20ch] text-[clamp(34px,5.2vw,60px)] leading-tight font-light text-balance text-text">
+          {statement.headline}
+        </h1>
+        <p className="mt-4.5 max-w-[58ch] text-lg text-text-muted">{statement.subheadline}</p>
+
+        <AboutStats />
+
+        <p className="mt-11 max-w-[72ch] text-lg leading-relaxed text-pretty text-read">{bio[0]}</p>
+
+        <div className="mt-8 grid items-stretch gap-7 lg:grid-cols-[1.62fr_1fr] lg:gap-14">
+          <p className="text-base text-pretty text-text-muted">{bio[1]}</p>
+          <div className="flex flex-col justify-end gap-3.5 border-t border-hairline pt-5 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-6">
+            <a
+              href={RESUME_HREF}
+              className="inline-flex w-fit items-center gap-2 rounded-lg border border-brand bg-[#141733] px-4 py-2 text-sm text-text transition-shadow hover:shadow-[0_0_24px_-8px_var(--brand)] focus-visible:shadow-[0_0_24px_-8px_var(--brand)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
+            >
+              <Download className="size-4" />
+              Download Résumé (PDF)
+            </a>
+            <span className="text-[13.5px] leading-normal text-text-muted">{workAuthorization}</span>
+          </div>
+        </div>
+
+        <h2 className="mt-[72px] text-xs tracking-[0.2em] text-text-muted uppercase">Experience</h2>
+        <Timeline
+          items={experience.map((entry) => ({
+            when: <TimelineWhen {...entry} />,
+            current: !entry.end,
+            content: (
               <Reveal key={entry.company}>
                 <ExperienceCard entry={entry} />
               </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
+            ),
+          }))}
+        />
 
-      <section className="pb-16">
-        <div className="mx-auto max-w-6xl px-4">
-          <h2 className="mb-8 text-xs tracking-[0.2em] text-text-muted uppercase">Education</h2>
-          <div className="flex flex-col gap-6">
-            {education.map((entry) => (
+        <h2 className="mt-[72px] text-xs tracking-[0.2em] text-text-muted uppercase">Education</h2>
+        <Timeline
+          items={education.map((entry) => ({
+            when: <TimelineWhen {...entry} />,
+            current: !entry.end,
+            content: (
               <Reveal key={entry.institution}>
                 <EducationCard entry={entry} />
               </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
+            ),
+          }))}
+        />
 
-      <section className="pb-16">
-        <div className="mx-auto max-w-6xl px-4">
-          <h2 className="mb-8 text-xs tracking-[0.2em] text-text-muted uppercase">
-            Skills &amp; Capabilities
-          </h2>
-          <Reveal>
-            <SkillsCapabilities />
-          </Reveal>
-        </div>
-      </section>
-    </>
+        <h2 className="mt-[72px] text-xs tracking-[0.2em] text-text-muted uppercase">
+          Skills &amp; Capabilities
+        </h2>
+        <Reveal>
+          <SkillsCapabilities />
+        </Reveal>
+      </Container>
+    </section>
   );
 }

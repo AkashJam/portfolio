@@ -7,6 +7,8 @@ import { Menu, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { navLinks } from "@/lib/nav";
 import { MarketButton } from "@/components/shell/MarketButton";
+import { IdentityMark } from "@/components/shell/IdentityMark";
+import { Container } from "@/components/shell/Container";
 
 export function TopBar({
   onOpenPalette,
@@ -19,38 +21,44 @@ export function TopBar({
 
   return (
     <header className="sticky top-0 z-30 border-b border-hairline bg-canvas/80 backdrop-blur supports-backdrop-filter:bg-canvas/60">
-      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
-        <nav aria-label="Primary" className="hidden items-center gap-1 md:flex">
-          {navLinks.map((link) => {
-            const active =
-              link.href === "/" ? pathname === "/" : pathname.startsWith(link.href);
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                aria-current={active ? "page" : undefined}
-                className={`rounded-lg px-3 py-1.5 text-sm tracking-wide uppercase transition-colors ${
-                  // text-brand (#6366f1 on #0b0d0f) is 4.35:1 — fails WCAG
-                  // AA's 4.5:1 for this text size (caught by e2e/axe.spec.ts).
-                  // text-brand-hover (#818cf8) is 6.53:1, passes comfortably.
-                  active ? "text-brand-hover" : "text-text-muted hover:text-text"
-                }`}
-              >
-                {link.label}
-              </Link>
-            );
-          })}
-        </nav>
+      <Container className="flex h-14 items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden"
+            aria-label="Open menu"
+            onClick={onOpenDrawer}
+          >
+            <Menu className="size-5" />
+          </Button>
 
-        <Button
-          variant="ghost"
-          size="icon"
-          className="md:hidden"
-          aria-label="Open menu"
-          onClick={onOpenDrawer}
-        >
-          <Menu className="size-5" />
-        </Button>
+          <Link href="/" aria-label="Home" className="shrink-0">
+            <IdentityMark />
+          </Link>
+
+          <nav aria-label="Primary" className="hidden items-center gap-1 md:flex">
+            {navLinks.map((link) => {
+              const active =
+                link.href === "/" ? pathname === "/" : pathname.startsWith(link.href);
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  aria-current={active ? "page" : undefined}
+                  className={`rounded-lg px-3 py-1.5 text-sm tracking-wide uppercase transition-colors ${
+                    // text-brand (#6366f1 on #0b0d0f) is 4.35:1 — fails WCAG
+                    // AA's 4.5:1 for this text size (caught by e2e/axe.spec.ts).
+                    // text-brand-hover (#818cf8) is 6.53:1, passes comfortably.
+                    active ? "text-brand-hover" : "text-text-muted hover:text-text"
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
 
         <div className="flex items-center gap-1">
           <Button
@@ -76,7 +84,7 @@ export function TopBar({
           </Button>
           <MarketButton />
         </div>
-      </div>
+      </Container>
     </header>
   );
 }

@@ -2,11 +2,12 @@ import Link from "next/link";
 
 import { navLinks } from "@/lib/nav";
 import { CONTACT_EMAIL, GITHUB_URL, LINKEDIN_URL, RESUME_HREF } from "@/lib/contact";
+import { Container } from "@/components/shell/Container";
 
 export function Footer() {
   return (
     <footer className="border-t border-hairline">
-      <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-10 text-sm text-text-muted sm:flex-row sm:items-start sm:justify-between">
+      <Container className="flex flex-col gap-6 py-10 text-sm text-text-muted sm:flex-row sm:items-start sm:justify-between">
         <nav aria-label="Footer" className="flex flex-wrap gap-x-6 gap-y-2">
           {navLinks.map((link) => (
             <Link key={link.href} href={link.href} className="hover:text-text">
@@ -38,7 +39,7 @@ export function Footer() {
             Email
           </a>
         </div>
-      </div>
+      </Container>
     </footer>
   );
 }

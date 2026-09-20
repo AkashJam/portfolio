@@ -1,20 +1,19 @@
 import type { ExperienceEntry } from "@/data/experience";
 
+/**
+ * The date/location line lives in Timeline's `when` column now, not here
+ * — portfolio.md §15 Phase 6 step 4 moves it out of the card so the card
+ * itself is just title, summary and content.
+ */
 export function ExperienceCard({ entry }: { entry: ExperienceEntry }) {
-  const range = `${entry.start} — ${entry.end ?? "Present"}`;
-  const meta = entry.location ? `${entry.location} · ${range}` : range;
-
   return (
-    <article className="rounded-2xl border border-hairline bg-panel/70 p-6 backdrop-blur-sm sm:p-8">
-      <header className="mb-2 flex flex-col gap-1">
-        <p className="font-mono text-sm text-simulated">{meta}</p>
-        <h3 className="text-lg font-medium text-text">
-          {entry.role} · {entry.company}
-        </h3>
-      </header>
-      <p className="mb-6 max-w-[60ch] text-sm text-text-muted">{entry.summary}</p>
+    <article className="rounded-[18px] border border-hairline bg-panel p-7">
+      <h3 className="text-lg font-medium text-text">
+        {entry.role} · {entry.company}
+      </h3>
+      <p className="mt-2 mb-6 max-w-[60ch] text-sm text-text-muted">{entry.summary}</p>
 
-      <div className="grid gap-8 lg:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-2 md:gap-8">
         <div>
           <h4 className="mb-3 text-xs tracking-[0.2em] text-text-muted uppercase">
             Responsibilities
