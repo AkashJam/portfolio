@@ -1,5 +1,8 @@
-import { CONTACT_EMAIL, GITHUB_URL, LINKEDIN_URL } from "@/lib/contact";
+import { CONTACT_EMAIL } from "@/lib/contact";
 
+// GitHub/LinkedIn dropped from here (portfolio.md §15 Phase 6 step 6) — the
+// footer already carries them on every page; repeating them here was the
+// only duplicate of Footer's own links anywhere in the app.
 export function ContactCTA() {
   return (
     <div className="flex flex-col items-center gap-6 py-24 text-center">
@@ -12,30 +15,6 @@ export function ContactCTA() {
       >
         {CONTACT_EMAIL}
       </a>
-      <div className="flex gap-6 text-xs tracking-[0.2em] text-text-muted uppercase">
-        <a
-          href={GITHUB_URL}
-          target="_blank"
-          rel="noreferrer"
-          className="hover:text-text focus-visible:text-text focus-visible:outline-none"
-        >
-          GitHub
-        </a>
-        <a
-          href={LINKEDIN_URL}
-          target="_blank"
-          rel="noreferrer"
-          className="hover:text-text focus-visible:text-text focus-visible:outline-none"
-        >
-          LinkedIn
-        </a>
-        <a
-          href={`mailto:${CONTACT_EMAIL}`}
-          className="hover:text-text focus-visible:text-text focus-visible:outline-none"
-        >
-          Email
-        </a>
-      </div>
     </div>
   );
 }
