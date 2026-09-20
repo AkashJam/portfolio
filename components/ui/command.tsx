@@ -55,12 +55,16 @@ function CommandDialog({
       </DialogHeader>
       <DialogContent
         className={cn(
-          "top-1/3 translate-y-0 overflow-hidden rounded-xl! p-0",
+          "top-11 translate-y-0 overflow-hidden rounded-xl! p-0 sm:max-w-[440px]",
           className
         )}
         showCloseButton={showCloseButton}
       >
-        {children}
+        {/* cmdk's Input/List/Group read their store from this root. Without it
+            they dereference an undefined context and take the whole tree down the
+            moment the dialog opens. AppShell sits in RootLayout, so that is every
+            page. Canonical shadcn wraps the children here for the same reason. */}
+        <Command>{children}</Command>
       </DialogContent>
     </Dialog>
   )
