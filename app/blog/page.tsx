@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import { allBlogs } from "content-collections";
 
 import { PostList } from "@/components/blog/PostList";
+import { StarField } from "@/components/site/StarField";
+import { Container } from "@/components/shell/Container";
 
 export const metadata: Metadata = {
   title: "Writing — Akash James",
@@ -18,19 +20,22 @@ export default function BlogPage() {
     .sort((a, b) => +new Date(b.date) - +new Date(a.date));
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-16">
-      <p className="mb-4 text-xs tracking-[0.2em] text-text-muted uppercase">Writing</p>
-      <h1 className="text-4xl font-light text-text">Notes &amp; engineering</h1>
-      <p className="mt-4 max-w-[60ch] text-lg text-text-muted">
-        Field notes on distributed systems, performance, and the occasional war story — filter by
-        domain.
-      </p>
+    <div className="relative overflow-hidden pt-16 pb-16">
+      <StarField />
+      <Container className="relative z-10">
+        <p className="mb-4 text-xs tracking-[0.2em] text-text-muted uppercase">Writing</p>
+        <h1 className="text-4xl font-light text-text">Notes &amp; engineering</h1>
+        <p className="mt-4 max-w-[60ch] text-lg text-text-muted">
+          Field notes on distributed systems, performance, and the occasional war story — filter by
+          domain.
+        </p>
 
-      <div className="mt-10">
-        <Suspense>
-          <PostList posts={posts} />
-        </Suspense>
-      </div>
+        <div className="mt-10">
+          <Suspense>
+            <PostList posts={posts} />
+          </Suspense>
+        </div>
+      </Container>
     </div>
   );
 }

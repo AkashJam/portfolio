@@ -59,7 +59,8 @@ const mdxOptions = {
 };
 
 /** h2 headings + slugged ids, matching rehype-slug's ids exactly (same
- * slugger) — feeds components/blog/TableOfContents.tsx. */
+ * slugger) — feeds components/blog/TableOfContents.tsx (blog posts and,
+ * since portfolio.md §15 Phase 6 step 5, project case studies too). */
 function extractHeadings(markdown: string): { id: string; text: string }[] {
   const slugger = new GithubSlugger();
   const headings: { id: string; text: string }[] = [];
@@ -81,7 +82,8 @@ const projects = defineCollection({
   transform: async (document, context) => {
     const mdx = await compileMDX(context, document, mdxOptions);
     const readingMinutes = Math.max(1, Math.round(document.content.split(/\s+/).length / 200));
-    return { ...document, mdx, readingMinutes };
+    const headings = extractHeadings(document.content);
+    return { ...document, mdx, readingMinutes, headings };
   },
 });
 

@@ -49,6 +49,27 @@ dashboard at all.
   releases its leader lease before the process exits, so a deploy hands over rather than dropping
   whatever was mid-flight.
 
+## Latency
+
+End to end — from a tick arriving upstream to the candle repainting in the browser. Same-origin
+SSE keeps the network hop honest; compute is a rounding error next to it.
+
+<LatencyTrace
+  tiles={[
+    { value: "22", unit: "ms", label: "tick → UI · p50" },
+    { value: "68", unit: "ms", label: "tick → UI · p99" },
+    { value: "1,200", unit: "msg/s", label: "ingest · peak" },
+    { value: "250", label: "concurrent SSE clients" },
+  ]}
+  caption={
+    <>
+      One live tick, 1-hour sample. The SSE network hop dominates and the Timescale write forks off
+      the live path. <strong>Illustrative pending live telemetry</strong> — these become measured
+      numbers when the running system reports its own p50, p99 and throughput.
+    </>
+  }
+/>
+
 ## Results
 
 - A live dashboard — candlestick chart with an EMA overlay, a real RSI(14) panel, a live markets

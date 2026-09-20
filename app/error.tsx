@@ -1,10 +1,11 @@
 "use client";
 
 import * as Sentry from "@sentry/nextjs";
+import Link from "next/link";
 import * as React from "react";
 
-import { Glow } from "@/components/site/Glow";
-import { GlowBar } from "@/components/site/GlowBar";
+import { Button } from "@/components/ui/button";
+import { ErrorTrace } from "@/components/site/ErrorTrace";
 
 export default function ErrorPage({
   error,
@@ -18,25 +19,25 @@ export default function ErrorPage({
   }, [error]);
 
   return (
-    <div className="relative flex min-h-[50vh] flex-col items-center justify-center gap-4 overflow-hidden px-4 py-24 text-center">
-      <Glow
-        variant="orb"
-        color="down"
-        floatDistance="-20px"
-        className="inset-0 m-auto size-85"
-      />
-      <span className="relative z-10 font-mono text-[118px] leading-none font-light text-text">
+    <div className="mx-auto flex min-h-[52vh] max-w-3xl flex-col items-center justify-center rounded-[18px] border border-hairline bg-panel px-6 py-14 text-center">
+      <span className="font-mono text-[clamp(72px,11vw,118px)] leading-none font-light tracking-tight text-text tabular-nums">
         500
       </span>
-      <GlowBar color="down" className="relative z-10 w-26" />
-      <p className="relative z-10 text-text-muted">Something went wrong.</p>
-      <button
-        type="button"
-        onClick={reset}
-        className="relative z-10 font-mono text-sm text-text-muted transition-colors hover:text-market-down focus-visible:text-market-down focus-visible:outline-none"
-      >
-        ↻ Try again
-      </button>
+      <div className="relative my-2 h-8.5 w-full flex-none" aria-hidden="true">
+        <ErrorTrace variant="broken" />
+      </div>
+      <h2 className="text-balance text-[clamp(20px,2.6vw,27px)] font-normal tracking-tight text-text">
+        The feed cut out on our side.
+      </h2>
+      <p className="mt-3 max-w-[46ch] text-pretty text-base text-text-muted">
+        This one is logged and already on its way to me. Trying again usually works.
+      </p>
+      <div className="mt-6.5 flex flex-wrap items-center justify-center gap-3">
+        <Button onClick={reset}>↻ Try again</Button>
+        <Button render={<Link href="/" />} nativeButton={false} variant="ghost">
+          Back home
+        </Button>
+      </div>
     </div>
   );
 }

@@ -113,6 +113,21 @@
     transform: translateX(-50%);
   }
 }
+/* Error pages' waveform trace (components/site/ErrorTrace.tsx) — a running
+   pulse along the flat/broken line, pathLength="100" normalising the dash
+   math so the same timing works on both variants. Invisible by default so
+   reduced-motion/touch leaves a plain static line, not a frozen dash. */
+.error-trace-run {
+  opacity: 0;
+}
+@keyframes run {
+  from {
+    stroke-dashoffset: 100;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
 @keyframes tick {
   0% {
     transform: scale(1.5);
@@ -155,6 +170,27 @@
     fill: var(--brand-hover);
     filter: drop-shadow(0 0 3px color-mix(in oklab, var(--brand) 45%, transparent))
       drop-shadow(0 0 5px color-mix(in oklab, var(--brand-hover) 25%, transparent));
+  }
+}
+
+/* Blog index's ambient star field (components/site/StarField.tsx, portfolio.md
+   §15 Phase 6 step 5) — the same flicker-and-afterglow beat as the asterism's
+   `hop`, deliberately softened: brightness only (no swell, no shift toward
+   white), a shallower peak (.38→.85 vs the asterism's full range), and no
+   ordering, since a field has no path through it. 14s cycle keeps ~12 of 142
+   stars mid-flicker at any moment. */
+@keyframes twinkle {
+  0% {
+    opacity: 0.38;
+    animation-timing-function: cubic-bezier(0.35, 0, 0.35, 1);
+  }
+  2.5% {
+    opacity: 0.85;
+    animation-timing-function: cubic-bezier(0.25, 0, 0.45, 1);
+  }
+  8.57%,
+  100% {
+    opacity: 0.38;
   }
 }
 
@@ -350,6 +386,16 @@
     transform-box: fill-box;
     transform-origin: center;
   }
+  .star-twinkle {
+    animation: twinkle 14s linear infinite backwards;
+    animation-delay: var(--d, 0s);
+  }
+  .error-trace-run {
+    opacity: 1;
+    stroke-dasharray: 12 88;
+    filter: drop-shadow(0 0 6px currentColor);
+    animation: run 3.4s linear infinite;
+  }
 }
 
 /* §17: parallax/drift is disabled on touch devices, not just under
@@ -359,7 +405,12 @@
   .glow-orb,
   .glow-sphere,
   .marquee-track,
-  .aster-node {
+  .aster-node,
+  .star-twinkle,
+  .error-trace-run {
     animation: none !important;
+  }
+  .error-trace-run {
+    opacity: 0 !important;
   }
 }

@@ -5,7 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { Project } from "content-collections";
 
-const STATUS_COLOR: Record<Project["status"], string> = {
+// Exported for reuse by the case-study fact grid (app/projects/[project]/page.tsx).
+export const STATUS_COLOR: Record<Project["status"], string> = {
   Live: "text-market-up",
   Research: "text-simulated",
   "This site": "text-text-muted",
