@@ -52,17 +52,22 @@ export default async function Home() {
     .slice()
     .sort((a, b) => a.symbol.localeCompare(b.symbol))
     .slice(0, HERO_TAPE_SIZE);
-  // The hero chart wants one symbol whose shape reads as "the live system
-  // working" at a glance — a steady regime, not a gappy or mean-reverting
-  // one — so it's picked by regime rather than hardcoded.
-  const chartSymbolEntry =
-    tapeSymbols.find((s) => s.regime.toLowerCase().includes("steady")) ?? tapeSymbols[0];
-
-  const [snapshots, chartCandles] = await Promise.all([
-    Promise.all(tapeSymbols.map((s) => getSymbolSnapshot(s.symbol))),
-    chartSymbolEntry ? getCandles(chartSymbolEntry.symbol, HERO_SPARKLINE_INTERVAL) : null,
-  ]);
+  const snapshots = await Promise.all(tapeSymbols.map((s) => getSymbolSnapshot(s.symbol)));
   const heroSnapshots = snapshots.filter((s): s is SymbolSnapshot => s !== null);
+  // The hero chart wants one symbol whose shape reads as "the live system
+  // working" at a glance — the day's largest mover, from real snapshot
+  // data, rather than the `regime` field: the backend doesn't populate it
+  // (always ""), so a regime-based pick silently degrades to whichever
+  // symbol sorts first alphabetically, regardless of how it's actually
+  // behaving.
+  const chartSnapshot = heroSnapshots.reduce<SymbolSnapshot | null>(
+    (largest, s) =>
+      !largest || Math.abs(s.changePercent) > Math.abs(largest.changePercent) ? s : largest,
+    null
+  );
+  const chartCandles = chartSnapshot
+    ? await getCandles(chartSnapshot.symbol, HERO_SPARKLINE_INTERVAL)
+    : null;
   const heroSparkline = (chartCandles?.candles ?? [])
     .slice(-HERO_SPARKLINE_POINTS)
     .map((c) => c.close);
@@ -78,10 +83,10 @@ export default async function Home() {
   return (
     <>
       <Hero />
-      {heroSnapshots.length > 0 && chartSymbolEntry && heroSparkline.length > 0 && (
+      {heroSnapshots.length > 0 && chartSnapshot && heroSparkline.length > 0 && (
         <HeroLiveBand
           initialSnapshots={heroSnapshots}
-          chartSymbol={chartSymbolEntry.symbol}
+          chartSymbol={chartSnapshot.symbol}
           initialSparkline={heroSparkline}
         />
       )}

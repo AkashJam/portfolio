@@ -347,6 +347,19 @@
     0 1px 2px rgba(0, 0, 0, 0.45);
 }
 
+/* HeroLiveBand's glide (Step 9, rewritten as a fixed-rate loop in Step 9's
+   follow-up) — transition/transform are set imperatively in JS now (the
+   reset-then-glide sequencing needs a forced reflow between them, which a
+   pure CSS class toggle can't guarantee the timing of), so this file only
+   carries the one rule JS doesn't set: a sane no-transition default before
+   the loop's first cycle runs. */
+.hero-chart-track {
+  transition: none;
+}
+.hero-chart-track .recharts-area-curve {
+  vector-effect: non-scaling-stroke;
+}
+
 @media (prefers-reduced-motion: no-preference) {
   /* transform-box/origin: an SVG element scales about the viewBox origin by
      default, so a bare scale() in the hop keyframe would fling each star
