@@ -360,6 +360,19 @@
   vector-effect: non-scaling-stroke;
 }
 
+/* HeroLiveBand's mover chips (Step 10) — the active chip's border/background
+   are composited against --brand rather than a flat token, so they can't be
+   expressed as plain Tailwind utilities without fighting arbitrary-value
+   escaping; same reasoning as LatencyTrace's marker fills. Applies to both
+   the >=md chip row's pressed state and the <md popover trigger, which is
+   always "active" (it shows whichever symbol is charted, not a toggle). */
+.hero-chip[aria-pressed="true"],
+.hero-chip.is-active {
+  border-color: color-mix(in oklab, var(--brand) 55%, var(--hairline));
+  background: color-mix(in oklab, var(--brand) 14%, var(--canvas));
+  color: var(--text);
+}
+
 @media (prefers-reduced-motion: no-preference) {
   /* transform-box/origin: an SVG element scales about the viewBox origin by
      default, so a bare scale() in the hop keyframe would fling each star

@@ -1,11 +1,17 @@
 "use client";
 
 import * as React from "react";
+import { ChevronDown } from "lucide-react";
+import { Popover } from "@base-ui/react/popover";
 import { Area, AreaChart, YAxis } from "recharts";
 
 import { subscribeToStream } from "@/lib/sse";
 import { Container } from "@/components/shell/Container";
 import type { SymbolSnapshot } from "@/lib/market-schemas";
+
+function stripExchangePrefix(symbol: string): string {
+  return symbol.includes(":") ? symbol.split(":").at(-1)! : symbol;
+}
 
 interface TapeRow {
   symbol: string;
@@ -56,11 +62,11 @@ function prefersNoMotion(): boolean {
 export function HeroLiveBand({
   initialSnapshots,
   chartSymbol,
-  initialSparkline,
+  initialSparklines,
 }: {
   initialSnapshots: SymbolSnapshot[];
   chartSymbol: string;
-  initialSparkline: number[];
+  initialSparklines: Record<string, number[]>;
 }) {
   const [rows, setRows] = React.useState<TapeRow[]>(() =>
     initialSnapshots.map((s) => ({
@@ -70,6 +76,18 @@ export function HeroLiveBand({
       prevClose: s.prevClose,
     }))
   );
+
+  // Which symbol is charted — sticky, per the user's 2026-09-21 instruction
+  // (phase6.md Step 10): only a real chip click ever changes this, never a
+  // re-rank of live movers underneath the viewer.
+  const [activeSymbol, setActiveSymbol] = React.useState(chartSymbol);
+  const [pickerOpen, setPickerOpen] = React.useState(false);
+  const activeSymbolRef = React.useRef(activeSymbol);
+  React.useEffect(() => {
+    activeSymbolRef.current = activeSymbol;
+  }, [activeSymbol]);
+
+  const initialSparkline = initialSparklines[chartSymbol] ?? [];
   // One point beyond initialSparkline's own length is kept off-screen
   // (clipped by overflow-hidden) as a "lookahead" point that glides into
   // view on each cycle — see the chart markup below.
@@ -89,11 +107,16 @@ export function HeroLiveBand({
     initialSparkline.slice()
   );
 
-  // Latest known price for the charted symbol — a ref, not state. A tick
+  // Latest known price *per symbol* — a ref, not state, updated for every
+  // incoming tick regardless of which symbol is currently charted. A tick
   // updates *what* the next slot should show; it deliberately does not
   // trigger a render or a glide itself, since the fixed-rate loop below
-  // owns *when* the chart advances.
-  const latestPriceRef = React.useRef<number | null>(initialSparkline.at(-1) ?? null);
+  // owns *when* the chart advances. Keeping every symbol's latest price
+  // (not just the active one) means switching to a chip that's never been
+  // charted yet still shows its real live price, not a stale seed value.
+  const latestPricesRef = React.useRef<Record<string, number>>(
+    Object.fromEntries(initialSnapshots.map((s) => [s.symbol, s.price]))
+  );
   const trackRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
@@ -113,14 +136,41 @@ export function HeroLiveBand({
               : row
           )
         );
-        if (quote.symbol === chartSymbol) {
-          latestPriceRef.current = quote.price;
+        latestPricesRef.current[quote.symbol] = quote.price;
+        if (quote.symbol === activeSymbolRef.current) {
           setDomainHistory((prev) => [...prev.slice(-(DOMAIN_HISTORY_SIZE - 1)), quote.price]);
         }
       },
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Chip click — swaps the chart to a different mover, locally, with no
+  // network request (its sparkline was already seeded server-side).
+  const selectSymbol = React.useCallback(
+    (symbol: string) => {
+      if (symbol === activeSymbolRef.current) return;
+      const seed = initialSparklines[symbol];
+      if (!seed || seed.length === 0) return;
+
+      activeSymbolRef.current = symbol;
+      setActiveSymbol(symbol);
+      const latest = latestPricesRef.current[symbol] ?? seed.at(-1)!;
+      setPoints([...seed, latest]);
+      setDomainHistory(seed.slice());
+
+      // Cancel any in-flight glide transition instantly and untransitioned
+      // — the data underneath just changed entirely (not shifted by one),
+      // so the next fixed-rate tick must start clean, not mid-slide.
+      const el = trackRef.current;
+      if (el) {
+        el.style.transition = "none";
+        el.style.transform = "translateX(0)";
+        void el.offsetWidth;
+      }
+    },
+    [initialSparklines]
+  );
 
   // The glide loop — fixed-rate, independent of tick timing. Each cycle:
   // instantly reset the track to its resting position while shifting the
@@ -141,7 +191,7 @@ export function HeroLiveBand({
     const id = window.setInterval(() => {
       setPoints((prev) => {
         const next = prev.slice(1);
-        next.push(latestPriceRef.current ?? prev.at(-1)!);
+        next.push(latestPricesRef.current[activeSymbolRef.current] ?? prev.at(-1)!);
         return next;
       });
 
@@ -169,10 +219,11 @@ export function HeroLiveBand({
 
   const chartUp = points.length > 1 ? points[POINTS_VISIBLE - 1] >= points[0] : true;
   const chartColor = chartUp ? "var(--color-market-up)" : "var(--color-market-down)";
+  const activeRow = rows.find((row) => row.symbol === activeSymbol);
 
   return (
     <section aria-label="Live market feed" className="mt-14">
-      <Container className="flex flex-wrap items-center justify-between gap-4 pb-3.5">
+      <Container className="flex items-center justify-between gap-4 pb-3.5">
         <span className="inline-flex flex-none items-center gap-2 rounded-full border border-market-up/35 bg-market-up/10 px-3 py-1.5 font-mono text-xs font-semibold text-market-up">
           <span
             aria-hidden="true"
@@ -180,21 +231,95 @@ export function HeroLiveBand({
           />
           LIVE
         </span>
-        <div className="flex flex-1 flex-wrap gap-7 overflow-hidden font-mono text-[13px] text-text-muted">
-          {rows.map((row) => {
-            const up = row.changePercent >= 0;
-            return (
-              <span key={row.symbol}>
-                {row.symbol} <b className="font-semibold text-text">{row.price.toFixed(2)}</b>{" "}
-                <span className={up ? "text-market-up" : "text-market-down"}>
-                  {up ? "+" : ""}
-                  {row.changePercent.toFixed(2)}%
-                </span>
+        {/* Single row, no wrap — this clips like a real ticker at narrow
+            widths rather than stacking. A flex item with non-visible
+            overflow gets an automatic min-width of 0 per the flexbox spec,
+            so it already shrinks to fit the space left by the flex-none
+            siblings on either side; nothing else is needed for the clip. */}
+        <div className="flex items-center gap-7 overflow-hidden font-mono text-[13px] text-text-muted">
+          {activeRow && (
+            <span className="min-w-0 flex-1 truncate">
+              {activeRow.symbol}{" "}
+              <b className="font-semibold text-text">{activeRow.price.toFixed(2)}</b>{" "}
+              <span className={activeRow.changePercent >= 0 ? "text-market-up" : "text-market-down"}>
+                {activeRow.changePercent >= 0 ? "+" : ""}
+                {activeRow.changePercent.toFixed(2)}%
               </span>
-            );
-          })}
+            </span>
+          )}
+
+          {/* >=md: the mock's full row of four chips — there's room for it.
+              <md: even prefix-stripped, four chips plus the quote and LIVE
+              pill don't fit 375 (measured: chips alone need ~240px against
+              ~210px actually free) — a real gap between the mock's CSS and
+              its own "four fit at 375" claim, found by measuring the mock's
+              rendered geometry rather than trusting its prose. Below md,
+              collapse to the active symbol plus a popover for the other
+              three (user's call, 2026-09-21), instead of the mock's literal
+              behavior of letting the quote line-wrap and clipping chips
+              mid-row. */}
+          <div role="group" aria-label="Chart symbol" className="hidden flex-none gap-[7px] md:flex">
+            {rows.map((row) => {
+              const active = row.symbol === activeSymbol;
+              return (
+                <button
+                  key={row.symbol}
+                  type="button"
+                  aria-pressed={active}
+                  onClick={() => selectSymbol(row.symbol)}
+                  className="hero-chip rounded-[7px] border border-hairline bg-panel px-2.25 py-0.75 font-mono text-[11.5px] tracking-[0.04em] text-text-muted"
+                >
+                  {stripExchangePrefix(row.symbol)}
+                </button>
+              );
+            })}
+          </div>
+
+          <Popover.Root open={pickerOpen} onOpenChange={setPickerOpen}>
+            <Popover.Trigger
+              className="hero-chip is-active flex flex-none items-center gap-1 rounded-[7px] border border-hairline bg-panel px-2.25 py-0.75 font-mono text-[11.5px] tracking-[0.04em] text-text-muted md:hidden"
+              aria-label={`Chart symbol: ${stripExchangePrefix(activeSymbol)}. Choose a different symbol`}
+            >
+              {stripExchangePrefix(activeSymbol)}
+              <ChevronDown className="size-3" aria-hidden="true" />
+            </Popover.Trigger>
+            <Popover.Portal>
+              <Popover.Positioner side="bottom" align="start" sideOffset={6}>
+                <Popover.Popup
+                  role="group"
+                  aria-label="Chart symbol"
+                  className="flex flex-col gap-0.5 rounded-lg border border-hairline bg-panel p-1.5 font-mono text-[11.5px] text-text-muted shadow-lg"
+                >
+                  {rows
+                    .filter((row) => row.symbol !== activeSymbol)
+                    .map((row) => (
+                      <button
+                        key={row.symbol}
+                        type="button"
+                        onClick={() => {
+                          selectSymbol(row.symbol);
+                          setPickerOpen(false);
+                        }}
+                        className="rounded-md px-2.5 py-1.5 text-left tracking-[0.04em] hover:bg-canvas hover:text-text"
+                      >
+                        {stripExchangePrefix(row.symbol)}
+                      </button>
+                    ))}
+                </Popover.Popup>
+              </Popover.Positioner>
+            </Popover.Portal>
+          </Popover.Root>
+
+          {/* mock uses --text-faint here (home.html's .hint), but that
+              token fails AA contrast at small sizes against this
+              background — already hit and fixed the same way in Steps 1,
+              4, 5 and 9; text-muted is the established safe swap. Hidden
+              below md alongside the SSE label (same reasoning as the
+              topbar's own .kbd hint, mock CSS line ~112) — the essentials
+              (LIVE, quote, symbol picker) need the room more on a phone. */}
+          <span className="hidden flex-none text-[11px] md:inline-flex">⌘K for all</span>
         </div>
-        <span className="flex-none font-mono text-[11px] tracking-[0.1em] text-text-muted uppercase">
+        <span className="hidden flex-none font-mono text-[11px] tracking-[0.1em] text-text-muted uppercase md:inline-flex">
           SSE · 1s
         </span>
       </Container>

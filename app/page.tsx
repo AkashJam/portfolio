@@ -59,18 +59,24 @@ export default async function Home() {
   // data, rather than the `regime` field: the backend doesn't populate it
   // (always ""), so a regime-based pick silently degrades to whichever
   // symbol sorts first alphabetically, regardless of how it's actually
-  // behaving.
-  const chartSnapshot = heroSnapshots.reduce<SymbolSnapshot | null>(
-    (largest, s) =>
-      !largest || Math.abs(s.changePercent) > Math.abs(largest.changePercent) ? s : largest,
-    null
+  // behaving. Sorting (not just reducing to the max) also gives the mover
+  // chips their order for free, from this same fetch.
+  const movers = heroSnapshots
+    .slice()
+    .sort((a, b) => Math.abs(b.changePercent) - Math.abs(a.changePercent));
+  const chartSnapshot = movers[0] ?? null;
+  // Seed every mover's sparkline, not just the charted one, so clicking a
+  // chip can swap the chart locally with no network request.
+  const moverCandles = await Promise.all(
+    movers.map((s) => getCandles(s.symbol, HERO_SPARKLINE_INTERVAL))
   );
-  const chartCandles = chartSnapshot
-    ? await getCandles(chartSnapshot.symbol, HERO_SPARKLINE_INTERVAL)
-    : null;
-  const heroSparkline = (chartCandles?.candles ?? [])
-    .slice(-HERO_SPARKLINE_POINTS)
-    .map((c) => c.close);
+  const initialSparklines = Object.fromEntries(
+    movers.map((s, i) => [
+      s.symbol,
+      (moverCandles[i]?.candles ?? []).slice(-HERO_SPARKLINE_POINTS).map((c) => c.close),
+    ])
+  );
+  const heroSparkline = initialSparklines[chartSnapshot?.symbol ?? ""] ?? [];
 
   // Home showcases other work, not the site visitors are already on —
   // exclude the "This site" entry rather than hardcoding which three
@@ -85,9 +91,9 @@ export default async function Home() {
       <Hero />
       {heroSnapshots.length > 0 && chartSnapshot && heroSparkline.length > 0 && (
         <HeroLiveBand
-          initialSnapshots={heroSnapshots}
+          initialSnapshots={movers}
           chartSymbol={chartSnapshot.symbol}
-          initialSparkline={heroSparkline}
+          initialSparklines={initialSparklines}
         />
       )}
 
