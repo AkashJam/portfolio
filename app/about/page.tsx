@@ -9,6 +9,7 @@ import { Reveal } from "@/components/site/Reveal";
 import { SkillsCapabilities } from "@/components/site/SkillsCapabilities";
 import { Timeline } from "@/components/site/Timeline";
 import { Container } from "@/components/shell/Container";
+import { Button } from "@/components/ui/button";
 import { education, type EducationEntry } from "@/data/education";
 import { experience, type ExperienceEntry } from "@/data/experience";
 import { bio, statement, workAuthorization } from "@/data/profile";
@@ -59,13 +60,15 @@ export default function AboutPage() {
         <div className="mt-8 grid items-stretch gap-7 lg:grid-cols-[1.62fr_1fr] lg:gap-14">
           <p className="text-base text-pretty text-text-muted">{bio[1]}</p>
           <div className="flex flex-col justify-end gap-3.5 border-t border-hairline pt-5 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-6">
-            <a
-              href={RESUME_HREF}
-              className="inline-flex w-fit items-center gap-2 rounded-lg border border-brand bg-[#141733] px-4 py-2 text-sm text-text transition-shadow hover:shadow-[0_0_24px_-8px_var(--brand)] focus-visible:shadow-[0_0_24px_-8px_var(--brand)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
+            <Button
+              variant="brand"
+              render={<a href={RESUME_HREF} />}
+              nativeButton={false}
+              className="h-auto w-fit gap-2 px-4 py-2 text-sm"
             >
               <Download className="size-4" />
               Download Résumé (PDF)
-            </a>
+            </Button>
             <span className="text-[13.5px] leading-normal text-text-muted">{workAuthorization}</span>
           </div>
         </div>

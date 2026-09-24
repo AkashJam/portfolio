@@ -46,10 +46,10 @@ export function LatencyTrace({ tiles, caption }: LatencyTraceProps) {
         >
           <defs>
             <marker id="lt-ah" markerWidth="9" markerHeight="9" refX="7.5" refY="4" orient="auto">
-              <path d="M0,0 L9,4 L0,8 z" fill="#818cf8" />
+              <path d="M0,0 L9,4 L0,8 z" fill="var(--brand-hover)" />
             </marker>
             <marker id="lt-aha" markerWidth="9" markerHeight="9" refX="7.5" refY="4" orient="auto">
-              <path d="M0,0 L9,4 L0,8 z" fill="#8b929b" />
+              <path d="M0,0 L9,4 L0,8 z" fill="var(--text-muted)" />
             </marker>
           </defs>
 
