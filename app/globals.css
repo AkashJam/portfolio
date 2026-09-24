@@ -119,10 +119,10 @@
   }
 }
 /* About's ambient "asterism" (components/site/Asterism.tsx, portfolio.md
-   §15 Phase 6 step 4) — a glow hops star to star along a depth-first
-   traversal of the sight-line graph, one hop every 1.8s. The lit window
-   (0%→5.51%, ~1.4s) is kept well under the 1.8s spacing so exactly one
-   star is ever lit; 25.4s = 13 stars × 1.8s + a 2s rest before it repeats.
+   §15 Phase 6 step 12, "F / Ingress") — a glow hops star to star breadth-
+   first from the hub, one hop every 1.8s. The lit window (0%→5.51%, ~1.4s)
+   is kept well under the 1.8s spacing so exactly one star is ever lit;
+   25.4s = 13 stars × 1.8s + a 2s rest before it repeats.
    `backwards` fill-mode (applied on the .aster-node class, not here) is
    load-bearing: without it a delayed node sits fully lit until its first
    turn instead of holding the 0% (dim) frame through its delay. */
