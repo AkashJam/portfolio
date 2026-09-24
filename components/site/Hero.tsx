@@ -19,7 +19,7 @@ export function Hero({ hasLiveBand }: { hasLiveBand: boolean }) {
             now.
           </p>
         )}
-        <div className="mt-7 flex flex-col items-stretch gap-4 sm:flex-row sm:items-center">
+        <div className="mt-7 flex flex-col items-stretch gap-4 md:flex-row md:items-center">
           <Button render={<Link href="/market" />} nativeButton={false} size="lg">
             Open the dashboard
           </Button>

@@ -81,7 +81,7 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[proj
             )}
           </div>
 
-          <dl className="mt-7 grid grid-cols-2 gap-px overflow-hidden rounded-[14px] border border-hairline bg-hairline sm:grid-cols-4">
+          <dl className="mt-7 grid grid-cols-2 gap-px overflow-hidden rounded-[14px] border border-hairline bg-hairline md:grid-cols-4">
             {FACTS.map((fact) => (
               <div key={fact.label} className="bg-panel px-4 py-3.5">
                 <dt className="font-mono text-[11px] tracking-[0.14em] text-text-muted uppercase">

@@ -128,7 +128,7 @@ export default async function Home() {
                 <ProjectCard key={project.slug} project={project} />
               ))}
             </div>
-            <div className="mt-12 flex flex-col items-baseline gap-2 border-t border-hairline pt-6 sm:flex-row sm:gap-6">
+            <div className="mt-12 flex flex-col items-baseline gap-2 border-t border-hairline pt-6 md:flex-row md:gap-6">
               <span className="flex-none font-mono text-[11px] tracking-[0.18em] text-text-muted uppercase">
                 Built with
               </span>
