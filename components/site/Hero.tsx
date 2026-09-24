@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { heroRole } from "@/data/profile";
 
-export function Hero() {
+export function Hero({ hasLiveBand }: { hasLiveBand: boolean }) {
   return (
     <section className="pt-14">
       <div className="mx-auto max-w-6xl px-4">
@@ -13,10 +13,12 @@ export function Hero() {
         <h1 className="mt-5 max-w-[20ch] text-[clamp(34px,5.5vw,64px)] leading-[1.05] font-light text-text">
           I build production-grade streaming systems on AWS.
         </h1>
-        <p className="mt-5 max-w-[52ch] text-lg text-text-muted">
-          The chart below is one of them — ingesting, storing and pushing to your browser right
-          now.
-        </p>
+        {hasLiveBand && (
+          <p className="mt-5 max-w-[52ch] text-lg text-text-muted">
+            The chart below is one of them — ingesting, storing and pushing to your browser right
+            now.
+          </p>
+        )}
         <div className="mt-7 flex flex-col items-stretch gap-4 sm:flex-row sm:items-center">
           <Button render={<Link href="/market" />} nativeButton={false} size="lg">
             Open the dashboard

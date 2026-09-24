@@ -61,14 +61,26 @@ export function getSymbols(opts?: { revalidateSeconds?: number }): Promise<Symbo
   return get("/symbols", symbolsResponseSchema, opts?.revalidateSeconds);
 }
 
-export function getSymbolSnapshot(symbol: string): Promise<SymbolSnapshot | null> {
-  return get(`/symbols/${encodeURIComponent(symbol)}`, symbolSnapshotSchema);
+export function getSymbolSnapshot(
+  symbol: string,
+  opts?: { revalidateSeconds?: number }
+): Promise<SymbolSnapshot | null> {
+  return get(
+    `/symbols/${encodeURIComponent(symbol)}`,
+    symbolSnapshotSchema,
+    opts?.revalidateSeconds
+  );
 }
 
-export function getCandles(symbol: string, interval: string): Promise<CandlesResponse | null> {
+export function getCandles(
+  symbol: string,
+  interval: string,
+  opts?: { revalidateSeconds?: number }
+): Promise<CandlesResponse | null> {
   return get(
     `/symbols/${encodeURIComponent(symbol)}/candles?interval=${encodeURIComponent(interval)}`,
-    candlesResponseSchema
+    candlesResponseSchema,
+    opts?.revalidateSeconds
   );
 }
 

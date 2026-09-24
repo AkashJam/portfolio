@@ -52,7 +52,11 @@ export default async function Home() {
     .slice()
     .sort((a, b) => a.symbol.localeCompare(b.symbol))
     .slice(0, HERO_TAPE_SIZE);
-  const snapshots = await Promise.all(tapeSymbols.map((s) => getSymbolSnapshot(s.symbol)));
+  const snapshots = await Promise.all(
+    tapeSymbols.map((s) =>
+      getSymbolSnapshot(s.symbol, { revalidateSeconds: HERO_STAT_REVALIDATE_SECONDS })
+    )
+  );
   const heroSnapshots = snapshots.filter((s): s is SymbolSnapshot => s !== null);
   // The hero chart wants one symbol whose shape reads as "the live system
   // working" at a glance — the day's largest mover, from real snapshot
@@ -68,7 +72,11 @@ export default async function Home() {
   // Seed every mover's sparkline, not just the charted one, so clicking a
   // chip can swap the chart locally with no network request.
   const moverCandles = await Promise.all(
-    movers.map((s) => getCandles(s.symbol, HERO_SPARKLINE_INTERVAL))
+    movers.map((s) =>
+      getCandles(s.symbol, HERO_SPARKLINE_INTERVAL, {
+        revalidateSeconds: HERO_STAT_REVALIDATE_SECONDS,
+      })
+    )
   );
   const initialSparklines = Object.fromEntries(
     movers.map((s, i) => [
@@ -77,6 +85,10 @@ export default async function Home() {
     ])
   );
   const heroSparkline = initialSparklines[chartSnapshot?.symbol ?? ""] ?? [];
+  // Single source of truth for "is there a live band to show" — Hero's
+  // second sentence and the band itself must always agree, or the page
+  // asserts a live chart directly above where nothing renders.
+  const hasLiveBand = heroSnapshots.length > 0 && chartSnapshot !== null && heroSparkline.length > 0;
 
   // Home showcases other work, not the site visitors are already on —
   // exclude the "This site" entry rather than hardcoding which three
@@ -88,8 +100,8 @@ export default async function Home() {
 
   return (
     <>
-      <Hero />
-      {heroSnapshots.length > 0 && chartSnapshot && heroSparkline.length > 0 && (
+      <Hero hasLiveBand={hasLiveBand} />
+      {hasLiveBand && chartSnapshot && (
         <HeroLiveBand
           initialSnapshots={movers}
           chartSymbol={chartSnapshot.symbol}
