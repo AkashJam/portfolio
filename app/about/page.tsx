@@ -5,7 +5,6 @@ import { AboutStats } from "@/components/site/AboutStats";
 import { Asterism } from "@/components/site/Asterism";
 import { EducationCard } from "@/components/site/EducationCard";
 import { ExperienceCard } from "@/components/site/ExperienceCard";
-import { Reveal } from "@/components/site/Reveal";
 import { SkillsCapabilities } from "@/components/site/SkillsCapabilities";
 import { Timeline } from "@/components/site/Timeline";
 import { Container } from "@/components/shell/Container";
@@ -79,9 +78,9 @@ export default function AboutPage() {
             when: <TimelineWhen {...entry} />,
             current: !entry.end,
             content: (
-              <Reveal key={entry.company}>
+              <div key={entry.company} className="reveal">
                 <ExperienceCard entry={entry} />
-              </Reveal>
+              </div>
             ),
           }))}
         />
@@ -92,9 +91,9 @@ export default function AboutPage() {
             when: <TimelineWhen {...entry} />,
             current: !entry.end,
             content: (
-              <Reveal key={entry.institution}>
+              <div key={entry.institution} className="reveal">
                 <EducationCard entry={entry} />
-              </Reveal>
+              </div>
             ),
           }))}
         />
@@ -102,9 +101,9 @@ export default function AboutPage() {
         <h2 className="mt-[72px] text-xs tracking-[0.2em] text-text-muted uppercase">
           Skills &amp; Capabilities
         </h2>
-        <Reveal>
+        <div className="reveal">
           <SkillsCapabilities />
-        </Reveal>
+        </div>
       </Container>
     </section>
   );

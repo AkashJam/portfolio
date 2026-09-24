@@ -46,7 +46,7 @@ export default async function BlogPostPage({ params }: PageProps<"/blog/[slug]">
             / {post.category}
           </p>
           {post.draft && (
-            <Badge variant="outline" className="mt-3 border-simulated bg-simulated/10 text-simulated">
+            <Badge variant="outline" className="mt-3 border-hairline bg-panel-2 text-text-muted">
               Draft — pending review
             </Badge>
           )}

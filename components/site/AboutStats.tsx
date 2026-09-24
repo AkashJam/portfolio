@@ -17,20 +17,15 @@ const STATS: Stat[] = [
 
 export function AboutStats() {
   return (
-    <div>
-      <div className="mt-10 grid grid-cols-2 gap-x-8 gap-y-5 md:grid-cols-3 lg:grid-cols-5">
-        {STATS.map((stat) => (
-          <div key={stat.label} className="flex flex-col gap-0.5">
-            <b className="font-mono text-xl font-semibold text-text tabular-nums md:text-2xl">
-              {stat.value}
-            </b>
-            <span className="text-[12.5px] leading-snug text-text-muted">{stat.label}</span>
-          </div>
-        ))}
-      </div>
-      <p className="mt-3.5 font-mono text-[11px] text-text-muted">
-        every figure already in data/experience.ts
-      </p>
+    <div className="mt-10 grid grid-cols-2 gap-x-8 gap-y-5 md:grid-cols-3 lg:grid-cols-5">
+      {STATS.map((stat) => (
+        <div key={stat.label} className="flex flex-col gap-0.5">
+          <b className="font-mono text-xl font-semibold text-text tabular-nums md:text-2xl">
+            {stat.value}
+          </b>
+          <span className="text-[12.5px] leading-snug text-text-muted">{stat.label}</span>
+        </div>
+      ))}
     </div>
   );
 }

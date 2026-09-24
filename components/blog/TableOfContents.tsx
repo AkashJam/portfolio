@@ -4,7 +4,7 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
-/** Sticky right-rail ToC with scroll-spy (portfolio.md §17 reading layout) — hand-rolled IntersectionObserver, matching Reveal.tsx's precedent of no new dependency for one effect. */
+/** Sticky right-rail ToC with scroll-spy (portfolio.md §17 reading layout) — hand-rolled IntersectionObserver rather than adding a dependency for one effect. */
 export function TableOfContents({ headings }: { headings: { id: string; text: string }[] }) {
   const [activeId, setActiveId] = React.useState<string | null>(headings[0]?.id ?? null);
 

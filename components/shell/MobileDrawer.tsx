@@ -28,9 +28,9 @@ export function MobileDrawer({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="left" className="w-3/4 max-w-xs">
         <SheetHeader className="gap-3 border-b border-hairline">
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2.5 pr-10">
             <IdentityMark className="size-7.5 rounded-[9px]" />
-            <p className="font-mono text-[11px] tracking-widest text-text-muted">
+            <p className="min-w-0 truncate font-mono text-[11px] tracking-widest text-text-muted">
               {heroRole} · Milan
             </p>
           </div>

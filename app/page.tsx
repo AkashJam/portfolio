@@ -4,7 +4,6 @@ import { allProjects } from "content-collections";
 import { ContactCTA } from "@/components/site/ContactCTA";
 import { Hero } from "@/components/site/Hero";
 import { HeroLiveBand } from "@/components/site/HeroLiveBand";
-import { Reveal } from "@/components/site/Reveal";
 import { Container } from "@/components/shell/Container";
 import { ProjectCard } from "@/components/projects/ProjectCard";
 import { getCandles, getSymbolSnapshot, getSymbols } from "@/lib/ticker-client";
@@ -110,39 +109,37 @@ export default async function Home() {
       )}
 
       {homeProjects.length > 0 && (
-        <Reveal>
-          <section className="py-16">
-            <Container>
-              <div className="flex flex-wrap items-baseline justify-between gap-4">
-                <div>
-                  <p className="mb-4 text-xs tracking-[0.2em] text-text-muted uppercase">Work</p>
-                  <h2 className="text-3xl font-light text-text">Three systems, end to end</h2>
-                </div>
-                <Link
-                  href="/projects"
-                  className="inline-flex items-center gap-1.5 text-sm text-text-muted hover:text-text"
-                >
-                  All projects →
-                </Link>
+        <section className="reveal py-16">
+          <Container>
+            <div className="flex flex-wrap items-baseline justify-between gap-4">
+              <div>
+                <p className="mb-4 text-xs tracking-[0.2em] text-text-muted uppercase">Work</p>
+                <h2 className="text-3xl font-light text-text">Three systems, end to end</h2>
               </div>
-              <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {homeProjects.map((project) => (
-                  <ProjectCard key={project.slug} project={project} />
-                ))}
-              </div>
-              <div className="mt-12 flex flex-col items-baseline gap-2 border-t border-hairline pt-6 sm:flex-row sm:gap-6">
-                <span className="flex-none font-mono text-[11px] tracking-[0.18em] text-text-muted uppercase">
-                  Built with
-                </span>
-                <p className="font-mono text-xs text-text-muted">{BUILT_WITH.join(" · ")}</p>
-              </div>
-            </Container>
-          </section>
-        </Reveal>
+              <Link
+                href="/projects"
+                className="inline-flex items-center gap-1.5 text-sm text-text-muted hover:text-text"
+              >
+                All projects →
+              </Link>
+            </div>
+            <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {homeProjects.map((project) => (
+                <ProjectCard key={project.slug} project={project} />
+              ))}
+            </div>
+            <div className="mt-12 flex flex-col items-baseline gap-2 border-t border-hairline pt-6 sm:flex-row sm:gap-6">
+              <span className="flex-none font-mono text-[11px] tracking-[0.18em] text-text-muted uppercase">
+                Built with
+              </span>
+              <p className="font-mono text-xs text-text-muted">{BUILT_WITH.join(" · ")}</p>
+            </div>
+          </Container>
+        </section>
       )}
-      <Reveal>
+      <div className="reveal">
         <ContactCTA />
-      </Reveal>
+      </div>
     </>
   );
 }

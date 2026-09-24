@@ -55,7 +55,7 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[proj
           </p>
 
           {project.draft && (
-            <Badge variant="outline" className="mt-3 border-simulated bg-simulated/10 text-simulated">
+            <Badge variant="outline" className="mt-3 border-hairline bg-panel-2 text-text-muted">
               Draft — pending review
             </Badge>
           )}

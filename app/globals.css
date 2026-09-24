@@ -373,6 +373,21 @@
   color: var(--text);
 }
 
+/* One-shot scroll reveal (portfolio.md §17, Phase 6 step 14) — replaces
+   components/site/Reveal.tsx's IntersectionObserver version, which set
+   opacity:0 in React state until JS ran, so the reveal itself was what
+   shipped /about's work history, education and skills invisible in server
+   HTML. Only the `from` keyframe is given: with no `to`, the animation's
+   end state falls back to the element's own normal (unanimated) values,
+   which for `.reveal` is just its natural opacity/transform — nothing
+   needs restating. */
+@keyframes reveal-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
 @media (prefers-reduced-motion: no-preference) {
   /* transform-box/origin: an SVG element scales about the viewBox origin by
      default, so a bare scale() in the hop keyframe would fling each star
@@ -392,6 +407,17 @@
     stroke-dasharray: 12 88;
     filter: drop-shadow(0 0 6px currentColor);
     animation: run 3.4s linear infinite;
+  }
+  /* No unconditional `.reveal{opacity:1}` base rule exists — content is
+     visible by default unless *both* this media query and the @supports
+     check below pass, which is what makes "visible by default" structural
+     rather than a value that has to be separately tuned right. */
+  @supports (animation-timeline: view()) {
+    .reveal {
+      animation: reveal-in 0.3s ease-out both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 40%;
+    }
   }
 }
 
