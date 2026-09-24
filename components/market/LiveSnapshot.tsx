@@ -3,6 +3,7 @@
 import * as React from "react";
 
 import { DayRangeBar } from "@/components/market/DayRangeBar";
+import { FeedStatus, useLocalFeedTracker } from "@/components/market/FeedStatus";
 import { LiveBadge } from "@/components/market/LiveBadge";
 import { subscribeToStream } from "@/lib/sse";
 import { cn } from "@/lib/utils";
@@ -18,10 +19,16 @@ import type { SymbolSnapshot } from "@/lib/market-schemas";
  */
 export function LiveSnapshot({ symbol, initialSnapshot }: { symbol: string; initialSnapshot: SymbolSnapshot }) {
   const [snapshot, setSnapshot] = React.useState(initialSnapshot);
+  // Staleness (Phase 7 step 1). PriceChart below holds a second connection
+  // of its own; one indicator per page is enough, since both go through the
+  // same proxy and die together.
+  const feed = useLocalFeedTracker(initialSnapshot.updatedAt);
 
   React.useEffect(() => {
     return subscribeToStream([symbol], {
+      onHeartbeat: () => feed.noteEvent(),
       onQuote: (quote) => {
+        feed.noteQuote();
         setSnapshot((prev) => ({
           ...prev,
           price: quote.price,
@@ -59,7 +66,12 @@ export function LiveSnapshot({ symbol, initialSnapshot }: { symbol: string; init
             {snapshot.change.toFixed(2)} ({up ? "+" : ""}
             {snapshot.changePercent.toFixed(2)}%)
           </p>
-          <LiveBadge simulated={snapshot.simulated} className="mt-2" />
+          {/* Provenance (LiveBadge) and freshness (FeedStatus) answer
+              different questions, so both stay: Phase 12 reworks the first. */}
+          <div className="mt-2 flex items-center justify-end gap-2">
+            <FeedStatus tracker={feed} />
+            <LiveBadge simulated={snapshot.simulated} />
+          </div>
         </div>
       </div>
 

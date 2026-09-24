@@ -2,6 +2,7 @@
 
 import * as React from "react";
 
+import { useFeedTracker } from "@/components/market/FeedStatus";
 import { SymbolCard, type MarketRow } from "@/components/market/SymbolCard";
 import { subscribeToStream } from "@/lib/sse";
 
@@ -13,11 +14,15 @@ import { subscribeToStream } from "@/lib/sse";
  */
 export function SymbolCardGrid({ rows: initialRows }: { rows: MarketRow[] }) {
   const [rows, setRows] = React.useState(initialRows);
+  // Staleness (Phase 7 step 1) — the pill reading this is in the page header.
+  const feed = useFeedTracker();
 
   React.useEffect(() => {
     const symbols = initialRows.map((r) => r.symbol);
     return subscribeToStream(symbols, {
+      onHeartbeat: () => feed.noteEvent(),
       onQuote: (quote) => {
+        feed.noteQuote();
         setRows((prev) =>
           prev.map((row) =>
             row.symbol === quote.symbol

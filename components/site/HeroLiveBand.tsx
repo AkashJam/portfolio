@@ -6,7 +6,9 @@ import { Popover } from "@base-ui/react/popover";
 import { Area, AreaChart, YAxis } from "recharts";
 
 import { subscribeToStream } from "@/lib/sse";
+import { newestTimestamp } from "@/lib/feed-freshness";
 import { Container } from "@/components/shell/Container";
+import { FeedStatus, useLocalFeedTracker } from "@/components/market/FeedStatus";
 import type { SymbolSnapshot } from "@/lib/market-schemas";
 
 function stripExchangePrefix(symbol: string): string {
@@ -118,11 +120,16 @@ export function HeroLiveBand({
     Object.fromEntries(initialSnapshots.map((s) => [s.symbol, s.price]))
   );
   const trackRef = React.useRef<HTMLDivElement>(null);
+  // Staleness (Phase 7 step 1): seeded from the newest snapshot, so a feed
+  // that is dead from first load reports how old the tape really is.
+  const feed = useLocalFeedTracker(newestTimestamp(initialSnapshots.map((s) => s.updatedAt)));
 
   React.useEffect(() => {
     const symbols = initialSnapshots.map((s) => s.symbol);
     return subscribeToStream(symbols, {
+      onHeartbeat: () => feed.noteEvent(),
       onQuote: (quote) => {
+        feed.noteQuote();
         setRows((prev) =>
           prev.map((row) =>
             row.symbol === quote.symbol
@@ -224,13 +231,19 @@ export function HeroLiveBand({
   return (
     <section aria-label="Live market feed" className="mt-14">
       <Container className="flex items-center justify-between gap-4 pb-3.5">
-        <span className="inline-flex flex-none items-center gap-2 rounded-full border border-market-up/35 bg-market-up/10 px-3 py-1.5 font-mono text-xs font-semibold text-market-up">
-          <span
-            aria-hidden="true"
-            className="size-1.5 rounded-full bg-market-up motion-safe:animate-pulse"
-          />
-          LIVE
-        </span>
+        <FeedStatus
+          tracker={feed}
+          className="px-3 py-1.5 text-xs font-semibold"
+          fresh={
+            <span className="inline-flex flex-none items-center gap-2 rounded-full border border-market-up/35 bg-market-up/10 px-3 py-1.5 font-mono text-xs font-semibold text-market-up">
+              <span
+                aria-hidden="true"
+                className="size-1.5 rounded-full bg-market-up motion-safe:animate-pulse"
+              />
+              LIVE
+            </span>
+          }
+        />
         {/* Single row, no wrap — this clips like a real ticker at narrow
             widths rather than stacking. A flex item with non-visible
             overflow gets an automatic min-width of 0 per the flexbox spec,
@@ -319,8 +332,12 @@ export function HeroLiveBand({
               (LIVE, quote, symbol picker) need the room more on a phone. */}
           <span className="hidden flex-none text-[11px] md:inline-flex">⌘K for all</span>
         </div>
+        {/* Transport only, no cadence: it used to say "SSE · 1s", but the sim
+            ticks each symbol every 1–3s (measured in phase7.md step 1), and
+            real trades after Phase 14 have no fixed cadence at all. Freshness
+            is the LIVE pill's job now, not this label's. */}
         <span className="hidden flex-none font-mono text-[11px] tracking-[0.1em] text-text-muted uppercase md:inline-flex">
-          SSE · 1s
+          SSE
         </span>
       </Container>
 

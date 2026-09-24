@@ -21,6 +21,8 @@ export function nextReconnectDelay(currentDelayMs: number): number {
 export interface StreamHandlers {
   onQuote?: (event: QuoteEvent) => void;
   onCandle?: (event: CandleEvent) => void;
+  /** Every live surface passes this to its FeedTracker (lib/feed-freshness.ts):
+   * a heartbeat proves the connection is alive even when no symbol moves. */
   onHeartbeat?: (event: HeartbeatEvent) => void;
 }
 
