@@ -9,6 +9,7 @@ import { Container } from "@/components/shell/Container";
 import { MDXRenderer } from "@/components/mdx/MDXRenderer";
 import { TableOfContents } from "@/components/blog/TableOfContents";
 import { STATUS_COLOR } from "@/components/projects/ProjectCard";
+import { JsonLd, caseStudyLd } from "@/lib/json-ld";
 import { pageMetadata } from "@/lib/metadata";
 
 const isDev = process.env.NODE_ENV !== "production";
@@ -51,6 +52,7 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[proj
 
   return (
     <Container className="py-14">
+      <JsonLd data={caseStudyLd(project)} />
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start lg:gap-12">
         <article className="min-w-0">
           <p className="text-xs text-text-muted">

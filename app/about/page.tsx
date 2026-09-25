@@ -13,6 +13,7 @@ import { education, type EducationEntry } from "@/data/education";
 import { experience, type ExperienceEntry } from "@/data/experience";
 import { bio, statement, workAuthorization } from "@/data/profile";
 import { RESUME_HREF } from "@/lib/contact";
+import { JsonLd, profilePageLd } from "@/lib/json-ld";
 import { pageMetadata } from "@/lib/metadata";
 
 export const metadata: Metadata = pageMetadata({
@@ -49,6 +50,7 @@ export default function AboutPage() {
     // `hidden` makes this section a scroll container, which captured the
     // `.reveal` view() timelines inside it — About's reveals never moved.
     <section className="relative overflow-clip pt-16 pb-16">
+      <JsonLd data={profilePageLd()} />
       <Asterism />
       <Container className="relative z-10">
         <p className="mb-4 text-xs tracking-[0.2em] text-text-muted uppercase">About</p>

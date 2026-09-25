@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Container } from "@/components/shell/Container";
 import { MDXRenderer } from "@/components/mdx/MDXRenderer";
 import { TableOfContents } from "@/components/blog/TableOfContents";
+import { JsonLd, blogPostingLd } from "@/lib/json-ld";
 import { pageMetadata } from "@/lib/metadata";
 
 const isDev = process.env.NODE_ENV !== "production";
@@ -43,6 +44,7 @@ export default async function BlogPostPage({ params }: PageProps<"/blog/[slug]">
 
   return (
     <Container className="py-14">
+      <JsonLd data={blogPostingLd(post)} />
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start lg:gap-12">
         <article className="min-w-0">
           {/* Only the link is link-coloured — colouring the whole crumb made

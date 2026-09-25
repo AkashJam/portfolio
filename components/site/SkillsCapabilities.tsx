@@ -16,8 +16,9 @@ interface Capability {
 //
 // Four rows (portfolio.md §15 Phase 6 acceptance criteria), not five —
 // Reliability's content (Playwright, Prometheus, Grafana) folds into
-// Infra's summary rather than getting its own row.
-const CAPABILITIES: Capability[] = [
+// Infra's summary rather than getting its own row. Exported for
+// lib/json-ld.ts, whose Person `knowsAbout` is this same claim.
+export const CAPABILITIES: Capability[] = [
   {
     category: "Frontend",
     tags: ["TypeScript", "Vue", "Quasar", "React", "Next.js", "Tailwind"],

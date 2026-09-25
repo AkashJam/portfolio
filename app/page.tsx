@@ -10,6 +10,7 @@ import { ProjectCard } from "@/components/projects/ProjectCard";
 import { getCandles, getSymbolSnapshot, getSymbols } from "@/lib/ticker-client";
 import type { SymbolSnapshot } from "@/lib/market-schemas";
 import { builtWith } from "@/data/profile";
+import { JsonLd, homeLd } from "@/lib/json-ld";
 import { pageMetadata } from "@/lib/metadata";
 
 // Home's own metadata (Phase 7 step 2's gate) rather than the layout's
@@ -89,6 +90,7 @@ export default async function Home() {
 
   return (
     <>
+      <JsonLd data={homeLd()} />
       <Hero hasLiveBand={hasLiveBand} />
       {hasLiveBand && chartSnapshot && (
         <HeroLiveBand
