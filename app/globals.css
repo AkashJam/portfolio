@@ -379,11 +379,19 @@
    shipped /about's work history, education and skills invisible in server
    HTML. Only the `from` keyframe is given: with no `to`, the animation's
    end state falls back to the element's own normal (unanimated) values,
-   which for `.reveal` is just its natural opacity/transform — nothing
-   needs restating. */
+   which for `.reveal` is just its natural transform — nothing needs
+   restating.
+
+   A slide, never a fade (phase7.md, "Reveal contrast fix"). This is
+   scroll-linked (`animation-timeline: view()`), so its progress *is* scroll
+   position: content that loads partly on-screen sits frozen partway through
+   the animation until the user scrolls. With an opacity keyframe that froze
+   Home's Work section at 0.64 opacity (0.20 on a phone) whenever the live
+   band pushed it into the first screen — failing AA contrast and Home's
+   Lighthouse budget in production. A frozen 12px offset is harmless; a
+   frozen fade is not. e2e/reveal.spec.ts guards this. */
 @keyframes reveal-in {
   from {
-    opacity: 0;
     transform: translateY(12px);
   }
 }

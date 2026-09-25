@@ -45,7 +45,10 @@ export default function AboutPage() {
     // portfolio.md §15 Phase 6 step 4: the asterism is a sibling of the
     // copy below, not a wrapper around it — LiveSignal's old inset-0
     // treatment sat over the reading column and degenerated on mobile.
-    <section className="relative overflow-hidden pt-16 pb-16">
+    // `overflow-clip`, not `overflow-hidden`: both clip the asterism, but
+    // `hidden` makes this section a scroll container, which captured the
+    // `.reveal` view() timelines inside it — About's reveals never moved.
+    <section className="relative overflow-clip pt-16 pb-16">
       <Asterism />
       <Container className="relative z-10">
         <p className="mb-4 text-xs tracking-[0.2em] text-text-muted uppercase">About</p>
