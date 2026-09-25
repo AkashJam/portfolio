@@ -51,21 +51,18 @@ dashboard at all.
 
 ## Latency
 
-End to end — from a tick arriving upstream to the candle repainting in the browser. Same-origin
-SSE keeps the network hop honest; compute is a rounding error next to it.
+Measured by the running system, not estimated: from the moment the source stamps a tick to the
+moment the hub writes it into a viewer's SSE stream. That span covers normalizing, the Redis Stream
+write and pub/sub, and the hub's fanout. The browser's own network hop and repaint aren't in it,
+because a server can't time what it never sees.
 
 <LatencyTrace
-  tiles={[
-    { value: "22", unit: "ms", label: "tick → UI · p50" },
-    { value: "68", unit: "ms", label: "tick → UI · p99" },
-    { value: "1,200", unit: "msg/s", label: "ingest · peak" },
-    { value: "250", label: "concurrent SSE clients" },
-  ]}
   caption={
     <>
-      One live tick, 1-hour sample. The SSE network hop dominates and the Timescale write forks off
-      the live path. <strong>Illustrative pending live telemetry</strong> — these become measured
-      numbers when the running system reports its own p50, p99 and throughput.
+      Read from Prometheus over the last 24 hours and refreshed every five minutes. Latency is timed
+      once per delivery to each open viewer, so it only exists while someone is watching a live page.
+      The source is the simulator until the real market adapter lands, so this measures this
+      pipeline, not an upstream exchange.
     </>
   }
 />

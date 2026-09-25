@@ -1,14 +1,19 @@
 import type { ReactNode } from "react";
 
-interface LatencyTile {
-  value: string;
-  unit?: string;
-  label: string;
-}
+import { LATENCY_WINDOW, formatCount, formatMeasure, type LatencyStats } from "@/lib/latency";
 
 interface LatencyTraceProps {
-  tiles: LatencyTile[];
+  /** Supplied by the page, not the MDX (MDXRenderer binds it): measured by
+   * Prometheus, or a status saying why there's nothing to show. */
+  stats?: LatencyStats;
   caption: ReactNode;
+}
+
+/** Why the tiles are dashes, when they are — never a number standing in. */
+function placeholderReason(stats: LatencyStats | undefined): string | null {
+  if (!stats || stats.status === "unreachable") return "Live telemetry is unreachable right now, so nothing is shown rather than a guess.";
+  if (stats.status === "no-viewers") return `Nobody held a live page open in the last ${LATENCY_WINDOW}, so there were no deliveries to time.`;
+  return null;
 }
 
 /**
@@ -18,8 +23,26 @@ interface LatencyTraceProps {
  * not a generic diagram type, so unlike ArchFlow it isn't parameterized
  * beyond the tiles/caption: a case study with a different pipeline shape
  * would need its own SVG anyway.
+ *
+ * Every figure here is measured (portfolio.md §15 Phase 7 step 6): the tiles
+ * and the end-to-end line come from Prometheus via the page. It used to carry
+ * estimates, including per-hop "+N ms" labels nothing measures; those are
+ * gone rather than kept as decoration.
  */
-export function LatencyTrace({ tiles, caption }: LatencyTraceProps) {
+export function LatencyTrace({ stats, caption }: LatencyTraceProps) {
+  const measured = stats && stats.status !== "unreachable" ? stats : null;
+  const tiles = [
+    { value: formatMeasure(measured?.p50Ms ?? null), unit: "ms", label: "tick → SSE write · p50" },
+    { value: formatMeasure(measured?.p99Ms ?? null), unit: "ms", label: "tick → SSE write · p99" },
+    { value: formatMeasure(measured?.ticksPerSec ?? null), unit: "ticks/s", label: `ingest · ${LATENCY_WINDOW} avg` },
+    { value: formatCount(measured?.peakClients ?? null), label: `peak live viewers · ${LATENCY_WINDOW}` },
+  ];
+  const endToEnd =
+    measured?.p50Ms != null && measured.p99Ms != null
+      ? `tick → SSE write · p50 ${formatMeasure(measured.p50Ms)} ms · p99 ${formatMeasure(measured.p99Ms)} ms`
+      : "tick → SSE write · not measured right now";
+  const reason = placeholderReason(stats);
+
   return (
     <div className="not-prose my-6">
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -27,7 +50,7 @@ export function LatencyTrace({ tiles, caption }: LatencyTraceProps) {
           <div key={tile.label} className="rounded-xl border border-hairline bg-panel-2 p-4">
             <div className="font-mono text-2xl font-medium text-text tabular-nums">
               {tile.value}
-              {tile.unit && <small className="text-sm text-text-muted"> {tile.unit}</small>}
+              {tile.unit && tile.value !== "—" && <small className="text-sm text-text-muted"> {tile.unit}</small>}
             </div>
             <div className="mt-2.5 font-mono text-[11px] tracking-[0.08em] text-text-muted uppercase">
               {tile.label}
@@ -41,7 +64,7 @@ export function LatencyTrace({ tiles, caption }: LatencyTraceProps) {
           viewBox="0 0 900 350"
           preserveAspectRatio="xMidYMid meet"
           role="img"
-          aria-label="Sequence for one live tick: Sim source to Ingest to Redis to SSE hub to Browser, 22 ms at p50."
+          aria-label={`Sequence for one live tick: Sim source to Ingest to Redis to SSE hub to Browser. ${endToEnd}.`}
           className="block h-auto w-full min-w-130"
         >
           <defs>
@@ -78,11 +101,11 @@ export function LatencyTrace({ tiles, caption }: LatencyTraceProps) {
 
           <rect x={254} y={98} width={12} height={24} rx={2} fill="color-mix(in oklab, var(--brand) 42%, var(--panel))" stroke="color-mix(in oklab, var(--brand) 50%, var(--hairline))" />
           <text x={274} y={107} textAnchor="start" fill="var(--read)" fontSize={11.5} fontFamily="var(--font-mono)">
-            normalize + Redis lease <tspan fill="var(--brand-hover)" fontWeight={600} fontSize={12.5}>+3 ms</tspan>
+            normalize + Redis lease
           </text>
 
           <text x={350} y={144} textAnchor="middle" fill="var(--read)" fontSize={11.5} fontFamily="var(--font-mono)">
-            XADD ticks <tspan fill="var(--brand-hover)" fontWeight={600} fontSize={12.5}>+2 ms</tspan>
+            XADD + PUBLISH
           </text>
           <line x1={260} y1={150} x2={438} y2={150} stroke="var(--brand-hover)" strokeWidth={1.5} markerEnd="url(#lt-ah)" />
 
@@ -98,22 +121,27 @@ export function LatencyTrace({ tiles, caption }: LatencyTraceProps) {
           <line x1={440} y1={220} x2={618} y2={220} stroke="var(--brand-hover)" strokeWidth={1.5} markerEnd="url(#lt-ah)" />
 
           <text x={710} y={250} textAnchor="middle" fill="var(--read)" fontSize={11.5} fontFamily="var(--font-mono)">
-            event: candle · SSE <tspan fill="var(--brand-hover)" fontWeight={600} fontSize={12.5}>+12 ms</tspan>
+            event: quote · SSE
           </text>
           <line x1={620} y1={256} x2={798} y2={256} stroke="var(--brand-hover)" strokeWidth={1.5} markerEnd="url(#lt-ah)" />
 
           <rect x={794} y={278} width={12} height={24} rx={2} fill="color-mix(in oklab, var(--brand) 42%, var(--panel))" stroke="color-mix(in oklab, var(--brand) 50%, var(--hairline))" />
           <text x={786} y={287} textAnchor="end" fill="var(--read)" fontSize={11.5} fontFamily="var(--font-mono)">
-            parse + paint <tspan fill="var(--brand-hover)" fontWeight={600} fontSize={12.5}>+5 ms</tspan>
+            parse + paint · not measured
           </text>
 
-          <line x1={80} y1={320} x2={800} y2={320} stroke="var(--hairline)" strokeDasharray="3 3" />
-          <text x={440} y={340} textAnchor="middle" fill="var(--brand-hover)" fontSize={12.5} fontWeight={600} fontFamily="var(--font-mono)">
-            end to end · p50 22 ms · p99 68 ms
+          {/* The measured span ends at the hub's write, not the browser's paint:
+              a server can't time a network hop and a repaint it never sees. */}
+          <line x1={80} y1={320} x2={710} y2={320} stroke="var(--hairline)" strokeDasharray="3 3" />
+          <text x={395} y={340} textAnchor="middle" fill="var(--brand-hover)" fontSize={12.5} fontWeight={600} fontFamily="var(--font-mono)">
+            {endToEnd}
           </text>
         </svg>
       </div>
-      <p className="mt-3.5 text-[13.5px] text-text-muted">{caption}</p>
+      <p className="mt-3.5 text-[13.5px] text-text-muted">
+        {reason && <span data-testid="latency-placeholder">{reason} </span>}
+        {caption}
+      </p>
     </div>
   );
 }

@@ -11,8 +11,16 @@ import { TableOfContents } from "@/components/blog/TableOfContents";
 import { STATUS_COLOR } from "@/components/projects/ProjectCard";
 import { JsonLd, caseStudyLd } from "@/lib/json-ld";
 import { pageMetadata } from "@/lib/metadata";
+import { getLatencyStats } from "@/lib/prometheus-client";
 
 const isDev = process.env.NODE_ENV !== "production";
+
+// ISR, not fully static, since Phase 7 step 6: a case study with a
+// <LatencyTrace> shows figures read from Prometheus, refreshed on this window
+// (the same 5 minutes the Prometheus reads cache for). Built without
+// Prometheus (dev, CI), it prerenders the honest placeholder, and the first
+// revalidation on the box fills in measured numbers.
+export const revalidate = 300;
 
 function findProject(slug: string) {
   const project = allProjects.find((p) => p.slug === slug);
@@ -49,6 +57,8 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[proj
   const { project: slug } = await params;
   const project = findProject(slug);
   if (!project) notFound();
+  // Only case studies that render measured latency pay for the query.
+  const latencyStats = project.content.includes("<LatencyTrace") ? await getLatencyStats() : undefined;
 
   return (
     <Container className="py-14">
@@ -115,7 +125,7 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[proj
           </div>
 
           <div className="mt-9 max-w-[68ch]">
-            <MDXRenderer code={project.mdx} />
+            <MDXRenderer code={project.mdx} latencyStats={latencyStats} />
           </div>
         </article>
 
