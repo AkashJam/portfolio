@@ -9,6 +9,7 @@ import { Container } from "@/components/shell/Container";
 import { MDXRenderer } from "@/components/mdx/MDXRenderer";
 import { TableOfContents } from "@/components/blog/TableOfContents";
 import { STATUS_COLOR } from "@/components/projects/ProjectCard";
+import { pageMetadata } from "@/lib/metadata";
 
 const isDev = process.env.NODE_ENV !== "production";
 
@@ -28,7 +29,12 @@ export async function generateMetadata({
   const { project: slug } = await params;
   const project = findProject(slug);
   return project
-    ? { title: `${project.title} — Projects — Akash James`, description: project.summary }
+    ? pageMetadata({
+        path: `/projects/${slug}`,
+        title: `${project.title} — Projects — Akash James`,
+        description: project.summary,
+        article: { tags: project.tags },
+      })
     : {};
 }
 

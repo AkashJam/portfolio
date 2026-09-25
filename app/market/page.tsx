@@ -7,11 +7,13 @@ import { CostOfLivingTable } from "@/components/market/CostOfLivingTable";
 import { newestTimestamp } from "@/lib/feed-freshness";
 import { volumeFormat } from "@/lib/format";
 import { getCandles, getCostOfLiving, getSymbolSnapshot, getSymbols } from "@/lib/ticker-client";
+import { pageMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
+  path: "/market",
   title: "Market — Akash James",
   description: "Live SIM: markets and simulated cost-of-living data, streamed from the Ticker backend.",
-};
+});
 
 const DEFAULT_INTERVAL = "1h";
 const SPARKLINE_POINTS = 20;

@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
-import { heroRole } from "@/data/profile";
+import { heroHeadline, heroRole } from "@/data/profile";
 
 export function Hero({ hasLiveBand }: { hasLiveBand: boolean }) {
   return (
@@ -11,7 +11,7 @@ export function Hero({ hasLiveBand }: { hasLiveBand: boolean }) {
           Akash James · {heroRole} · Milan
         </p>
         <h1 className="mt-5 max-w-[20ch] text-[clamp(34px,5.5vw,64px)] leading-[1.05] font-light text-text">
-          I build production-grade streaming systems on AWS.
+          {heroHeadline}
         </h1>
         {hasLiveBand && (
           <p className="mt-5 max-w-[52ch] text-lg text-text-muted">

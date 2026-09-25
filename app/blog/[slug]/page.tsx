@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Container } from "@/components/shell/Container";
 import { MDXRenderer } from "@/components/mdx/MDXRenderer";
 import { TableOfContents } from "@/components/blog/TableOfContents";
+import { pageMetadata } from "@/lib/metadata";
 
 const isDev = process.env.NODE_ENV !== "production";
 
@@ -25,7 +26,14 @@ export async function generateMetadata({
 }: PageProps<"/blog/[slug]">): Promise<Metadata> {
   const { slug } = await params;
   const post = findPost(slug);
-  return post ? { title: `${post.title} — Writing — Akash James`, description: post.summary } : {};
+  return post
+    ? pageMetadata({
+        path: `/blog/${slug}`,
+        title: `${post.title} — Writing — Akash James`,
+        description: post.summary,
+        article: { publishedTime: post.date, modifiedTime: post.updated, tags: post.tags },
+      })
+    : {};
 }
 
 export default async function BlogPostPage({ params }: PageProps<"/blog/[slug]">) {

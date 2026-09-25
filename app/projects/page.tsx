@@ -3,11 +3,13 @@ import { allProjects } from "content-collections";
 
 import { ProjectGrid } from "@/components/projects/ProjectGrid";
 import { Container } from "@/components/shell/Container";
+import { pageMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
+  path: "/projects",
   title: "Projects — Akash James",
   description: "Case studies from the systems I've actually built and shipped.",
-};
+});
 
 // Draft case studies render in `next dev` for review; hidden from production builds.
 const isDev = process.env.NODE_ENV !== "production";

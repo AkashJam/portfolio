@@ -3,11 +3,12 @@ import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import "./globals.css";
 import { AppShell } from "@/components/shell/AppShell";
+import { SITE_NAME } from "@/lib/metadata";
 import { SITE_URL } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Akash James",
-  // Required for Next to resolve app/opengraph-image.png to the absolute URL
+  // Required for Next to resolve app/opengraph-image.tsx to the absolute URL
   // link unfurlers fetch; without it og:image is left pointing at localhost.
   metadataBase: new URL(SITE_URL),
   // Renders directly under the OG card in Slack/LinkedIn/iMessage, and as the
@@ -16,6 +17,11 @@ export const metadata: Metadata = {
   // description of its own.
   description:
     "Most portfolios describe the work, this one runs it. A Go and Redis streaming backend on AWS, pushing live prices to the page you're reading.",
+  // Default only, for routes with no metadata of their own (the 404). Every
+  // real route replaces this whole object via lib/metadata.ts's pageMetadata,
+  // since Next merges metadata shallowly. Deliberately no `alternates` here:
+  // a layout-level canonical would leak onto every page that didn't override it.
+  openGraph: { siteName: SITE_NAME, locale: "en_US", type: "website" },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

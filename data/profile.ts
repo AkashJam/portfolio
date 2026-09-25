@@ -3,6 +3,35 @@
 // the two are kept in step deliberately.
 export const heroRole = "Full-Stack Engineer";
 
+// Home's h1 (components/site/Hero.tsx) and the root OG card's headline — one
+// string so the page and its share card can't drift apart.
+export const heroHeadline = "I build production-grade streaming systems on AWS.";
+
+// Home's "Built with" line and the root OG card (app/opengraph-image.tsx).
+// Tools built with this site itself (Next.js/React/Go/etc.) aren't sourced
+// dynamically the way ProjectGrid's tag filters are — there's exactly one
+// "Built with" line and it describes the two repos behind akjames.dev, not
+// a taxonomy that grows with content. Deliberately excludes Node.js: this
+// site's own stack is Next.js + Go, no separate Node backend service (see
+// SkillsCapabilities.tsx's comment on the same distinction for a personal
+// skills claim, which is a different, broader claim than this one).
+export const builtWith = [
+  "TypeScript",
+  "React",
+  "Next.js",
+  "Tailwind",
+  "Go",
+  "GraphQL",
+  "Redis",
+  "PostgreSQL",
+  "TimescaleDB",
+  "Docker",
+  "Terraform",
+  "AWS",
+  "CI/CD",
+];
+
+
 export const statement = {
   headline: "From pixels to infrastructure.",
   subheadline:

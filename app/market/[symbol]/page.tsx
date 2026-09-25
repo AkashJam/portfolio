@@ -10,6 +10,7 @@ import {
   getIndicatorSeries,
   getSymbolSnapshot,
 } from "@/lib/ticker-client";
+import { pageMetadata } from "@/lib/metadata";
 
 const DEFAULT_INTERVAL = "1h";
 const COL_PREFIX = "COL:";
@@ -17,8 +18,16 @@ const COL_PREFIX = "COL:";
 export async function generateMetadata({
   params,
 }: PageProps<"/market/[symbol]">): Promise<Metadata> {
-  const { symbol } = await params;
-  return { title: `${decodeURIComponent(symbol)} — Market — Akash James` };
+  const symbol = decodeURIComponent((await params).symbol);
+  // Canonical keeps the raw symbol (`/market/SIM:NOVA`), the form
+  // SymbolCard and CostOfLivingTable link to, not a `%3A`-encoded variant.
+  return pageMetadata({
+    path: `/market/${symbol}`,
+    title: `${symbol} — Market — Akash James`,
+    description: symbol.startsWith(COL_PREFIX)
+      ? `Simulated cost-of-living series for ${symbol.slice(COL_PREFIX.length)}, from the Ticker backend.`
+      : `${symbol}: live price, candlesticks and indicators, streamed from the Ticker backend.`,
+  });
 }
 
 export default async function SymbolPage({ params }: PageProps<"/market/[symbol]">) {

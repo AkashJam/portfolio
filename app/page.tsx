@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { allProjects } from "content-collections";
 
@@ -8,6 +9,18 @@ import { Container } from "@/components/shell/Container";
 import { ProjectCard } from "@/components/projects/ProjectCard";
 import { getCandles, getSymbolSnapshot, getSymbols } from "@/lib/ticker-client";
 import type { SymbolSnapshot } from "@/lib/market-schemas";
+import { builtWith } from "@/data/profile";
+import { pageMetadata } from "@/lib/metadata";
+
+// Home's own metadata (Phase 7 step 2's gate) rather than the layout's
+// fallback: its own canonical, og:url and a title that says what the site is.
+// The description stays the layout's, which is written for this page.
+export const metadata: Metadata = pageMetadata({
+  path: "/",
+  title: "Akash James — Full-Stack Engineer",
+  description:
+    "Most portfolios describe the work, this one runs it. A Go and Redis streaming backend on AWS, pushing live prices to the page you're reading.",
+});
 
 // Revalidated every 5 min rather than `no-store` — keeps Home statically
 // generated (ISR) instead of forcing it fully dynamic just for the hero's
@@ -16,29 +29,6 @@ const HERO_STAT_REVALIDATE_SECONDS = 300;
 const HERO_TAPE_SIZE = 4;
 const HERO_SPARKLINE_POINTS = 20;
 const HERO_SPARKLINE_INTERVAL = "1m";
-
-// Tools built with this site itself (Next.js/React/Go/etc.) aren't sourced
-// dynamically the way ProjectGrid's tag filters are — there's exactly one
-// "Built with" line and it describes the two repos behind akjames.dev, not
-// a taxonomy that grows with content. Deliberately excludes Node.js: this
-// site's own stack is Next.js + Go, no separate Node backend service (see
-// SkillsCapabilities.tsx's comment on the same distinction for a personal
-// skills claim, which is a different, broader claim than this one).
-const BUILT_WITH = [
-  "TypeScript",
-  "React",
-  "Next.js",
-  "Tailwind",
-  "Go",
-  "GraphQL",
-  "Redis",
-  "PostgreSQL",
-  "TimescaleDB",
-  "Docker",
-  "Terraform",
-  "AWS",
-  "CI/CD",
-];
 
 const isDev = process.env.NODE_ENV !== "production";
 
@@ -132,7 +122,7 @@ export default async function Home() {
               <span className="flex-none font-mono text-[11px] tracking-[0.18em] text-text-muted uppercase">
                 Built with
               </span>
-              <p className="font-mono text-xs text-text-muted">{BUILT_WITH.join(" · ")}</p>
+              <p className="font-mono text-xs text-text-muted">{builtWith.join(" · ")}</p>
             </div>
           </Container>
         </section>

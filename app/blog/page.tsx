@@ -5,11 +5,13 @@ import { allBlogs } from "content-collections";
 import { PostList } from "@/components/blog/PostList";
 import { StarField } from "@/components/site/StarField";
 import { Container } from "@/components/shell/Container";
+import { pageMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
+  path: "/blog",
   title: "Writing — Akash James",
   description: "Field notes on distributed systems, performance, and the occasional war story.",
-};
+});
 
 // Draft posts render in `next dev` for review; hidden from production builds.
 const isDev = process.env.NODE_ENV !== "production";

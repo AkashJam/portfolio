@@ -13,8 +13,10 @@ import { education, type EducationEntry } from "@/data/education";
 import { experience, type ExperienceEntry } from "@/data/experience";
 import { bio, statement, workAuthorization } from "@/data/profile";
 import { RESUME_HREF } from "@/lib/contact";
+import { pageMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
+  path: "/about",
   title: "About — Akash James",
   // Previously inherited the root description, which is written for Home's
   // "this site runs the thing it describes" pitch — the wrong framing on a
@@ -22,7 +24,7 @@ export const metadata: Metadata = {
   // ones already in data/experience.ts.
   description:
     "I build and run the Go, Vue and AWS systems behind an eLearning platform for 50,000+ learners — and the live market dashboard on this site.",
-};
+});
 
 function TimelineWhen({
   start,
