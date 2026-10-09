@@ -187,6 +187,21 @@ jobs:
             sleep 2
           done
 
+      # Home is prerendered at `next build` (playwright's webServer) and
+      # cached for 5 min (ISR). Its live band only renders once 1m candles
+      # exist; a freshly started ticker has none yet, so the build would
+      # bake in a band-less Home and reveal/staleness specs on `/` would
+      # fail. Wait for the first closed 1m candle before building.
+      - name: Wait for 1m candles
+        run: |
+          for i in $(seq 1 60); do
+            n=$(curl -sf "http://localhost:8080/symbols/SIM:NOVA/candles?interval=1m" | jq '.candles | length' 2>/dev/null || echo 0)
+            [ "${n:-0}" -gt 0 ] && exit 0
+            sleep 5
+          done
+          echo "no 1m candles after 5 min" >&2
+          exit 1
+
       - run: npm run test:contract
 
       - run: npx playwright install --with-deps chromium
