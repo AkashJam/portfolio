@@ -177,7 +177,7 @@ jobs:
             "$REGISTRY/ticker:latest" migrate
 
           docker run -d --network host --platform linux/arm64 --name ticker \
-            -e SOURCE=sim -e ADDR=:8080 -e AGG_WINDOW=2s \
+            -e SOURCE=sim -e ADDR=:8080 -e AGG_WINDOW=1m \
             -e TIMESCALE_DSN="postgres://ticker:ticker@localhost:5432/ticker?sslmode=disable" \
             -e REDIS_ADDR="localhost:6379" \
             "$REGISTRY/ticker:latest" serve
@@ -191,7 +191,9 @@ jobs:
       # cached for 5 min (ISR). Its live band only renders once 1m candles
       # exist; a freshly started ticker has none yet, so the build would
       # bake in a band-less Home and reveal/staleness specs on `/` would
-      # fail. Wait for the first closed 1m candle before building.
+      # fail. Wait for the first 1m candle before building. This only works
+      # because the ticker runs with AGG_WINDOW=1m: the window names the
+      # finest interval, so a 2s window has no "1m" candles at all.
       - name: Wait for 1m candles
         run: |
           for i in $(seq 1 60); do
