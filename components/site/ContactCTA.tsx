@@ -1,6 +1,6 @@
 import { CONTACT_EMAIL } from "@/lib/contact";
 
-// GitHub/LinkedIn dropped from here (portfolio.md §15 Phase 6 step 6) — the
+// GitHub/LinkedIn dropped from here (phase6.md Step 6) — the
 // footer already carries them on every page; repeating them here was the
 // only duplicate of Footer's own links anywhere in the app.
 export function ContactCTA() {

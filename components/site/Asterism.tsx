@@ -1,5 +1,5 @@
 /**
- * About's ambient element (portfolio.md §15 Phase 6 step 12, "F / Ingress"
+ * About's ambient element (phase6.md Step 12, "F / Ingress"
  * — ported from `mockups/phase6-visual/about.html`, replacing step 4's B6
  * figure) — thirteen stars of varying magnitude joined by straight
  * sight-lines, a glow hopping between them breadth-first from the hub.

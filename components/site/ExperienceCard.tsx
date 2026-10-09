@@ -2,7 +2,7 @@ import type { ExperienceEntry } from "@/data/experience";
 
 /**
  * The date/location line lives in Timeline's `when` column now, not here
- * — portfolio.md §15 Phase 6 step 4 moves it out of the card so the card
+ * — phase6.md Step 4 moves it out of the card so the card
  * itself is just title, summary and content.
  */
 export function ExperienceCard({ entry }: { entry: ExperienceEntry }) {

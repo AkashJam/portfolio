@@ -1,8 +1,8 @@
 import { z } from "zod";
 
 /**
- * Measured latency for the Market Ticker case study (portfolio.md §15 Phase 7
- * step 6) — the pure half: parsing Prometheus' instant-query responses and
+ * Measured latency for the Market Ticker case study (phase7.md
+ * Step 6) — the pure half: parsing Prometheus' instant-query responses and
  * shaping them into tiles. No `server-only`, so it's unit-testable; the fetch
  * lives in lib/prometheus-client.ts.
  */

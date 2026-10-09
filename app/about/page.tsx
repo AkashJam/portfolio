@@ -43,7 +43,7 @@ function TimelineWhen({
 
 export default function AboutPage() {
   return (
-    // portfolio.md §15 Phase 6 step 4: the asterism is a sibling of the
+    // phase6.md Step 4: the asterism is a sibling of the
     // copy below, not a wrapper around it — LiveSignal's old inset-0
     // treatment sat over the reading column and degenerated on mobile.
     // `overflow-clip`, not `overflow-hidden`: both clip the asterism, but

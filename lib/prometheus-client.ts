@@ -5,7 +5,7 @@ import { LATENCY_QUERIES, parseInstantValue, toLatencyStats, type LatencyStats }
 
 /**
  * Server-only reads of Prometheus' own query API over the Docker network
- * (portfolio.md §15 Phase 7 step 6) — same shape as lib/ticker-client.ts:
+ * (phase7.md Step 6) — same shape as lib/ticker-client.ts:
  * cached for the page's revalidate window, and never throws. Unset in dev
  * and CI, so the case study prerenders its honest placeholder there and ISR
  * fills in measured numbers on the box.

@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 
 /**
  * Shared rail layout for /about's Experience and Education sections
- * (portfolio.md §15 Phase 6 step 4) — a 190px date column, a 32px rail
+ * (phase6.md Step 4) — a 190px date column, a 32px rail
  * with a line and a dot, and a content column, collapsing to a 20px rail
  * beside stacked content below `lg` (1024px). Skills & Capabilities
  * reuses the same 190px column directly in its own markup so the two

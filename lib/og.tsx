@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 
 /**
- * Shared Open Graph card (portfolio.md §15 Phase 7 step 2) — the one layout
+ * Shared Open Graph card (phase7.md Step 2) — the one layout
  * behind app/opengraph-image.tsx and the blog-post / case-study cards.
  *
  * Satori (next/og) renders to PNG without a browser, so it cannot read CSS

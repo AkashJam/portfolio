@@ -60,7 +60,7 @@ const mdxOptions = {
 
 /** h2 headings + slugged ids, matching rehype-slug's ids exactly (same
  * slugger) — feeds components/blog/TableOfContents.tsx (blog posts and,
- * since portfolio.md §15 Phase 6 step 5, project case studies too). */
+ * since phase6.md Step 5, project case studies too). */
 function extractHeadings(markdown: string): { id: string; text: string }[] {
   const slugger = new GithubSlugger();
   const headings: { id: string; text: string }[] = [];

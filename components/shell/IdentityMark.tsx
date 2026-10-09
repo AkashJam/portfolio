@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 
 /**
- * Shared glyph-only identity mark (portfolio.md §15 Phase 6 step 1) — the
+ * Shared glyph-only identity mark (phase6.md Step 1) — the
  * same pulse-line motif as app/icon.svg, redrawn to fit a 16x16 viewBox,
  * reused across TopBar and MobileDrawer's header. Deliberately no name.
  */

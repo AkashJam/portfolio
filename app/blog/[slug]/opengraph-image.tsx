@@ -3,7 +3,7 @@ import { allBlogs } from "content-collections";
 
 import { OG_SIZE, OgCard, formatOgDate, loadOgFonts } from "@/lib/og";
 
-// A card per post (portfolio.md §15 Phase 7 step 2), so a shared post unfurls
+// A card per post (phase7.md Step 2), so a shared post unfurls
 // as itself rather than as the site's generic card. Rendered on request (Next
 // writes no build-time body for a metadata image in a dynamic segment).
 // Deliberately no generateStaticParams/dynamicParams = false: the image route

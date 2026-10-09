@@ -36,7 +36,7 @@ export function useLocalFeedTracker(seedQuoteAt?: string | null): FeedTracker {
 }
 
 /**
- * The staleness indicator (portfolio.md §13, §15 Phase 7 step 1). Renders
+ * The staleness indicator (portfolio.md §13; phase7.md Step 1). Renders
  * `fresh` — the surface's own "live" pill — while events keep arriving, and
  * swaps it for an amber "last tick 43s ago" once none has for
  * `STALE_AFTER_MS`. Amber because §17 settles it as *stale data vintage*.

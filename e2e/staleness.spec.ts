@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-// portfolio.md §15 Phase 7 step 1's gate — "kill the feed; every live
+// phase7.md Step 1's gate — "kill the feed; every live
 // surface says so within the threshold" — as a permanent test rather than a
 // one-off manual check. Needs a running ticker for the pages to render
 // their live surfaces at all (same as live-tick.spec.ts), so it runs in

@@ -14,7 +14,7 @@ interface Capability {
 // listed for its job-posting relevance rather than shipped-project
 // evidence — every other tag here still is evidenced.
 //
-// Four rows (portfolio.md §15 Phase 6 acceptance criteria), not five —
+// Four rows (phase6.md Gate criteria), not five —
 // Reliability's content (Playwright, Prometheus, Grafana) folds into
 // Infra's summary rather than getting its own row. Exported for
 // lib/json-ld.ts, whose Person `knowsAbout` is this same claim.

@@ -10,7 +10,7 @@ import { SITE_NAME } from "@/lib/metadata";
 import { SITE_URL } from "@/lib/site";
 
 /**
- * Structured data (portfolio.md §15 Phase 7 step 3). Types are the
+ * Structured data (phase7.md Step 3). Types are the
  * Google-eligible forms of what the spec asked for — `ProfilePage` wraps the
  * `Person`, and case studies are `Article` (a `CreativeWork` subtype) —
  * because the Rich Results Test reports nothing for a bare `Person` or

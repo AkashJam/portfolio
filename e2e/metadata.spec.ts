@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 
-// portfolio.md §15 Phase 7 step 2's gate — "every route returns a complete OG
+// phase7.md Step 2's gate — "every route returns a complete OG
 // card; the home page has metadata of its own" — as a test. Needs no ticker:
 // none of these routes depends on it for its metadata.
 //

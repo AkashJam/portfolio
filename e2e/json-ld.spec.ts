@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 
-// portfolio.md §15 Phase 7 step 3 — the structure behind the Rich Results
+// phase7.md Step 3 — the structure behind the Rich Results
 // gate, checked locally. Google's Rich Results Test itself is a web tool this
 // can't drive; this proves every page carries parseable JSON-LD of the right
 // types, and that posts and case studies credit the same Person the profile

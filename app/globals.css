@@ -118,8 +118,8 @@
     stroke-dashoffset: 0;
   }
 }
-/* About's ambient "asterism" (components/site/Asterism.tsx, portfolio.md
-   §15 Phase 6 step 12, "F / Ingress") — a glow hops star to star breadth-
+/* About's ambient "asterism" (components/site/Asterism.tsx,
+   phase6.md Step 12, "F / Ingress") — a glow hops star to star breadth-
    first from the hub, one hop every 1.8s. The lit window (0%→5.51%, ~1.4s)
    is kept well under the 1.8s spacing so exactly one star is ever lit;
    25.4s = 13 stars × 1.8s + a 2s rest before it repeats.
@@ -153,8 +153,8 @@
   }
 }
 
-/* Blog index's ambient star field (components/site/StarField.tsx, portfolio.md
-   §15 Phase 6 step 5) — the same flicker-and-afterglow beat as the asterism's
+/* Blog index's ambient star field (components/site/StarField.tsx,
+   phase6.md Step 5) — the same flicker-and-afterglow beat as the asterism's
    `hop`, deliberately softened: brightness only (no swell, no shift toward
    white), a shallower peak (.38→.85 vs the asterism's full range), and no
    ordering, since a field has no path through it. 14s cycle keeps ~12 of 142

@@ -18,13 +18,13 @@ function placeholderReason(stats: LatencyStats | undefined): string | null {
 
 /**
  * Stat tiles + a one-tick sequence diagram for project case studies
- * (portfolio.md §15 Phase 6 step 5) — the sequence itself (Finnhub →
+ * (phase6.md Step 5) — the sequence itself (Finnhub →
  * Ingest → Redis → SSE hub → Browser) is Market Ticker's own pipeline,
  * not a generic diagram type, so unlike ArchFlow it isn't parameterized
  * beyond the tiles/caption: a case study with a different pipeline shape
  * would need its own SVG anyway.
  *
- * Every figure here is measured (portfolio.md §15 Phase 7 step 6): the tiles
+ * Every figure here is measured (phase7.md Step 6): the tiles
  * and the end-to-end line come from Prometheus via the page. It used to carry
  * estimates, including per-hop "+N ms" labels nothing measures; those are
  * gone rather than kept as decoration.

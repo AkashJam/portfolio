@@ -1,5 +1,5 @@
 /**
- * Blog index's ambient element (portfolio.md §15 Phase 6 step 5) — a
+ * Blog index's ambient element (phase6.md Step 5) — a
  * quieter, sight-line-less companion to About's asterism: 142
  * individually-twinkling stars with no shape to read, sitting behind the
  * header and masked out well above the post list so the reading column

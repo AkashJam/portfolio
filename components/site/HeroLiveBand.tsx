@@ -32,7 +32,7 @@ const HERO_CHART_VIEWBOX_HEIGHT = 256;
 // from when real ticks actually arrive. Real gaps observed live are
 // irregular (630-2973ms), so a glide *triggered per-tick* either overlaps
 // itself (fast ticks restart mid-transition) or sits dead-still for the
-// remainder of a slow gap (portfolio.md §15 Phase 6 Step 9's "moves for
+// remainder of a slow gap (phase6.md Step 9's "moves for
 // .5s then stays still for .5s" finding) — no fixed duration fixes that
 // while the trigger is still tick arrival. A real ticker tape reads as
 // continuous because it moves at a constant rate regardless of when new
@@ -54,7 +54,7 @@ function prefersNoMotion(): boolean {
 }
 
 /**
- * Home hero's live band (portfolio.md §15 Phase 6 step 6, glide rewritten
+ * Home hero's live band (phase6.md Step 6, glide rewritten
  * in step 9's follow-up) — a ticker tape of the sim roster plus a live
  * area chart of one symbol, replacing the static glow orb + LiveChip pill.
  * One shared subscription drives both, matching SymbolCardGrid's "single

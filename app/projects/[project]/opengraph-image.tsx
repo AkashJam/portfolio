@@ -3,7 +3,7 @@ import { allProjects } from "content-collections";
 
 import { OG_SIZE, OgCard, loadOgFonts } from "@/lib/og";
 
-// A card per case study (portfolio.md §15 Phase 7 step 2). Same rendering and
+// A card per case study (phase7.md Step 2). Same rendering and
 // gating as the blog card (see its comment): on request, findProject decides.
 const isDev = process.env.NODE_ENV !== "production";
 const MAX_CHIPS = 5;

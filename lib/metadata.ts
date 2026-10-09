@@ -20,8 +20,8 @@ const ROOT_CARD = {
 };
 
 /**
- * Per-route metadata with its own canonical and Open Graph block (portfolio.md
- * §15 Phase 7 step 2). Every route goes through this, because Next merges
+ * Per-route metadata with its own canonical and Open Graph block
+ * (phase7.md Step 2). Every route goes through this, because Next merges
  * metadata *shallowly* across segments: a page that sets `openGraph` replaces
  * the layout's whole object, so `siteName`/`locale` have to be restated each
  * time, and a `canonical` set once in the layout would leak onto every page

@@ -1,5 +1,5 @@
 /**
- * Error pages' ambient waveform (portfolio.md §15 Phase 6 step 4/5) —
+ * Error pages' ambient waveform (phase6.md Step 4/5) —
  * replaces Glow + GlowBar together with one line that also does semantic
  * work: flatlined for 404, broken for 500. Same motif as the hero pulse.
  * Sits in the "seam" between the numeral and the message, spanning the

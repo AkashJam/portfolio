@@ -4,7 +4,7 @@ interface Stat {
 }
 
 // Every figure here is already stated in data/experience.ts's Lifeed
-// entry (portfolio.md §15 Phase 6 step 4) — this just extracts the
+// entry (phase6.md Step 4) — this just extracts the
 // headline numbers into a scannable row rather than leaving them buried
 // in prose.
 const STATS: Stat[] = [

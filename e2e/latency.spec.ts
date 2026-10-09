@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
-// portfolio.md §15 Phase 7 step 6's gate: no unsourced figure on the Market
+// phase7.md Step 6's gate: no unsourced figure on the Market
 // Ticker case study, and its tiles degrade to an honest placeholder without
 // Prometheus. CI and local builds don't set PROMETHEUS_URL, so this is the
 // degraded path — the measured path is checked by hand against a real
