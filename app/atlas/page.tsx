@@ -8,6 +8,9 @@ import {
 import { AtlasExplorer } from "@/components/atlas/AtlasExplorer";
 import { WorldMap } from "@/components/atlas/WorldMap";
 import { CountriesTable } from "@/components/atlas/CountriesTable";
+import { TierOne } from "@/components/atlas/TierOne";
+import { MEASURES } from "@/lib/atlas-plot";
+import { count } from "@/lib/atlas-provenance";
 import { getAtlasCities } from "@/lib/ticker-client";
 import { pageMetadata } from "@/lib/metadata";
 
@@ -21,6 +24,8 @@ export const metadata: Metadata = pageMetadata({
 // The data refreshes daily to yearly (§8), so an hour is a staleness ceiling,
 // not a freshness mechanism. Passing it keeps the page static/ISR.
 const ATLAS_REVALIDATE_SECONDS = 3600;
+
+const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 export default async function AtlasPage() {
   const atlas = await getAtlasCities({
@@ -62,7 +67,10 @@ export default async function AtlasPage() {
           {atlas && <WindowHint />}
         </div>
         {atlas && atlas.rows.length > 0 ? (
-          <CountriesTable rows={atlas.rows} />
+          <>
+            <TierOne />
+            <CountriesTable rows={atlas.rows} />
+          </>
         ) : (
           <p className="text-sm text-text-muted">
             Atlas data is temporarily unavailable.
@@ -74,12 +82,25 @@ export default async function AtlasPage() {
 
   return (
     <Container className="space-y-10 py-16">
-      <div>
-        <p className="text-xs uppercase tracking-[0.3em] text-text-muted">
-          Atlas
+      <header>
+        <h1 className="text-4xl font-light">Atlas</h1>
+        <p className="mt-3 max-w-[66ch] text-[16.5px] leading-relaxed text-read">
+          {atlas ? `${cap(count(atlas.rows.length))} countries` : "Countries"},
+          each labelled by a city, {count(MEASURES.length)} measures. What
+          living standards look like for the median person: what their savings,
+          their housing and their prices have done, what they earn, how long
+          they live, from sources that publish their methodology. Nothing here
+          is ranked and nothing is scored; put two measures on the axes and read
+          it yourself.
         </p>
-        <h1 className="mt-1 text-4xl font-light">Living standards, compared</h1>
-      </div>
+        <p className="mt-3.5 max-w-[66ch] border-t border-hairline pt-3.5 font-mono text-[12.5px] leading-relaxed text-text-muted">
+          Every figure carries its source and the year it describes, one click
+          away in the column header. Measures that could not clear that bar for
+          all {atlas ? count(atlas.rows.length) : "the"} countries were left out
+          rather than shown with an empty cell; the euro-area currency cells are
+          blank by design, because the euro has no rate against itself.
+        </p>
+      </header>
 
       {atlas ? (
         <AtlasWindowProvider windows={atlas.windows} end={atlas.end}>

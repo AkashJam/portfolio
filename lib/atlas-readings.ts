@@ -103,13 +103,13 @@ const TAIL =
 const rounded = (v: number) => Math.round(v);
 
 /** A country as it reads in a sentence: "the United States", "Japan". */
-function nm(r: AtlasRow, lead = false): string {
+export function nm(r: AtlasRow, lead = false): string {
   const the = r.country === "United States" || r.country === "United Kingdom";
   return the ? `${lead ? "The" : "the"} ${r.country}` : r.country;
 }
 
 /** rose / fell / was unchanged, from the figure as it is displayed. */
-function moved(v: number): string {
+export function moved(v: number): string {
   const r = rounded(v);
   return r > 0 ? "rose" : r < 0 ? "fell" : "was unchanged";
 }
@@ -130,7 +130,7 @@ function pairMoved(
 }
 
 /** A change set against another change: (1+p)/(1+q) - 1, in percent. */
-const against = (p: number, q: number) =>
+export const against = (p: number, q: number) =>
   ((1 + p / 100) / (1 + q / 100) - 1) * 100;
 /** Two changes compounded: (1+p)(1+q) - 1, in percent. */
 const compound = (p: number, q: number) =>

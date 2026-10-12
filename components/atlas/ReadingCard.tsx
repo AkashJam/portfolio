@@ -7,11 +7,17 @@ import { cn } from "@/lib/utils";
  * Everything in it comes from lib/atlas-readings.ts, which only asserts what it
  * has just checked.
  */
-export function ReadingCard({ reading }: { reading: Reading }) {
+export function ReadingCard({
+  reading,
+  className,
+}: {
+  reading: Reading;
+  className?: string;
+}) {
   return (
     <aside
       aria-label="Reading this view"
-      className="mt-5 border-l-2 border-brand/55 pl-4"
+      className={cn("border-l-2 border-brand/55 pl-4", className)}
     >
       <p className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-text-muted">
         Reading this view {"·"}{" "}

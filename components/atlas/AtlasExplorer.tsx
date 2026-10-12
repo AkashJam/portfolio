@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { WindowSelect, useAtlasWindow } from "@/components/atlas/AtlasWindow";
 import { ReadingCard } from "@/components/atlas/ReadingCard";
+import { ReadingGuide } from "@/components/atlas/ReadingGuide";
 import { Scatter } from "@/components/atlas/Scatter";
 import { type ColumnKey, windowLabel as labelOf } from "@/lib/atlas";
 import { MEASURES, buildPlot } from "@/lib/atlas-plot";
@@ -129,7 +130,10 @@ export function AtlasExplorer({ rows }: { rows: AtlasRow[] }) {
         </p>
       </div>
 
-      <ReadingCard reading={reading} />
+      <div className="grid items-start gap-7 border-b border-hairline py-5 lg:grid-cols-[1.15fr_1fr]">
+        <ReadingGuide />
+        <ReadingCard reading={reading} />
+      </div>
 
       <div className="overflow-x-auto pt-4">
         <div className="min-w-[720px]">
