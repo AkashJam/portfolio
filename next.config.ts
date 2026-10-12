@@ -6,6 +6,21 @@ const nextConfig: NextConfig = {
   // Lean runtime image (infra/Dockerfile's `runtime` stage) — traces only
   // the deps actually needed at runtime into .next/standalone.
   output: "standalone",
+
+  // Dev only; production ignores it. Next 16 blocks cross-origin requests to its
+  // dev resources unless the host is allowed, and `localhost` is the only host
+  // that is by default. Opened at 127.0.0.1 (or a LAN address), the HMR
+  // WebSocket is refused and React never hydrates: every client component on
+  // every page is dead (buttons, selects, the palette, the drawer) while plain
+  // links still work. The terminal says so once ("Blocked cross-origin request
+  // to Next.js dev resource /_next/hmr"). For another host, such as a LAN IP or a
+  // forwarded hostname, set ALLOWED_DEV_ORIGINS=host1,host2 and restart `next dev`.
+  allowedDevOrigins: [
+    "127.0.0.1",
+    ...(process.env.ALLOWED_DEV_ORIGINS?.split(",")
+      .map((h) => h.trim())
+      .filter(Boolean) ?? []),
+  ],
 };
 
 // withContentCollections OUTSIDE withSentryConfig, not the other way around

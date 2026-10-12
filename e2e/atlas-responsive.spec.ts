@@ -51,13 +51,38 @@ test.describe("at 390px", () => {
     expect(figure).toBeLessThan(after + 400); // while the figures did scroll under it
   });
 
-  test("a fade marks the table's scroller, and the pinned cell is opaque", async ({
+  test("the table fades the edge that has more to show, and only that edge", async ({
     page,
   }) => {
     await page.goto("/atlas");
+    const box = tableBox(page);
+    const edges = () =>
+      box.evaluate((e) => [e.dataset.moreLeft, e.dataset.moreRight]);
+    const mask = () => box.evaluate((e) => getComputedStyle(e).maskImage);
+
+    await box.evaluate((e) => (e.scrollLeft = 0));
+    await expect.poll(edges).toEqual(["false", "true"]); // at the start: more to the right
+    expect(await mask()).toContain("calc(100% - 40px)");
+
+    await box.evaluate((e) => (e.scrollLeft = 260));
+    await expect.poll(edges).toEqual(["true", "true"]); // mid: both
+    // the left cue is the pinned column's shadow over what scrolls under it, not a mask
+    expect(await mask()).toContain("calc(100% - 40px)");
     expect(
-      await tableBox(page).evaluate((e) => getComputedStyle(e).backgroundImage),
-    ).toContain("linear-gradient");
+      await firstCell(page, "japan").evaluate(
+        (e) => getComputedStyle(e).boxShadow,
+      ),
+    ).not.toBe("none");
+
+    await box.evaluate((e) => (e.scrollLeft = 99999));
+    await expect.poll(edges).toEqual(["true", "false"]); // at the end: nothing more to the right
+    expect(await mask()).not.toContain("calc(100% - 40px)");
+  });
+
+  test("the pinned cell is opaque, so what scrolls under it does not show through", async ({
+    page,
+  }) => {
+    await page.goto("/atlas");
     expect(
       await firstCell(page, "japan").evaluate(
         (e) => getComputedStyle(e).backgroundColor,
@@ -65,20 +90,53 @@ test.describe("at 390px", () => {
     ).toBe(panel);
   });
 
-  test("the scatter takes the fade only: it scrolls at a 720px minimum and its first column is not pinned", async ({
+  test("the scatter takes the fade only: it scrolls at a 720px minimum and fades its edges, with no pinned column", async ({
     page,
   }) => {
     await page.goto("/atlas");
-    const scroller = page.locator("#compare .scroll-fade");
-    expect(
-      await scroller.evaluate((e) => getComputedStyle(e).backgroundImage),
-    ).toContain("linear-gradient");
+    const scroller = page.locator("#compare .atlas-edge-cue");
     const [sw, cw] = await scroller.evaluate((e) => [
       e.scrollWidth,
       e.clientWidth,
     ]);
     expect(sw).toBeGreaterThanOrEqual(720);
     expect(sw).toBeGreaterThan(cw);
+    await expect
+      .poll(() =>
+        scroller.evaluate((e) => [e.dataset.moreLeft, e.dataset.moreRight]),
+      )
+      .toEqual(["false", "true"]);
+    expect(
+      await scroller.evaluate((e) => getComputedStyle(e).maskImage),
+    ).toContain("calc(100% - 40px)");
+    await scroller.evaluate((e) => (e.scrollLeft = 99999));
+    await expect
+      .poll(() =>
+        scroller.evaluate((e) => [e.dataset.moreLeft, e.dataset.moreRight]),
+      )
+      .toEqual(["true", "false"]);
+    expect(
+      await scroller.evaluate((e) => getComputedStyle(e).maskImage),
+    ).toContain("40px");
+    expect(await scroller.evaluate((e) => e.hasAttribute("data-pinned"))).toBe(
+      false,
+    );
+  });
+
+  test("the fade never runs along the top or bottom: its gradient is horizontal", async ({
+    page,
+  }) => {
+    await page.goto("/atlas");
+    for (const sel of [
+      "#countries [data-slot=table-container]",
+      "#compare .atlas-edge-cue",
+    ]) {
+      const mask = await page
+        .locator(sel)
+        .evaluate((e) => getComputedStyle(e).maskImage);
+      expect(mask, sel).toContain("linear-gradient(to right");
+      expect(mask, sel).not.toMatch(/to (top|bottom)|180deg|0deg/);
+    }
   });
 
   test("a highlighted row's tint shows on the pinned cell too", async ({

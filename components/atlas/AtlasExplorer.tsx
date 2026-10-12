@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 
 import { WindowSelect, useAtlasWindow } from "@/components/atlas/AtlasWindow";
+import { useScrollEdges } from "@/components/atlas/useScrollEdges";
 import { useTargetSlug } from "@/components/atlas/useTargetSlug";
 import { ReadingCard } from "@/components/atlas/ReadingCard";
 import { ReadingGuide } from "@/components/atlas/ReadingGuide";
@@ -35,6 +36,7 @@ export function AtlasExplorer({ rows }: { rows: AtlasRow[] }) {
   const [x, setX] = useState<ColumnKey>(CHIPS[0].x);
   const [y, setY] = useState<ColumnKey>(CHIPS[0].y);
   const target = useTargetSlug();
+  const { attach: attachScroller, attrs: scrollerAttrs } = useScrollEdges();
   const model = useMemo(() => buildPlot(rows, x, y, win), [rows, x, y, win]);
   const windowLabel = labelOf(win, end);
   const reading = useMemo(
@@ -125,7 +127,11 @@ export function AtlasExplorer({ rows }: { rows: AtlasRow[] }) {
         <ReadingCard reading={reading} />
       </div>
 
-      <div className="scroll-fade overflow-x-auto pt-4">
+      <div
+        ref={attachScroller}
+        {...scrollerAttrs}
+        className="atlas-edge-cue overflow-x-auto pt-4"
+      >
         <div className="min-w-[720px]">
           <Scatter
             model={model}

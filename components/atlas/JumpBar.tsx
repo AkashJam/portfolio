@@ -75,8 +75,10 @@ export function JumpBar() {
       data-atlas-jump=""
       inert={hidden}
       className={cn(
-        "sticky top-14 z-20 -mt-4 flex gap-6 border-b border-hairline bg-canvas/90 py-3 backdrop-blur-md motion-safe:transition-transform motion-safe:duration-200",
-        hidden && "-translate-y-full",
+        "sticky top-14 z-20 -mt-4 flex gap-6 border-b border-hairline bg-canvas py-3 motion-safe:transition-[transform,opacity] motion-safe:duration-200",
+        // Slid up under the top bar, which is translucent: without the opacity the hidden
+        // bar's labels ghost through it.
+        hidden && "-translate-y-full opacity-0",
       )}
     >
       {SECTIONS.map((s) => (

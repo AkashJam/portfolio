@@ -1,0 +1,108 @@
+import { expect, test, type Page } from "@playwright/test";
+
+// The atlas page's client JavaScript has to be alive, not just present. A
+// locator-driven test passes against a page that hydrated; this one also fails
+// on any uncaught error or console error, and drives the controls with real
+// pointer input (mouse at coordinates, touch taps) rather than locator clicks.
+// Needs the ticker (real /atlas/cities).
+
+function collectErrors(page: Page) {
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(`pageerror: ${e.message}`));
+  page.on("console", (m) => {
+    if (m.type() !== "error") return;
+    const text = m.text();
+    // Sentry's beacon goes through a same-origin tunnel that is not running in CI.
+    if (text.includes("monitoring-tunnel")) return;
+    errors.push(`console.error: ${text.slice(0, 300)}`);
+  });
+  return errors;
+}
+
+/** The jump bar sets --atlas-jump in an effect, so it is the cheapest proof that /atlas hydrated. */
+const hydrated = (page: Page) =>
+  page.waitForFunction(
+    () =>
+      document.documentElement.style.getPropertyValue("--atlas-jump") !== "",
+  );
+
+test.describe("at 1440px, with a mouse", () => {
+  test.use({ viewport: { width: 1440, height: 900 } });
+
+  test("loads with no uncaught or console errors, and its controls answer real clicks", async ({
+    page,
+  }) => {
+    const errors = collectErrors(page);
+    await page.goto("/atlas");
+    await hydrated(page);
+
+    const chip = page.getByRole("button", { name: /Did savings and housing/ });
+    const b = (await chip.boundingBox())!;
+    await page.mouse.click(b.x + b.width / 2, b.y + b.height / 2);
+    await expect(chip).toHaveAttribute("aria-pressed", "true");
+
+    const sort = page.getByRole("button", { name: /^Shares/ }).first();
+    await sort.scrollIntoViewIfNeeded();
+    const s = (await sort.boundingBox())!;
+    await page.mouse.click(s.x + s.width / 2, s.y + s.height / 2);
+    await expect(page.locator("th[aria-sort=descending]")).toHaveCount(1);
+
+    await page.mouse.wheel(0, 2400);
+    await expect(
+      page.locator('nav[aria-label="On this page"] a[aria-current]'),
+    ).toHaveText("Countries");
+
+    expect(errors).toEqual([]);
+  });
+});
+
+test.describe("at 390px, with touch", () => {
+  test.use({
+    viewport: { width: 390, height: 844 },
+    hasTouch: true,
+    isMobile: true,
+  });
+
+  test("loads with no uncaught or console errors, and its controls answer taps", async ({
+    page,
+  }) => {
+    const errors = collectErrors(page);
+    await page.goto("/atlas");
+    await hydrated(page);
+
+    const chip = page.getByRole("button", { name: /Did savings and housing/ });
+    await chip.scrollIntoViewIfNeeded();
+    await chip.tap();
+    await expect(chip).toHaveAttribute("aria-pressed", "true");
+
+    const sort = page.getByRole("button", { name: /^Shares/ }).first();
+    await sort.scrollIntoViewIfNeeded();
+    await sort.tap();
+    await expect(page.locator("th[aria-sort=descending]")).toHaveCount(1);
+
+    const info = page.getByRole("button", { name: "About the shares column" });
+    await info.tap();
+    await expect(page.getByRole("dialog")).toBeVisible();
+
+    expect(errors).toEqual([]);
+  });
+});
+
+// Next 16's dev server refuses its HMR WebSocket to any host but `localhost`
+// unless it is in `allowedDevOrigins` (next.config.ts). Refused, React never
+// hydrates and every client component on the site is dead, while plain links
+// still work: it looked like a broken /atlas. A production build has no such
+// check, so this only bites, and only guards, against a dev server.
+test("is just as alive when opened at 127.0.0.1 as at localhost", async ({
+  page,
+  baseURL,
+}) => {
+  test.skip(!baseURL, "needs a baseURL");
+  const url = new URL("/atlas", baseURL!);
+  url.hostname = "127.0.0.1";
+  await page.goto(url.toString());
+  await hydrated(page);
+  const chip = page.getByRole("button", { name: /Did savings and housing/ });
+  await chip.click();
+  await expect(chip).toHaveAttribute("aria-pressed", "true");
+});

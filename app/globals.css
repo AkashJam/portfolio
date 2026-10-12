@@ -527,17 +527,32 @@
   box-shadow: 0 0 0 4px color-mix(in oklab, var(--brand) 22%, transparent);
 }
 
-/* Scroll cue (bearing.md #107): below 768px a fade marks whichever edge of a
-   sideways scroller has more to show. The local/scroll background trick, so it
-   needs no script and disappears at the end of the scroll. The table also pins
-   its first column; the scatter takes the fade only. */
+/* Scroll cue (bearing.md #107): below 768px, a sideways scroller fades the
+   edge that has more to show and nothing else. components/atlas/useScrollEdges
+   sets data-more-left / data-more-right from the scroller's own position, and
+   this masks the matching edge. The table also pins its first column, so its
+   left cue is that column casting a shadow over what scrolls under it instead
+   of a mask (a mask would fade the pinned column itself). The mock's
+   local/scroll background trick was dropped: its dark shadow sits behind the
+   text, on a near-black panel, where it cannot be seen. */
 @media (max-width: 767.98px) {
-  .scroll-fade {
-    background:
-      linear-gradient(to right, var(--panel) 40%, transparent) left center / 32px 100% no-repeat local,
-      linear-gradient(to left, var(--panel) 40%, transparent) right center / 32px 100% no-repeat local,
-      linear-gradient(to right, rgba(0, 0, 0, 0.5), transparent) left center / 14px 100% no-repeat scroll,
-      linear-gradient(to left, rgba(0, 0, 0, 0.5), transparent) right center / 14px 100% no-repeat scroll,
-      var(--panel);
+  .atlas-edge-cue {
+    --fade-l: 0px;
+    --fade-r: 0px;
+    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 var(--fade-l), #000 calc(100% - var(--fade-r)), transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0, #000 var(--fade-l), #000 calc(100% - var(--fade-r)), transparent 100%);
+  }
+  .atlas-edge-cue[data-more-left="true"] {
+    --fade-l: 40px;
+  }
+  .atlas-edge-cue[data-more-right="true"] {
+    --fade-r: 40px;
+  }
+  .atlas-edge-cue[data-pinned][data-more-left="true"] {
+    --fade-l: 0px;
+  }
+  .atlas-edge-cue[data-pinned][data-more-left="true"] th:first-child,
+  .atlas-edge-cue[data-pinned][data-more-left="true"] td:first-child {
+    box-shadow: 10px 0 12px -6px rgba(0, 0, 0, 0.85), 1px 0 0 var(--hairline);
   }
 }

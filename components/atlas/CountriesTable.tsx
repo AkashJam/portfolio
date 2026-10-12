@@ -29,6 +29,7 @@ import {
   provenance,
   sortRows,
 } from "@/lib/atlas";
+import { useScrollEdges } from "@/components/atlas/useScrollEdges";
 import { useTargetSlug } from "@/components/atlas/useTargetSlug";
 import { cityHref, noCityPageNote } from "@/lib/atlas-absences";
 import { cellNote } from "@/lib/atlas-notes";
@@ -63,6 +64,9 @@ const COLUMNS: Column[] = [
   { key: "unemployment", label: "Unemp.", sub: () => "%" },
   { key: "lifeExpectancy", label: "Life exp.", sub: () => "years" },
 ];
+
+/** Tells the scroll cue the first column is pinned, so its left cue is a shadow, not a mask. */
+const PINNED_ATTR = { "data-pinned": "" };
 
 /**
  * Below 768px the city column stays pinned while the figures scroll under it
@@ -260,6 +264,7 @@ export function CountriesTable({ rows }: { rows: AtlasRow[] }) {
     dir: "asc",
   });
   const target = useTargetSlug();
+  const edges = useScrollEdges();
   const sorted = sortRows(rows, sort.key, sort.dir, window);
   const ctxs = useMemo(() => {
     const out = {} as Record<ColumnKey, ColumnCtx>;
@@ -288,7 +293,10 @@ export function CountriesTable({ rows }: { rows: AtlasRow[] }) {
   return (
     <DisclosureGroup>
       <div className="panel-elevated overflow-hidden rounded-2xl">
-        <Table containerClassName="scroll-fade">
+        <Table
+          containerClassName="atlas-edge-cue"
+          containerProps={{ ref: edges.attach, ...PINNED_ATTR, ...edges.attrs }}
+        >
           <TableHeader>
             <TableRow>
               <TableHead className={cn("pl-4 pr-2", PINNED)}>City</TableHead>
