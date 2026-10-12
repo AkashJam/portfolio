@@ -2,7 +2,15 @@
 
 import { useState } from "react";
 
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useAtlasWindow } from "@/components/atlas/AtlasWindow";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import {
   type ColumnKey,
   type SortDir,
@@ -21,7 +29,8 @@ import { cn } from "@/lib/utils";
 /**
  * The /atlas countries table (Phase 11 step 1; mockups/atlas-v1/atlas.html
  * #countries). Twenty-three rows, eight measures, sortable on every column.
- * The window is a prop so step 3's selector only has to drive it.
+ * The window comes from the shared context (step 3), so the scatter and the
+ * table always read the same years.
  */
 
 interface Column {
@@ -35,7 +44,11 @@ const COLUMNS: Column[] = [
   { key: "housing", label: "Housing", sub: () => "change · after inflation" },
   { key: "prices", label: "Prices", sub: (end) => `change · to ${end}` },
   { key: "currency", label: "Currency", sub: () => "vs EUR · change" },
-  { key: "everydaySpendingEur", label: "Spending", sub: () => "€ / person / month" },
+  {
+    key: "everydaySpendingEur",
+    label: "Spending",
+    sub: () => "€ / person / month",
+  },
   { key: "gniPpp", label: "Income", sub: () => "$ / person · price-adj." },
   { key: "unemployment", label: "Unemp.", sub: () => "%" },
   { key: "lifeExpectancy", label: "Life exp.", sub: () => "years" },
@@ -57,7 +70,11 @@ function ChangeCell({ m, window }: { m: WindowChange; window: WindowStart }) {
     return (
       <TableCell className={cn(num, "text-text-muted")} title={title}>
         {"—"}
-        {m.reason && <small className="ml-1 text-[11px]">{gapLabel(m.reason, window)}</small>}
+        {m.reason && (
+          <small className="ml-1 text-[11px]">
+            {gapLabel(m.reason, window)}
+          </small>
+        )}
         <Provenance text={title} />
       </TableCell>
     );
@@ -65,11 +82,19 @@ function ChangeCell({ m, window }: { m: WindowChange; window: WindowStart }) {
   const rounded = Math.round(value);
   return (
     <TableCell
-      className={cn(num, rounded > 0 && "text-market-up", rounded < 0 && "text-market-down")}
+      className={cn(
+        num,
+        rounded > 0 && "text-market-up",
+        rounded < 0 && "text-market-down",
+      )}
       title={title}
     >
       {formatChange(value)}
-      {m.derived && <small className="ml-1 block text-[11px] text-text-muted">{m.derived}</small>}
+      {m.derived && (
+        <small className="ml-1 block text-[11px] text-text-muted">
+          {m.derived}
+        </small>
+      )}
       <Provenance text={title} />
     </TableCell>
   );
@@ -84,22 +109,18 @@ function LevelCell({
 }) {
   const title = provenance(m);
   return (
-    <TableCell className={cn(num, m.value === null && "text-text-muted")} title={title}>
+    <TableCell
+      className={cn(num, m.value === null && "text-text-muted")}
+      title={title}
+    >
       {m.value === null ? "—" : format(m.value)}
       <Provenance text={title} />
     </TableCell>
   );
 }
 
-export function CountriesTable({
-  rows,
-  window = "2010",
-  end,
-}: {
-  rows: AtlasRow[];
-  window?: WindowStart;
-  end: string;
-}) {
+export function CountriesTable({ rows }: { rows: AtlasRow[] }) {
+  const { window, end } = useAtlasWindow();
   const [sort, setSort] = useState<{ key: ColumnKey; dir: SortDir }>({
     key: "everydaySpendingEur",
     dir: "asc",
@@ -109,7 +130,11 @@ export function CountriesTable({
   // First press on a column sorts it high-to-low for change measures, since
   // the question is "who rose most"; a repeat press flips it.
   function onSort(key: ColumnKey) {
-    setSort((s) => (s.key === key ? { key, dir: s.dir === "asc" ? "desc" : "asc" } : { key, dir: "desc" }));
+    setSort((s) =>
+      s.key === key
+        ? { key, dir: s.dir === "asc" ? "desc" : "asc" }
+        : { key, dir: "desc" },
+    );
   }
 
   return (
@@ -124,21 +149,33 @@ export function CountriesTable({
                 <TableHead
                   key={c.key}
                   className="px-2 text-right"
-                  aria-sort={active ? (sort.dir === "asc" ? "ascending" : "descending") : "none"}
+                  aria-sort={
+                    active
+                      ? sort.dir === "asc"
+                        ? "ascending"
+                        : "descending"
+                      : "none"
+                  }
                 >
                   <button
                     type="button"
                     onClick={() => onSort(c.key)}
                     className={cn(
                       "inline-flex flex-col items-end rounded-sm text-right hover:text-brand-hover focus-visible:outline-2 focus-visible:outline-brand",
-                      active && "text-brand-hover"
+                      active && "text-brand-hover",
                     )}
                   >
                     <span>
                       {c.label}
-                      {active && <span aria-hidden="true">{sort.dir === "asc" ? " ▲" : " ▼"}</span>}
+                      {active && (
+                        <span aria-hidden="true">
+                          {sort.dir === "asc" ? " ▲" : " ▼"}
+                        </span>
+                      )}
                     </span>
-                    <small className="max-w-[7rem] whitespace-normal text-[11px] font-normal text-text-muted">{c.sub(end)}</small>
+                    <small className="max-w-[7rem] whitespace-normal text-[11px] font-normal text-text-muted">
+                      {c.sub(end)}
+                    </small>
                   </button>
                 </TableHead>
               );
@@ -152,7 +189,10 @@ export function CountriesTable({
                 <span className="flex min-w-[10rem] flex-col">
                   <span className="font-medium">{r.city}</span>
                   <small className="text-xs text-text-muted">
-                    {r.country} {"·"} {r.sensor ? `market sensor ${r.sensor}` : "no market sensor"}
+                    {r.country} {"·"}{" "}
+                    {r.sensor
+                      ? `market sensor ${r.sensor}`
+                      : "no market sensor"}
                   </small>
                 </span>
               </TableCell>

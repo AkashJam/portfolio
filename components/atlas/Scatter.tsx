@@ -22,28 +22,75 @@ export function Scatter({
   const xm = measureOf(xKey);
   const ym = measureOf(yKey);
   const { xDomain, yDomain } = model;
-  const px = (v: number) => PLOT.left + ((v - xDomain.min) / (xDomain.max - xDomain.min)) * (PLOT.right - PLOT.left);
-  const py = (v: number) => PLOT.bottom + ((v - yDomain.min) / (yDomain.max - yDomain.min)) * (PLOT.top - PLOT.bottom);
-  const suffix = xm.kind === "change" || ym.kind === "change" ? ` (change ${windowLabel})` : "";
+  const px = (v: number) =>
+    PLOT.left +
+    ((v - xDomain.min) / (xDomain.max - xDomain.min)) *
+      (PLOT.right - PLOT.left);
+  const py = (v: number) =>
+    PLOT.bottom +
+    ((v - yDomain.min) / (yDomain.max - yDomain.min)) *
+      (PLOT.top - PLOT.bottom);
+  const suffix =
+    xm.kind === "change" || ym.kind === "change"
+      ? ` (change ${windowLabel})`
+      : "";
   const label = `${xm.option} against ${ym.option}${suffix}, ${model.points.length} countries.`;
 
   return (
-    <svg viewBox={`0 0 ${PLOT.width} ${PLOT.height}`} role="img" aria-label={label} className="block h-auto w-full">
+    <svg
+      viewBox={`0 0 ${PLOT.width} ${PLOT.height}`}
+      role="img"
+      aria-label={label}
+      className="block h-auto w-full"
+    >
       {xDomain.ticks.map((t) => (
-        <line key={`gx${t}`} x1={px(t)} y1={PLOT.top} x2={px(t)} y2={PLOT.bottom} className="stroke-hairline" />
+        <line
+          key={`gx${t}`}
+          x1={px(t)}
+          y1={PLOT.top}
+          x2={px(t)}
+          y2={PLOT.bottom}
+          className="stroke-hairline"
+        />
       ))}
       {yDomain.ticks.map((t) => (
-        <line key={`gy${t}`} x1={PLOT.left} y1={py(t)} x2={PLOT.right} y2={py(t)} className="stroke-hairline" />
+        <line
+          key={`gy${t}`}
+          x1={PLOT.left}
+          y1={py(t)}
+          x2={PLOT.right}
+          y2={py(t)}
+          className="stroke-hairline"
+        />
       ))}
 
       {model.zeroX !== null && (
-        <line x1={model.zeroX} y1={PLOT.top} x2={model.zeroX} y2={PLOT.bottom} className="stroke-text-faint" strokeDasharray="5 4" />
+        <line
+          x1={model.zeroX}
+          y1={PLOT.top}
+          x2={model.zeroX}
+          y2={PLOT.bottom}
+          className="stroke-text-faint"
+          strokeDasharray="5 4"
+        />
       )}
       {model.zeroY !== null && (
         <>
-          <line x1={PLOT.left} y1={model.zeroY} x2={PLOT.right} y2={model.zeroY} className="stroke-text-faint" strokeDasharray="5 4" />
+          <line
+            x1={PLOT.left}
+            y1={model.zeroY}
+            x2={PLOT.right}
+            y2={model.zeroY}
+            className="stroke-text-faint"
+            strokeDasharray="5 4"
+          />
           {ym.zeroLabel && (
-            <text x={PLOT.right - 4} y={model.zeroY - 6} textAnchor="end" className="fill-text-muted font-mono text-[10.5px]">
+            <text
+              x={PLOT.right - 4}
+              y={model.zeroY - 6}
+              textAnchor="end"
+              className="fill-text-muted font-mono text-[10.5px]"
+            >
               {ym.zeroLabel}
             </text>
           )}
@@ -71,16 +118,42 @@ export function Scatter({
         </>
       )}
 
-      <line x1={PLOT.left} y1={PLOT.top} x2={PLOT.left} y2={PLOT.bottom} className="stroke-hairline" strokeWidth={1.5} />
-      <line x1={PLOT.left} y1={PLOT.bottom} x2={PLOT.right} y2={PLOT.bottom} className="stroke-hairline" strokeWidth={1.5} />
+      <line
+        x1={PLOT.left}
+        y1={PLOT.top}
+        x2={PLOT.left}
+        y2={PLOT.bottom}
+        className="stroke-hairline"
+        strokeWidth={1.5}
+      />
+      <line
+        x1={PLOT.left}
+        y1={PLOT.bottom}
+        x2={PLOT.right}
+        y2={PLOT.bottom}
+        className="stroke-hairline"
+        strokeWidth={1.5}
+      />
 
       {yDomain.ticks.map((t) => (
-        <text key={`ty${t}`} x={PLOT.left - 10} y={py(t) + 4} textAnchor="end" className="fill-text-muted font-mono text-[11px]">
+        <text
+          key={`ty${t}`}
+          x={PLOT.left - 10}
+          y={py(t) + 4}
+          textAnchor="end"
+          className="fill-text-muted font-mono text-[11px]"
+        >
           {ym.tick(t)}
         </text>
       ))}
       {xDomain.ticks.map((t) => (
-        <text key={`tx${t}`} x={px(t)} y={PLOT.bottom + 20} textAnchor="middle" className="fill-text-muted font-mono text-[11px]">
+        <text
+          key={`tx${t}`}
+          x={px(t)}
+          y={PLOT.bottom + 20}
+          textAnchor="middle"
+          className="fill-text-muted font-mono text-[11px]"
+        >
           {xm.tick(t)}
         </text>
       ))}
@@ -105,20 +178,40 @@ export function Scatter({
       {model.points.map((p) => {
         const target = p.slug === targetSlug;
         return (
-          <g key={p.slug} data-slug={p.slug} data-target={target || undefined} data-clipped={p.clip ? p.clip.map((c) => c.axis).join(" ") : undefined}>
+          <g
+            key={p.slug}
+            data-slug={p.slug}
+            data-target={target || undefined}
+            data-clipped={
+              p.clip ? p.clip.map((c) => c.axis).join(" ") : undefined
+            }
+          >
             <circle
               cx={p.cx}
               cy={p.cy}
               r={target ? 8 : 5.5}
-              className={target ? "fill-brand-hover stroke-text" : "fill-brand stroke-canvas"}
+              className={
+                target
+                  ? "fill-brand-hover stroke-text"
+                  : "fill-brand stroke-canvas"
+              }
               strokeWidth={target ? 2.5 : 1.5}
               // A point whose label was suppressed for collision (step 9 styles it).
               data-q={p.label ? undefined : "true"}
             >
-              <title>{p.clip ? `${p.city}: ${p.clip.map((c) => (c.axis === "x" ? xm : ym).tick(c.value)).join(" \u00b7 ")} (off the axis)` : p.city}</title>
+              <title>
+                {p.clip
+                  ? `${p.city}: ${p.clip.map((c) => (c.axis === "x" ? xm : ym).tick(c.value)).join(" \u00b7 ")} (off the axis)`
+                  : p.city}
+              </title>
             </circle>
             {p.label && (
-              <text x={p.label.x} y={p.label.y} textAnchor={p.label.anchor} className="fill-read font-sans text-[12.5px]">
+              <text
+                x={p.label.x}
+                y={p.label.y}
+                textAnchor={p.label.anchor}
+                className="fill-read font-sans text-[12.5px]"
+              >
                 {p.label.text}
               </text>
             )}

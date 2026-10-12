@@ -1,4 +1,9 @@
-import type { AtlasRow, Sourced, WindowChange, WindowStart } from "@/lib/market-schemas";
+import type {
+  AtlasRow,
+  Sourced,
+  WindowChange,
+  WindowStart,
+} from "@/lib/market-schemas";
 
 // Pure helpers for the /atlas countries table (Phase 11 step 1). Kept out of
 // the "use client" component so the server page and the unit tests get the
@@ -7,13 +12,18 @@ import type { AtlasRow, Sourced, WindowChange, WindowStart } from "@/lib/market-
 export const MINUS = "−";
 
 export type ChangeKey = "shares" | "housing" | "prices" | "currency";
-export type LevelKey = "everydaySpendingEur" | "gniPpp" | "unemployment" | "lifeExpectancy";
+export type LevelKey =
+  "everydaySpendingEur" | "gniPpp" | "unemployment" | "lifeExpectancy";
 export type ColumnKey = ChangeKey | LevelKey;
 
 export type SortDir = "asc" | "desc";
 
 /** The value a column sorts on for one row; null when the cell has no figure. */
-export function columnValue(row: AtlasRow, key: ColumnKey, window: WindowStart): number | null {
+export function columnValue(
+  row: AtlasRow,
+  key: ColumnKey,
+  window: WindowStart,
+): number | null {
   switch (key) {
     case "shares":
     case "housing":
@@ -30,7 +40,12 @@ export function columnValue(row: AtlasRow, key: ColumnKey, window: WindowStart):
  * is not a smallest or a largest value, so it must not lead a sorted column.
  * Ties keep the order the API served them in (Array.prototype.sort is stable).
  */
-export function sortRows(rows: AtlasRow[], key: ColumnKey, dir: SortDir, window: WindowStart): AtlasRow[] {
+export function sortRows(
+  rows: AtlasRow[],
+  key: ColumnKey,
+  dir: SortDir,
+  window: WindowStart,
+): AtlasRow[] {
   const sign = dir === "asc" ? 1 : -1;
   return [...rows].sort((a, b) => {
     const av = columnValue(a, key, window);
@@ -42,8 +57,13 @@ export function sortRows(rows: AtlasRow[], key: ColumnKey, dir: SortDir, window:
   });
 }
 
-const wholeNumber = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
-const oneDecimal = new Intl.NumberFormat("en-US", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+const wholeNumber = new Intl.NumberFormat("en-US", {
+  maximumFractionDigits: 0,
+});
+const oneDecimal = new Intl.NumberFormat("en-US", {
+  minimumFractionDigits: 1,
+  maximumFractionDigits: 1,
+});
 
 /** "+364%", "−26%", "0%": a change is read for its sign, so the sign is always shown. */
 export function formatChange(value: number): string {
@@ -69,12 +89,22 @@ export function formatYears(value: number): string {
 }
 
 /** The text a gap shows beside its dash, from the reason the API gave. */
-export function gapLabel(reason: string | undefined, window: WindowStart): string {
+export function gapLabel(
+  reason: string | undefined,
+  window: WindowStart,
+): string {
   if (reason === "unpublished") return `no ${window} rate`;
   return reason ?? "";
 }
 
 /** "OECD via FRED · as of 2024" — the title and screen-reader text on every value. */
-export function provenance(m: Pick<WindowChange | Sourced, "source" | "asOf">): string {
+export function provenance(
+  m: Pick<WindowChange | Sourced, "source" | "asOf">,
+): string {
   return `${m.source} · as of ${m.asOf}`;
+}
+
+/** "2010–24": a window start and the common end year, as the selector and hints write it. */
+export function windowLabel(start: WindowStart, end: string): string {
+  return `${start}–${end.slice(2)}`;
 }

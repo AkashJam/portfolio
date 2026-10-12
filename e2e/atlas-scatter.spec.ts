@@ -53,6 +53,7 @@ test("the busiest state has no WCAG 2.1 AA violations: clipped point, y = x line
   await page.goto("/atlas#japan");
   await page.getByLabel("Horizontal").selectOption("prices");
   await page.getByLabel("Vertical").selectOption("shares");
+  await page.getByRole("radio", { name: "2016\u201324" }).click();
   await expect(page.locator("g[data-target]")).toHaveCount(1);
   const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();
   expect(results.violations, JSON.stringify(results.violations, null, 2)).toEqual([]);
