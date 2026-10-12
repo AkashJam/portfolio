@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { Container } from "@/components/shell/Container";
+import { AtlasExplorer } from "@/components/atlas/AtlasExplorer";
 import { CountriesTable } from "@/components/atlas/CountriesTable";
 import { getAtlasCities } from "@/lib/ticker-client";
 import { pageMetadata } from "@/lib/metadata";
@@ -28,6 +29,18 @@ export default async function AtlasPage() {
         <p className="text-xs uppercase tracking-[0.3em] text-text-muted">Atlas</p>
         <h1 className="mt-1 text-4xl font-light">Living standards, compared</h1>
       </div>
+
+      <section id="compare" className="scroll-mt-24">
+        <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
+          <h2 className="text-lg font-medium">Compare</h2>
+          <span className="text-sm text-text-muted">any two of the eight measures</span>
+        </div>
+        {atlas && atlas.rows.length > 0 ? (
+          <AtlasExplorer rows={atlas.rows} window={DEFAULT_WINDOW} end={atlas.end} />
+        ) : (
+          <p className="text-sm text-text-muted">Atlas data is temporarily unavailable.</p>
+        )}
+      </section>
 
       <section id="countries" className="scroll-mt-24">
         <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
