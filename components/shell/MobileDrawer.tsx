@@ -10,11 +10,38 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { navLinks } from "@/lib/nav";
-import { CONTACT_EMAIL, GITHUB_URL, LINKEDIN_URL, RESUME_HREF } from "@/lib/contact";
+import { NavIcon } from "@/components/shell/NavIcon";
+import { siteLinks, surfaceLinks, type NavItem } from "@/lib/nav";
+import {
+  CONTACT_EMAIL,
+  GITHUB_URL,
+  LINKEDIN_URL,
+  RESUME_HREF,
+} from "@/lib/contact";
 import { IdentityMark } from "@/components/shell/IdentityMark";
 import { heroRole } from "@/data/profile";
 
+const row =
+  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-text hover:bg-panel";
+
+function Hint({ children }: { children: string }) {
+  return (
+    <span className="ml-auto font-mono text-[11px] text-text-muted">
+      {children}
+    </span>
+  );
+}
+
+function Separator() {
+  return <div aria-hidden="true" className="my-1 h-px bg-hairline" />;
+}
+
+/**
+ * The drawer as drawn in shell-v2/command-palette-drawer.html: icons and route
+ * hints, Market and Atlas grouped between dividers, Résumé as a row with its PDF
+ * hint, the social links under a rule. It reads the same list as the top bar,
+ * footer and palette (lib/nav.ts).
+ */
 export function MobileDrawer({
   open,
   onOpenChange,
@@ -24,6 +51,19 @@ export function MobileDrawer({
   onOpenChange: (open: boolean) => void;
   onOpenPalette: () => void;
 }) {
+  const item = (link: NavItem) => (
+    <Link
+      key={link.href}
+      href={link.href}
+      onClick={() => onOpenChange(false)}
+      className={row}
+    >
+      <NavIcon icon={link.icon} className="size-[15px] text-text-muted" />
+      {link.label}
+      <Hint>{link.href}</Hint>
+    </Link>
+  );
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="left" className="w-3/4 max-w-xs">
@@ -51,45 +91,39 @@ export function MobileDrawer({
             <Search className="size-4" />
             Search...
           </button>
-          <nav className="flex flex-col gap-1">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={() => onOpenChange(false)}
-                className="rounded-lg px-3 py-2 text-sm tracking-wide uppercase text-text hover:bg-panel"
-              >
-                {link.label}
-              </Link>
-            ))}
-            <Link
-              href="/market"
+          <nav aria-label="Menu" className="flex flex-col gap-0.5">
+            {siteLinks.map(item)}
+            <Separator />
+            {surfaceLinks.map(item)}
+            <Separator />
+            <a
+              href={RESUME_HREF}
               onClick={() => onOpenChange(false)}
-              className="flex items-center rounded-lg bg-brand/10 px-3 py-2 text-sm tracking-wide text-text uppercase"
+              className={row}
             >
-              Market
-              <span className="ml-auto flex items-center gap-1.5 font-mono text-[10px] tracking-normal text-market-up normal-case">
-                <span
-                  aria-hidden="true"
-                  className="size-1.5 rounded-full bg-market-up motion-safe:animate-pulse"
-                />
-                live
-              </span>
-            </Link>
+              <Download
+                aria-hidden="true"
+                className="size-[15px] text-text-muted"
+              />
+              Résumé
+              <Hint>PDF</Hint>
+            </a>
           </nav>
-          <a
-            href={RESUME_HREF}
-            onClick={() => onOpenChange(false)}
-            className="flex items-center gap-2 px-3 py-2 text-sm text-text-muted hover:text-text"
-          >
-            <Download className="size-4" />
-            Résumé (PDF)
-          </a>
-          <div className="flex gap-4 px-3 text-xs tracking-[0.2em] text-text-muted uppercase">
-            <a href={GITHUB_URL} target="_blank" rel="noreferrer" className="hover:text-text">
+          <div className="flex gap-4 border-t border-hairline px-3 pt-4 text-xs tracking-[0.2em] text-text-muted uppercase">
+            <a
+              href={GITHUB_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="hover:text-text"
+            >
               GitHub
             </a>
-            <a href={LINKEDIN_URL} target="_blank" rel="noreferrer" className="hover:text-text">
+            <a
+              href={LINKEDIN_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="hover:text-text"
+            >
               LinkedIn
             </a>
             <a href={`mailto:${CONTACT_EMAIL}`} className="hover:text-text">

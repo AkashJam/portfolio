@@ -293,13 +293,19 @@
      every horizontal scroller. The thumb takes the hairline-to-faint range
      so it reads as chrome, not content.
      scroll-padding-top keeps fragment targets (the ToC, /atlas#japan, a
-     ledger row) clear of the sticky top bar, which is h-14 (56px); pages
-     with a second sticky bar add its height on their own root. */
+     ledger row) clear of the sticky top bar, which is h-14 (56px). A page
+     with a second sticky bar adds its height through --atlas-jump: /atlas's
+     jump bar (44px) while it is showing, 0 while it is hidden on a phone
+     (components/atlas/JumpBar.tsx sets it; the :has() rule below is the
+     server-render default, so a fresh /atlas#japan lands clear of both). */
   html {
     @apply font-sans;
     color-scheme: dark;
     scrollbar-color: var(--text-faint) transparent;
-    scroll-padding-top: calc(56px + 1rem);
+    scroll-padding-top: calc(56px + 1rem + var(--atlas-jump, 0px));
+  }
+  html:has([data-atlas-jump]) {
+    --atlas-jump: 2.75rem;
   }
 }
 

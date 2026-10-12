@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { ChartCandlestick } from "lucide-react";
+import { Download } from "lucide-react";
 
 import {
   CommandDialog,
@@ -11,8 +11,10 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
+  CommandShortcut,
 } from "@/components/ui/command";
-import { navLinks, type PaletteSymbol } from "@/lib/nav";
+import { NavIcon } from "@/components/shell/NavIcon";
+import { atlasMapItem, navItems, type PaletteSymbol } from "@/lib/nav";
 import { RESUME_HREF } from "@/lib/contact";
 
 export function CommandPalette({
@@ -57,15 +59,17 @@ export function CommandPalette({
       <CommandList>
         <CommandEmpty>No results found.</CommandEmpty>
         <CommandGroup heading="Pages">
-          {navLinks.map((link) => (
+          {[...navItems, atlasMapItem].map((link) => (
             <CommandItem key={link.href} onSelect={() => go(link.href)}>
-              {link.label}
+              <span className="flex items-center gap-2">
+                <NavIcon icon={link.icon} />
+                {link.label}
+              </span>
+              <CommandShortcut className="font-mono tracking-normal">
+                {link.href}
+              </CommandShortcut>
             </CommandItem>
           ))}
-          <CommandItem onSelect={() => go("/market")}>
-            <ChartCandlestick />
-            Market
-          </CommandItem>
         </CommandGroup>
         {symbols.length > 0 && (
           <CommandGroup heading="Symbols">
@@ -84,7 +88,8 @@ export function CommandPalette({
               onOpenChange(false);
             }}
           >
-            Download résumé
+            <Download />
+            Download résumé (PDF)
           </CommandItem>
         </CommandGroup>
       </CommandList>

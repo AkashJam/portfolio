@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 import { WindowSelect, useAtlasWindow } from "@/components/atlas/AtlasWindow";
+import { useTargetSlug } from "@/components/atlas/useTargetSlug";
 import { ReadingCard } from "@/components/atlas/ReadingCard";
 import { ReadingGuide } from "@/components/atlas/ReadingGuide";
 import { Scatter } from "@/components/atlas/Scatter";
@@ -27,17 +28,6 @@ import { cn } from "@/lib/utils";
 
 const SELECT =
   "rounded-lg border border-hairline bg-panel-2 px-3 py-2 text-sm text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand";
-
-function useTargetSlug(): string | null {
-  const [slug, setSlug] = useState<string | null>(null);
-  useEffect(() => {
-    const read = () => setSlug(window.location.hash.slice(1) || null);
-    read();
-    window.addEventListener("hashchange", read);
-    return () => window.removeEventListener("hashchange", read);
-  }, []);
-  return slug;
-}
 
 export function AtlasExplorer({ rows }: { rows: AtlasRow[] }) {
   const { window: win, setWindow, windows, end } = useAtlasWindow();

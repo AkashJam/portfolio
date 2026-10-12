@@ -28,6 +28,7 @@ import {
   provenance,
   sortRows,
 } from "@/lib/atlas";
+import { useTargetSlug } from "@/components/atlas/useTargetSlug";
 import { cellNote } from "@/lib/atlas-notes";
 import { columnInfo, vintageOf } from "@/lib/atlas-provenance";
 import type { AtlasRow, WindowStart } from "@/lib/market-schemas";
@@ -249,6 +250,7 @@ export function CountriesTable({ rows }: { rows: AtlasRow[] }) {
     key: "everydaySpendingEur",
     dir: "asc",
   });
+  const target = useTargetSlug();
   const sorted = sortRows(rows, sort.key, sort.dir, window);
   const ctxs = useMemo(() => {
     const out = {} as Record<ColumnKey, ColumnCtx>;
@@ -340,7 +342,12 @@ export function CountriesTable({ rows }: { rows: AtlasRow[] }) {
           </TableHeader>
           <TableBody>
             {sorted.map((r) => (
-              <TableRow key={r.slug} id={r.slug} className="scroll-mt-24">
+              <TableRow
+                key={r.slug}
+                id={r.slug}
+                data-target={r.slug === target ? "true" : undefined}
+                className="data-[target=true]:bg-brand/15 data-[target=true]:shadow-[inset_3px_0_0_var(--brand)]"
+              >
                 <TableCell className="whitespace-normal py-3 pl-4 pr-2">
                   <span className="flex min-w-[10rem] flex-col">
                     <span className="font-medium">{r.city}</span>

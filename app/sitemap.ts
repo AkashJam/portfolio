@@ -5,7 +5,14 @@ import { SITE_URL } from "@/lib/site";
 
 const isDev = process.env.NODE_ENV !== "production";
 
-const STATIC_ROUTES = ["/", "/about", "/projects", "/blog", "/market"];
+const STATIC_ROUTES = [
+  "/",
+  "/about",
+  "/projects",
+  "/blog",
+  "/market",
+  "/atlas",
+];
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const staticEntries: MetadataRoute.Sitemap = STATIC_ROUTES.map((route) => ({

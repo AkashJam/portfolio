@@ -1,7 +1,12 @@
 import Link from "next/link";
 
-import { navLinks } from "@/lib/nav";
-import { CONTACT_EMAIL, GITHUB_URL, LINKEDIN_URL, RESUME_HREF } from "@/lib/contact";
+import { navItems } from "@/lib/nav";
+import {
+  CONTACT_EMAIL,
+  GITHUB_URL,
+  LINKEDIN_URL,
+  RESUME_HREF,
+} from "@/lib/contact";
 import { Container } from "@/components/shell/Container";
 
 export function Footer() {
@@ -9,7 +14,7 @@ export function Footer() {
     <footer className="border-t border-hairline">
       <Container className="flex flex-col gap-6 py-10 text-sm text-text-muted md:flex-row md:items-start md:justify-between">
         <nav aria-label="Footer" className="flex flex-wrap gap-x-6 gap-y-2">
-          {navLinks.map((link) => (
+          {navItems.map((link) => (
             <Link key={link.href} href={link.href} className="hover:text-text">
               {link.label}
             </Link>

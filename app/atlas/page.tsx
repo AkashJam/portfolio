@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { Container } from "@/components/shell/Container";
+import { JumpBar } from "@/components/atlas/JumpBar";
 import {
   AtlasWindowProvider,
   WindowHint,
@@ -34,7 +35,7 @@ export default async function AtlasPage() {
 
   const sections = (
     <>
-      <section id="compare" className="scroll-mt-24">
+      <section id="compare">
         <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
           <h2 className="text-lg font-medium">Compare</h2>
           <span className="text-sm text-text-muted">
@@ -53,7 +54,7 @@ export default async function AtlasPage() {
       {atlas && atlas.rows.length > 0 ? (
         <WorldMap rows={atlas.rows} />
       ) : (
-        <section id="map" className="scroll-mt-24">
+        <section id="map">
           <h2 className="mb-4 text-lg font-medium">Where and when</h2>
           <p className="text-sm text-text-muted">
             Atlas data is temporarily unavailable.
@@ -61,7 +62,7 @@ export default async function AtlasPage() {
         </section>
       )}
 
-      <section id="countries" className="scroll-mt-24">
+      <section id="countries">
         <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
           <h2 className="text-lg font-medium">Countries</h2>
           {atlas && <WindowHint />}
@@ -101,6 +102,8 @@ export default async function AtlasPage() {
           blank by design, because the euro has no rate against itself.
         </p>
       </header>
+
+      <JumpBar />
 
       {atlas ? (
         <AtlasWindowProvider windows={atlas.windows} end={atlas.end}>

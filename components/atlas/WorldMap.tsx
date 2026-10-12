@@ -168,7 +168,7 @@ export function WorldMap({
   }
 
   return (
-    <section id="map" className="scroll-mt-24">
+    <section id="map">
       <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="text-lg font-medium">Where and when</h2>
         <span className="text-sm text-text-muted">

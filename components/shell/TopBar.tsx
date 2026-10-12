@@ -5,10 +5,27 @@ import { usePathname } from "next/navigation";
 import { Menu, Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { navLinks } from "@/lib/nav";
-import { MarketButton } from "@/components/shell/MarketButton";
+import { isActive, siteLinks, surfaceLinks, type NavItem } from "@/lib/nav";
 import { IdentityMark } from "@/components/shell/IdentityMark";
 import { Container } from "@/components/shell/Container";
+
+function NavTab({ link, pathname }: { link: NavItem; pathname: string }) {
+  const active = isActive(link.href, pathname);
+  return (
+    <Link
+      href={link.href}
+      aria-current={active ? "page" : undefined}
+      className={`rounded-lg px-3 py-1.5 text-sm tracking-wide uppercase transition-colors ${
+        // text-brand (#6366f1 on #0b0d0f) is 4.35:1 — fails WCAG
+        // AA's 4.5:1 for this text size (caught by e2e/axe.spec.ts).
+        // text-brand-hover (#818cf8) is 6.53:1, passes comfortably.
+        active ? "text-brand-hover" : "text-text-muted hover:text-text"
+      }`}
+    >
+      {link.label}
+    </Link>
+  );
+}
 
 export function TopBar({
   onOpenPalette,
@@ -37,26 +54,18 @@ export function TopBar({
             <IdentityMark />
           </Link>
 
-          <nav aria-label="Primary" className="hidden items-center gap-1 md:flex">
-            {navLinks.map((link) => {
-              const active =
-                link.href === "/" ? pathname === "/" : pathname.startsWith(link.href);
-              return (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  aria-current={active ? "page" : undefined}
-                  className={`rounded-lg px-3 py-1.5 text-sm tracking-wide uppercase transition-colors ${
-                    // text-brand (#6366f1 on #0b0d0f) is 4.35:1 — fails WCAG
-                    // AA's 4.5:1 for this text size (caught by e2e/axe.spec.ts).
-                    // text-brand-hover (#818cf8) is 6.53:1, passes comfortably.
-                    active ? "text-brand-hover" : "text-text-muted hover:text-text"
-                  }`}
-                >
-                  {link.label}
-                </Link>
-              );
-            })}
+          <nav
+            aria-label="Primary"
+            className="hidden items-center gap-1 md:flex"
+          >
+            {siteLinks.map((link) => (
+              <NavTab key={link.href} link={link} pathname={pathname} />
+            ))}
+            {/* Market and Atlas are the two live surfaces: a hairline sets them apart (#104). */}
+            <span aria-hidden="true" className="mx-2 h-4 w-px bg-hairline" />
+            {surfaceLinks.map((link) => (
+              <NavTab key={link.href} link={link} pathname={pathname} />
+            ))}
           </nav>
         </div>
 
@@ -82,7 +91,6 @@ export function TopBar({
           >
             <Search className="size-4.5" />
           </Button>
-          <MarketButton />
         </div>
       </Container>
     </header>
