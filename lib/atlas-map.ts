@@ -1,4 +1,5 @@
 import {
+  MINUS,
   columnValue,
   formatChange,
   windowLabel,
@@ -25,18 +26,49 @@ export const NO_ROW = "#161a20"; // a country with no atlas row at all
 
 const hex = (n: number) => Math.round(n).toString(16).padStart(2, "0");
 
-/** Fill for a change: neutral at 0, full colour at `limit`, saturating beyond it. */
-export function colourFor(value: number, limit: number): string {
+/**
+ * Prices are one hue (the mock: indigo, #23283d to #818cf8, linear), because
+ * every value is a rise and colour must not mean better or worse. The other
+ * three measures run both ways and keep the diverging ramp.
+ */
+export type Scheme = "diverging" | "sequential";
+export const schemeOf = (measure: MapMeasure): Scheme =>
+  measure === "prices" ? "sequential" : "diverging";
+
+const SEQ_FROM = [0x23, 0x28, 0x3d] as const;
+const SEQ_TO = [0x81, 0x8c, 0xf8] as const;
+
+/**
+ * Fill for a change. Diverging: neutral at 0, full colour at `limit`, saturating
+ * beyond it. Sequential: from the low end at 0 to full at `limit`; a fall clamps
+ * to the low end and still carries its figure.
+ */
+export function colourFor(
+  value: number,
+  limit: number,
+  scheme: Scheme = "diverging",
+): string {
+  if (scheme === "sequential") {
+    const t = Math.min(Math.max(value, 0) / limit, 1);
+    return `#${[0, 1, 2].map((i) => hex(SEQ_FROM[i] + (SEQ_TO[i] - SEQ_FROM[i]) * t)).join("")}`;
+  }
   const t = Math.min(Math.abs(value) / limit, 1) ** CURVE;
   const to = value < 0 ? DOWN : UP;
   return `#${[0, 1, 2].map((i) => hex(NEUTRAL[i] + (to[i] - NEUTRAL[i]) * t)).join("")}`;
 }
 
-/** The legend's nine swatches, strongest fall to strongest rise, from the same function. */
-export function legendStops(limit: number): { value: number; fill: string }[] {
-  return [-1, -0.75, -0.5, -0.25, 0, 0.25, 0.5, 0.75, 1].map((f) => ({
+/** The legend's nine swatches from the same function: fall to rise, or low to high. */
+export function legendStops(
+  limit: number,
+  scheme: Scheme = "diverging",
+): { value: number; fill: string }[] {
+  const fractions =
+    scheme === "sequential"
+      ? [0, 1, 2, 3, 4, 5, 6, 7, 8].map((i) => i / 8)
+      : [-1, -0.75, -0.5, -0.25, 0, 0.25, 0.5, 0.75, 1];
+  return fractions.map((f) => ({
     value: f * limit,
-    fill: colourFor(f * limit, limit),
+    fill: colourFor(f * limit, limit, scheme),
   }));
 }
 
@@ -50,7 +82,7 @@ export function limitFor(values: number[]): number {
   const abs = values.map(Math.abs).sort((a, b) => b - a);
   if (abs.length === 0 || abs[0] === 0) return 1;
   const v = abs[Math.min(2, abs.length - 1)] || abs[0];
-  const step = niceStep(v / 8);
+  const step = niceStep(v / 5);
   return Math.ceil(v / step - 1e-9) * step;
 }
 
@@ -113,9 +145,22 @@ export const TILES: Record<string, [number, number]> = {
 };
 export const TILE = { size: 42, pitch: 44, cols: 8, rows: 6 } as const;
 
-// ---- caveats and names -------------------------------------------------------
+// ---- what the map is showing -------------------------------------------------
 
 export type MapMeasure = ChangeKey;
+export const MAP_MEASURES: MapMeasure[] = [
+  "housing",
+  "shares",
+  "prices",
+  "currency",
+];
+
+export const MEASURE_LABEL: Record<MapMeasure, string> = {
+  housing: "Housing",
+  shares: "Shares",
+  prices: "Prices",
+  currency: "Currency",
+};
 
 export const MEASURE_NAME: Record<MapMeasure, string> = {
   housing: "house prices after inflation",
@@ -124,16 +169,65 @@ export const MEASURE_NAME: Record<MapMeasure, string> = {
   currency: "currency against the euro",
 };
 
+/** The whole shared window, or one calendar year (bearing.md #88). */
+export interface MapView {
+  period: "window" | "year";
+  year: number;
+}
+
+/** What a country's colour and figure read: the window's change, or one year's. */
+export function mapValue(
+  row: AtlasRow,
+  measure: MapMeasure,
+  view: MapView,
+  window: WindowStart,
+): number | null {
+  if (view.period === "window") return columnValue(row, measure, window);
+  return row[measure].years?.[String(view.year)] ?? null;
+}
+
+/** The start the "no rate" caveat names: the window's first year, or the year itself. */
+const startOf = (view: MapView, window: WindowStart) =>
+  view.period === "year" ? String(view.year) : window;
+
+export function viewLabel(
+  view: MapView,
+  window: WindowStart,
+  end: string,
+): string {
+  return view.period === "year"
+    ? `during ${view.year}`
+    : windowLabel(window, end);
+}
+
+/** One decimal in the small-change views (a year of prices is +6.6%), whole numbers otherwise. */
+export const digitsFor = (limit: number): 0 | 1 => (limit < 20 ? 1 : 0);
+
+const oneDecimal = new Intl.NumberFormat("en-US", {
+  minimumFractionDigits: 1,
+  maximumFractionDigits: 1,
+});
+
+export function formatMapChange(value: number, digits: 0 | 1): string {
+  if (digits === 0) return formatChange(value);
+  const r = Math.round(value * 10) / 10;
+  if (r === 0) return "0.0%";
+  return `${r > 0 ? "+" : MINUS}${oneDecimal.format(Math.abs(r))}%`;
+}
+
+// ---- caveats and names -------------------------------------------------------
+
 export type CaveatKind = "euro" | "unpublished" | "stale" | "derived";
 
 /** What stands between a country and a plain figure in this view, from the data itself. */
 export function caveatKind(
   row: AtlasRow,
   measure: MapMeasure,
+  view: MapView,
   window: WindowStart,
 ): CaveatKind | null {
   const m = row[measure];
-  if (columnValue(row, measure, window) === null) {
+  if (mapValue(row, measure, view, window) === null) {
     return m.reason === "euro" ||
       m.reason === "stale" ||
       m.reason === "unpublished"
@@ -143,12 +237,12 @@ export function caveatKind(
   return m.derived ? "derived" : null;
 }
 
-export function caveatText(kind: CaveatKind, window: WindowStart): string {
+export function caveatText(kind: CaveatKind, start: string): string {
   switch (kind) {
     case "euro":
       return "euro area, no rate against itself";
     case "unpublished":
-      return `no ${window} rate`;
+      return `no ${start} rate`;
     case "stale":
       return "source out of date";
     case "derived":
@@ -159,23 +253,27 @@ export function caveatText(kind: CaveatKind, window: WindowStart): string {
 export function figureOf(
   row: AtlasRow,
   measure: MapMeasure,
+  view: MapView,
   window: WindowStart,
+  digits: 0 | 1,
 ): string | null {
-  const v = columnValue(row, measure, window);
-  return v === null ? null : formatChange(v);
+  const v = mapValue(row, measure, view, window);
+  return v === null ? null : formatMapChange(v, digits);
 }
 
 /** "Italy: −26%, house prices after inflation, change 2010–24" plus any caveat. */
 export function linkName(
   row: AtlasRow,
   measure: MapMeasure,
+  view: MapView,
   window: WindowStart,
   end: string,
+  digits: 0 | 1,
 ): string {
-  const kind = caveatKind(row, measure, window);
-  const fig = figureOf(row, measure, window) ?? "no figure";
-  const base = `${row.country}: ${fig}, ${MEASURE_NAME[measure]}, change ${windowLabel(window, end)}`;
-  return kind ? `${base}, ${caveatText(kind, window)}` : base;
+  const kind = caveatKind(row, measure, view, window);
+  const fig = figureOf(row, measure, view, window, digits) ?? "no figure";
+  const base = `${row.country}: ${fig}, ${MEASURE_NAME[measure]}, change ${viewLabel(view, window, end)}`;
+  return kind ? `${base}, ${caveatText(kind, startOf(view, window))}` : base;
 }
 
 /**
@@ -186,6 +284,7 @@ export function linkName(
 export function exceptionsLine(
   rows: AtlasRow[],
   measure: MapMeasure,
+  view: MapView,
   window: WindowStart,
 ): string | null {
   const by: Record<CaveatKind, string[]> = {
@@ -195,14 +294,15 @@ export function exceptionsLine(
     derived: [],
   };
   for (const r of rows) {
-    const k = caveatKind(r, measure, window);
+    const k = caveatKind(r, measure, view, window);
     if (k) by[k].push(r.country);
   }
+  const start = startOf(view, window);
   const parts: string[] = [];
   if (by.euro.length) parts.push("the euro area has no rate against itself");
   if (by.unpublished.length)
     parts.push(
-      `${list(by.unpublished)} ${by.unpublished.length > 1 ? "have" : "has"} no ${window} rate`,
+      `${list(by.unpublished)} ${by.unpublished.length > 1 ? "have" : "has"} no ${start} rate`,
     );
   if (by.stale.length) parts.push(`${list(by.stale)}'s source is out of date`);
   const tail = by.derived.length
@@ -217,4 +317,67 @@ function list(items: string[]): string {
   return items.length > 1
     ? `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`
     : items[0];
+}
+
+// ---- the controls' state and its address ---------------------------------------
+
+export interface MapState extends MapView {
+  measure: MapMeasure;
+}
+
+export interface YearBounds {
+  first: number;
+  last: number;
+}
+
+/** The measure's own years (#103): prices start a year after the others, Israel's currency too. */
+export function yearBounds(rows: AtlasRow[], measure: MapMeasure): YearBounds {
+  const years = rows
+    .flatMap((r) => Object.keys(r[measure].years ?? {}).map(Number))
+    .filter(Number.isFinite);
+  if (years.length === 0) return { first: 0, last: 0 };
+  return { first: Math.min(...years), last: Math.max(...years) };
+}
+
+const inRange = (year: number, b: YearBounds) =>
+  Number.isInteger(year) && year >= b.first && year <= b.last;
+
+/** Changing measure keeps the year if the new measure has it, else moves to its first (#103). */
+export function switchMeasure(
+  state: MapState,
+  measure: MapMeasure,
+  rows: AtlasRow[],
+): MapState {
+  const b = yearBounds(rows, measure);
+  return {
+    ...state,
+    measure,
+    year: inRange(state.year, b) ? state.year : b.first,
+  };
+}
+
+/**
+ * Reads `?measure=&year=` (decision #88; defaults omitted). A year the measure
+ * lacks opens one-year mode on the measure's first year, and the caller rewrites
+ * the address to name it (owner, 2026-10-12). An unreadable measure is housing;
+ * an unreadable year is no year.
+ */
+export function parseAddress(search: string, rows: AtlasRow[]): MapState {
+  const q = new URLSearchParams(search);
+  const asked = q.get("measure");
+  const measure = MAP_MEASURES.find((m) => m === asked) ?? "housing";
+  const b = yearBounds(rows, measure);
+  const raw = q.get("year");
+  const year = raw !== null && /^\d{4}$/.test(raw) ? Number(raw) : null;
+  if (year === null) return { measure, period: "window", year: b.last };
+  return { measure, period: "year", year: inRange(year, b) ? year : b.first };
+}
+
+/** `?measure=currency&year=2022`, or "" when everything is the default (housing, whole window). */
+export function serialiseAddress(state: MapState): string {
+  const q = new URLSearchParams();
+  if (state.measure !== "housing") q.set("measure", state.measure);
+  if (state.period === "year") q.set("year", String(state.year));
+  const s = q.toString();
+  return s ? `?${s}` : "";
 }

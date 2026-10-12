@@ -2,9 +2,9 @@
 
 import { createContext, useContext, useState, type ReactNode } from "react";
 
+import { Segmented } from "@/components/atlas/Segmented";
 import { windowLabel } from "@/lib/atlas";
 import type { WindowStart } from "@/lib/market-schemas";
-import { cn } from "@/lib/utils";
 
 /**
  * The one window the change measures are read over (Phase 11 step 3). Scatter
@@ -55,40 +55,13 @@ export function WindowSelect() {
   const { window, setWindow, windows, end } = useAtlasWindow();
   const ordered = [...windows].sort((a, b) => Number(b) - Number(a));
   return (
-    <div className="flex flex-col gap-1.5">
-      <span
-        id="atlas-window-label"
-        className="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-text-muted"
-      >
-        Window {"·"} the four change measures
-      </span>
-      <div
-        role="radiogroup"
-        aria-labelledby="atlas-window-label"
-        className="flex overflow-hidden rounded-lg border border-hairline"
-      >
-        {ordered.map((w) => {
-          const on = w === window;
-          return (
-            <button
-              key={w}
-              type="button"
-              role="radio"
-              aria-checked={on}
-              onClick={() => setWindow(w)}
-              className={cn(
-                "border-r border-hairline px-3 py-2 font-mono text-[12.5px] last:border-r-0 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand",
-                on
-                  ? "bg-brand/25 text-text"
-                  : "bg-panel-2 text-text-muted hover:text-read",
-              )}
-            >
-              {windowLabel(w, end)}
-            </button>
-          );
-        })}
-      </div>
-    </div>
+    <Segmented
+      id="atlas-window-label"
+      label="Window · the four change measures"
+      options={ordered.map((w) => ({ value: w, label: windowLabel(w, end) }))}
+      value={window}
+      onChange={setWindow}
+    />
   );
 }
 

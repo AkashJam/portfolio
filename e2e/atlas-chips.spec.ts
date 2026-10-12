@@ -87,7 +87,10 @@ test("a window change keeps the chip and the reading follows", async ({
   await expect(reading(page)).toContainText(
     "housing rose in India and fell in Italy",
   );
-  await page.getByRole("radio", { name: "2016–24" }).click();
+  await page
+    .locator("#compare")
+    .getByRole("radio", { name: "2016–24" })
+    .click();
   await expect(chip(page, /savings and housing/)).toHaveAttribute(
     "aria-pressed",
     "true",
@@ -97,12 +100,14 @@ test("a window change keeps the chip and the reading follows", async ({
 
 test("a chip click returns the window to 2010–24", async ({ page }) => {
   await page.goto("/atlas");
-  await page.getByRole("radio", { name: "2021–24" }).click();
+  await page
+    .locator("#compare")
+    .getByRole("radio", { name: "2021–24" })
+    .click();
   await chip(page, /currency done to savings/).click();
-  await expect(page.getByRole("radio", { name: "2010–24" })).toHaveAttribute(
-    "aria-checked",
-    "true",
-  );
+  await expect(
+    page.locator("#compare").getByRole("radio", { name: "2010–24" }),
+  ).toHaveAttribute("aria-checked", "true");
 });
 
 test("the chip state has no WCAG 2.1 AA violations", async ({ page }) => {

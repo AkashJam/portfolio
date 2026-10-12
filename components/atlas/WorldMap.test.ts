@@ -61,7 +61,10 @@ const render = (measure: "housing" | "currency") =>
     createElement(AtlasWindowProvider, {
       windows: ["2021", "2016", "2010"],
       end: "2024",
-      children: createElement(WorldMap, { rows: ROWS, measure }),
+      children: createElement(WorldMap, {
+        rows: ROWS,
+        initial: { measure, period: "window", year: 2024 },
+      }),
     }),
   );
 

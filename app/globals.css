@@ -469,3 +469,54 @@
     opacity: 0 !important;
   }
 }
+
+/* The /atlas map's year slider (Phase 11 step 6; mockups/atlas-v1/atlas-map.html
+   .ytrack). A native range input, so the keyboard and the accessibility tree come
+   free; --p is set inline to the share of the track already passed. */
+.year-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 18px;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.year-range:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 4px;
+  border-radius: 9px;
+}
+.year-range::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--brand) 0 var(--p), var(--hairline) var(--p) 100%);
+}
+.year-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  margin-top: -7px;
+  border-radius: 50%;
+  background: var(--text);
+  border: 3px solid var(--brand);
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--brand) 22%, transparent);
+}
+.year-range::-moz-range-track {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--hairline);
+}
+.year-range::-moz-range-progress {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--brand);
+}
+.year-range::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--text);
+  border: 3px solid var(--brand);
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--brand) 22%, transparent);
+}

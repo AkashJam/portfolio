@@ -6,7 +6,7 @@ import {
   WindowHint,
 } from "@/components/atlas/AtlasWindow";
 import { AtlasExplorer } from "@/components/atlas/AtlasExplorer";
-import { MapHint, WorldMap } from "@/components/atlas/WorldMap";
+import { WorldMap } from "@/components/atlas/WorldMap";
 import { CountriesTable } from "@/components/atlas/CountriesTable";
 import { getAtlasCities } from "@/lib/ticker-client";
 import { pageMetadata } from "@/lib/metadata";
@@ -45,19 +45,16 @@ export default async function AtlasPage() {
         )}
       </section>
 
-      <section id="map" className="scroll-mt-24">
-        <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className="text-lg font-medium">Where and when</h2>
-          {atlas && <MapHint />}
-        </div>
-        {atlas && atlas.rows.length > 0 ? (
-          <WorldMap rows={atlas.rows} />
-        ) : (
+      {atlas && atlas.rows.length > 0 ? (
+        <WorldMap rows={atlas.rows} />
+      ) : (
+        <section id="map" className="scroll-mt-24">
+          <h2 className="mb-4 text-lg font-medium">Where and when</h2>
           <p className="text-sm text-text-muted">
             Atlas data is temporarily unavailable.
           </p>
-        )}
-      </section>
+        </section>
+      )}
 
       <section id="countries" className="scroll-mt-24">
         <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
