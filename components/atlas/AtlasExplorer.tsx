@@ -125,7 +125,7 @@ export function AtlasExplorer({ rows }: { rows: AtlasRow[] }) {
         <ReadingCard reading={reading} />
       </div>
 
-      <div className="overflow-x-auto pt-4">
+      <div className="scroll-fade overflow-x-auto pt-4">
         <div className="min-w-[720px]">
           <Scatter
             model={model}

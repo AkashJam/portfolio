@@ -99,10 +99,28 @@ test.describe("at 390px", () => {
     page,
   }) => {
     await page.goto("/atlas");
-    const it = page.getByRole("link", { name: /^Italy: / });
-    await expect(it).toContainText("IT");
-    await expect(it).toContainText("−26%");
-    await expect(it).toHaveAttribute("href", "#italy");
+    const link = page.getByRole("link", { name: /^Italy: / });
+    await expect(link).toHaveAttribute("href", "#italy");
+    // The code and figure are drawn over the link as siblings, in the same tile group.
+    const tile = page
+      .locator("#map svg:visible g")
+      .filter({ has: page.locator('a[href="#italy"]') });
+    await expect(tile).toContainText("IT");
+    await expect(tile).toContainText("\u221226%");
+  });
+
+  test("each tile's accessible name contains its visible text (label in name, WCAG 2.5.3)", async ({
+    page,
+  }) => {
+    await page.goto("/atlas");
+    const results = await new AxeBuilder({ page })
+      .include("#map")
+      .withRules(["label-content-name-mismatch"])
+      .analyze();
+    expect(
+      results.violations,
+      JSON.stringify(results.violations, null, 2),
+    ).toEqual([]);
   });
 
   test("has no WCAG 2.1 AA violations, including text on every fill", async ({

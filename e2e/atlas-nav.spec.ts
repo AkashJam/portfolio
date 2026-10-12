@@ -5,6 +5,18 @@ import { expect, test, type Page } from "@playwright/test";
 // one list (lib/nav.ts); /atlas gets a jump bar and row highlighting on arrival.
 // Needs the ticker for /atlas.
 
+// ⌘K before React has attached its listener does nothing. If the first press did
+// not open the palette, press once more rather than assert on a missed keystroke.
+async function openPalette(page: Page) {
+  await page.keyboard.press("Control+k");
+  try {
+    await expect(page.getByRole("dialog")).toBeVisible({ timeout: 1500 });
+  } catch {
+    await page.keyboard.press("Control+k");
+    await expect(page.getByRole("dialog")).toBeVisible();
+  }
+}
+
 const SIX = ["Home", "Projects", "Blog", "About", "Market", "Atlas"];
 // The jump bar sets --atlas-jump once its scroll listener is attached, so waiting
 // for it avoids scrolling before hydration (the first scroll would be missed).
@@ -85,7 +97,7 @@ test.describe("at 1440px", () => {
     page,
   }) => {
     await page.goto("/about");
-    await page.keyboard.press("Control+k");
+    await openPalette(page);
     const items = page.getByRole("dialog").getByRole("option");
     await expect(items.filter({ hasText: "/atlas#map" })).toHaveCount(1);
     const pages = await items.allInnerTexts();
@@ -107,7 +119,7 @@ test.describe("at 1440px", () => {
     page,
   }) => {
     await page.goto("/about");
-    await page.keyboard.press("Control+k");
+    await openPalette(page);
     await page.getByRole("option", { name: /Atlas · map/ }).click();
     await expect(page).toHaveURL(/\/atlas#map$/);
     await expect(page.locator("#map")).toBeInViewport();
@@ -210,7 +222,7 @@ test.describe("at 1440px", () => {
     page,
   }) => {
     await page.goto("/atlas");
-    await page.keyboard.press("Control+k");
+    await openPalette(page);
     await expect(page.getByRole("dialog")).toBeVisible();
     const results = await new AxeBuilder({ page })
       .withTags(["wcag2a", "wcag2aa"])

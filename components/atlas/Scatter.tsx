@@ -1,3 +1,4 @@
+import { cn } from "@/lib/utils";
 import { PLOT, type PlotModel, measureOf } from "@/lib/atlas-plot";
 import type { ColumnKey } from "@/lib/atlas";
 
@@ -190,11 +191,15 @@ export function Scatter({
               cx={p.cx}
               cy={p.cy}
               r={target ? 8 : 5.5}
-              className={
+              className={cn(
                 target
                   ? "fill-brand-hover stroke-text"
-                  : "fill-brand stroke-canvas"
-              }
+                  : "fill-brand stroke-canvas",
+                // A label suppressed for collision: the point sits in a crowded
+                // region, so it is drawn a little back. A rule driven by the
+                // collision, not a hand-edited radius; nothing is encoded, so no legend.
+                "data-[q=true]:opacity-[.72]",
+              )}
               strokeWidth={target ? 2.5 : 1.5}
               // A point whose label was suppressed for collision (step 9 styles it).
               data-q={p.label ? undefined : "true"}

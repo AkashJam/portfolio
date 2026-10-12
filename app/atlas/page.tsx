@@ -9,6 +9,7 @@ import {
 import { AtlasExplorer } from "@/components/atlas/AtlasExplorer";
 import { WorldMap } from "@/components/atlas/WorldMap";
 import { CountriesTable } from "@/components/atlas/CountriesTable";
+import { cityPageLine, sensorLine } from "@/lib/atlas-absences";
 import { TierOne } from "@/components/atlas/TierOne";
 import { MEASURES } from "@/lib/atlas-plot";
 import { count } from "@/lib/atlas-provenance";
@@ -71,6 +72,15 @@ export default async function AtlasPage() {
           <>
             <TierOne />
             <CountriesTable rows={atlas.rows} />
+            <div className="mt-4 max-w-[78ch] space-y-2 text-[13px] leading-relaxed text-text-muted">
+              <p>
+                <b className="font-medium text-read">
+                  Market answers a different question about the same countries.
+                </b>{" "}
+                {sensorLine(atlas.rows)}
+              </p>
+              <p>{cityPageLine(atlas.rows)}</p>
+            </div>
           </>
         ) : (
           <p className="text-sm text-text-muted">

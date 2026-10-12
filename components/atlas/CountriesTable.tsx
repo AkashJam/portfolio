@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState, type ReactNode } from "react";
 
 import { useAtlasWindow } from "@/components/atlas/AtlasWindow";
@@ -29,6 +30,7 @@ import {
   sortRows,
 } from "@/lib/atlas";
 import { useTargetSlug } from "@/components/atlas/useTargetSlug";
+import { cityHref, noCityPageNote } from "@/lib/atlas-absences";
 import { cellNote } from "@/lib/atlas-notes";
 import { columnInfo, vintageOf } from "@/lib/atlas-provenance";
 import type { AtlasRow, WindowStart } from "@/lib/market-schemas";
@@ -61,6 +63,13 @@ const COLUMNS: Column[] = [
   { key: "unemployment", label: "Unemp.", sub: () => "%" },
   { key: "lifeExpectancy", label: "Life exp.", sub: () => "years" },
 ];
+
+/**
+ * Below 768px the city column stays pinned while the figures scroll under it
+ * (bearing.md #107): opaque, with a hairline on its right edge.
+ */
+const PINNED =
+  "max-md:sticky max-md:left-0 max-md:z-[1] max-md:bg-panel max-md:shadow-[1px_0_0_var(--hairline)]";
 
 const num = "px-2 text-right font-mono tabular-nums last:pr-4";
 
@@ -279,10 +288,10 @@ export function CountriesTable({ rows }: { rows: AtlasRow[] }) {
   return (
     <DisclosureGroup>
       <div className="panel-elevated overflow-hidden rounded-2xl">
-        <Table>
+        <Table containerClassName="scroll-fade">
           <TableHeader>
             <TableRow>
-              <TableHead className="pl-4 pr-2">City</TableHead>
+              <TableHead className={cn("pl-4 pr-2", PINNED)}>City</TableHead>
               {COLUMNS.map((c) => {
                 const active = sort.key === c.key;
                 return (
@@ -348,14 +357,32 @@ export function CountriesTable({ rows }: { rows: AtlasRow[] }) {
                 data-target={r.slug === target ? "true" : undefined}
                 className="data-[target=true]:bg-brand/15 data-[target=true]:shadow-[inset_3px_0_0_var(--brand)]"
               >
-                <TableCell className="whitespace-normal py-3 pl-4 pr-2">
+                <TableCell
+                  className={cn(
+                    "whitespace-normal py-3 pl-4 pr-2",
+                    PINNED,
+                    // A highlighted row's tint has to show on the pinned cell too, which is opaque.
+                    "max-md:in-data-[target=true]:bg-[color-mix(in_oklab,var(--brand)_15%,var(--panel))]",
+                  )}
+                >
                   <span className="flex min-w-[10rem] flex-col">
-                    <span className="font-medium">{r.city}</span>
+                    {cityHref(r) ? (
+                      <Link
+                        href={cityHref(r)!}
+                        className="font-medium underline-offset-4 hover:text-brand-hover hover:underline"
+                      >
+                        {r.city}
+                      </Link>
+                    ) : (
+                      <span className="font-medium">{r.city}</span>
+                    )}
                     <small className="text-xs text-text-muted">
                       {r.country} {"·"}{" "}
                       {r.sensor
                         ? `market sensor ${r.sensor}`
                         : "no market sensor"}
+                      {noCityPageNote(r, rows) &&
+                        ` · ${noCityPageNote(r, rows)}`}
                     </small>
                   </span>
                 </TableCell>

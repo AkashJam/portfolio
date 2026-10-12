@@ -32,6 +32,7 @@ import {
   type MapState,
 } from "@/lib/atlas-map";
 import type { AtlasRow } from "@/lib/market-schemas";
+import { cn } from "@/lib/utils";
 import geometry from "@/data/atlas-map.json";
 
 /**
@@ -271,47 +272,49 @@ export function WorldMap({
             const ink = textColourFor(fill);
             const text = tileFigure(value, figure);
             return (
-              <a
-                key={row.slug}
-                href={`#${row.slug}`}
-                aria-label={name}
-                className={linkRing}
-              >
-                <title>{name}</title>
-                <rect
-                  x={x}
-                  y={y}
-                  width={TILE.size}
-                  height={TILE.size}
-                  rx={6}
-                  fill={fill}
-                  className="shape stroke-transparent"
-                  strokeWidth={1}
-                />
+              <g key={row.slug}>
+                {/* The link holds only its labelled shape: the code and figure are drawn
+                    over it as hidden siblings, so the link has no visible text of its own
+                    to disagree with its name (WCAG 2.5.3), and a click on the text still
+                    lands on the tile. */}
+                <a href={`#${row.slug}`} aria-label={name} className={linkRing}>
+                  <title>{name}</title>
+                  <rect
+                    x={x}
+                    y={y}
+                    width={TILE.size}
+                    height={TILE.size}
+                    rx={6}
+                    fill={fill}
+                    className="shape stroke-transparent"
+                    strokeWidth={1}
+                  />
+                </a>
                 <text
+                  aria-hidden="true"
                   x={x + TILE.size / 2}
                   y={y + 17}
                   textAnchor="middle"
                   fill={ink}
-                  className="font-mono text-[11px] font-semibold"
+                  className="pointer-events-none font-mono text-[11px] font-semibold"
                 >
                   {row.code}
                   {star ? "*" : ""}
                 </text>
                 <text
+                  aria-hidden="true"
                   x={x + TILE.size / 2}
                   y={y + 32}
                   textAnchor="middle"
                   fill={ink}
-                  className={
-                    text.length >= 6
-                      ? "font-mono text-[9.5px]"
-                      : "font-mono text-[11px]"
-                  }
+                  className={cn(
+                    "pointer-events-none font-mono",
+                    text.length >= 6 ? "text-[9.5px]" : "text-[11px]",
+                  )}
                 >
                   {text}
                 </text>
-              </a>
+              </g>
             );
           })}
         </svg>

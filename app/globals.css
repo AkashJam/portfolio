@@ -526,3 +526,18 @@
   border: 3px solid var(--brand);
   box-shadow: 0 0 0 4px color-mix(in oklab, var(--brand) 22%, transparent);
 }
+
+/* Scroll cue (bearing.md #107): below 768px a fade marks whichever edge of a
+   sideways scroller has more to show. The local/scroll background trick, so it
+   needs no script and disappears at the end of the scroll. The table also pins
+   its first column; the scatter takes the fade only. */
+@media (max-width: 767.98px) {
+  .scroll-fade {
+    background:
+      linear-gradient(to right, var(--panel) 40%, transparent) left center / 32px 100% no-repeat local,
+      linear-gradient(to left, var(--panel) 40%, transparent) right center / 32px 100% no-repeat local,
+      linear-gradient(to right, rgba(0, 0, 0, 0.5), transparent) left center / 14px 100% no-repeat scroll,
+      linear-gradient(to left, rgba(0, 0, 0, 0.5), transparent) right center / 14px 100% no-repeat scroll,
+      var(--panel);
+  }
+}
