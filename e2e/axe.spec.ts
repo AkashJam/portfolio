@@ -11,6 +11,7 @@ const PAGES = [
   "/about",
   "/market",
   "/market/SIM:NOVA",
+  "/atlas",
   "/projects",
   "/projects/market-ticker",
   "/blog",
