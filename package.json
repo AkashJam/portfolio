@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:contract": "vitest run --config vitest.contract.config.mts",
-    "lhci": "lhci autorun"
+    "lhci": "lhci autorun",
+    "build:atlas-map": "node scripts/build-atlas-map.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
@@ -48,12 +49,15 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^5.2.0",
+    "d3-geo": "^3.1.1",
     "eslint": "^9",
     "eslint-config-next": "16.3.0",
     "schema-dts": "^2.0.0",
     "tailwindcss": "^4",
+    "topojson-client": "^3.1.0",
     "typescript": "^5",
     "vite-tsconfig-paths": "^6.1.1",
-    "vitest": "^4.1.11"
+    "vitest": "^4.1.11",
+    "world-atlas": "^2.0.2"
   }
 }
