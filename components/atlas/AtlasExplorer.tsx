@@ -3,15 +3,25 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { WindowSelect, useAtlasWindow } from "@/components/atlas/AtlasWindow";
+import { ReadingCard } from "@/components/atlas/ReadingCard";
 import { Scatter } from "@/components/atlas/Scatter";
 import { type ColumnKey, windowLabel as labelOf } from "@/lib/atlas";
 import { MEASURES, buildPlot } from "@/lib/atlas-plot";
+import {
+  CHIPS,
+  CHIP_WINDOW,
+  type ChipId,
+  buildReading,
+} from "@/lib/atlas-readings";
 import type { AtlasRow } from "@/lib/market-schemas";
+import { cn } from "@/lib/utils";
 
 /**
- * The Compare section (Phase 11 step 2): two axis pickers over the scatter.
- * The window comes from the shared context (step 3); the five Ask chips of
- * step 4 will set `x` and `y` from here.
+ * The Compare section: the five Ask chips (step 4), two axis pickers and the
+ * window (step 3) over the scatter, with a worked reading underneath.
+ * A chip sets both axes and the window; touching an axis dropdown clears it
+ * and the reading degrades to the generated line. The window selector does
+ * not clear it: the window is an input to the reading, which recomputes.
  */
 
 const SELECT =
@@ -29,15 +39,57 @@ function useTargetSlug(): string | null {
 }
 
 export function AtlasExplorer({ rows }: { rows: AtlasRow[] }) {
-  const { window: win, end } = useAtlasWindow();
-  const [x, setX] = useState<ColumnKey>("everydaySpendingEur");
-  const [y, setY] = useState<ColumnKey>("housing");
+  const { window: win, setWindow, windows, end } = useAtlasWindow();
+  const [chip, setChip] = useState<ChipId | null>(CHIPS[0].id);
+  const [x, setX] = useState<ColumnKey>(CHIPS[0].x);
+  const [y, setY] = useState<ColumnKey>(CHIPS[0].y);
   const target = useTargetSlug();
   const model = useMemo(() => buildPlot(rows, x, y, win), [rows, x, y, win]);
   const windowLabel = labelOf(win, end);
+  const reading = useMemo(
+    () => buildReading(chip, rows, x, y, win),
+    [chip, rows, x, y, win],
+  );
+
+  function pick(id: ChipId) {
+    const c = CHIPS.find((q) => q.id === id);
+    if (!c) return;
+    setX(c.x);
+    setY(c.y);
+    if (windows.includes(CHIP_WINDOW)) setWindow(CHIP_WINDOW);
+    setChip(id);
+  }
 
   return (
     <div className="panel-elevated rounded-2xl p-5">
+      <div
+        role="group"
+        aria-labelledby="atlas-ask-label"
+        className="flex flex-wrap items-center gap-2 pb-4"
+      >
+        <span
+          id="atlas-ask-label"
+          className="mr-1 font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-text-muted"
+        >
+          Ask
+        </span>
+        {CHIPS.map((c) => (
+          <button
+            key={c.id}
+            type="button"
+            aria-pressed={chip === c.id}
+            onClick={() => pick(c.id)}
+            className={cn(
+              "rounded-full border px-3.5 py-2 text-[12.5px] font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand",
+              chip === c.id
+                ? "border-brand/55 bg-brand/20 text-text"
+                : "border-hairline bg-panel-2 text-text-muted hover:border-brand/25 hover:text-read",
+            )}
+          >
+            {c.label}
+          </button>
+        ))}
+      </div>
       <div className="flex flex-wrap items-end gap-x-6 gap-y-4 border-b border-hairline pb-5">
         {(
           [
@@ -55,7 +107,10 @@ export function AtlasExplorer({ rows }: { rows: AtlasRow[] }) {
             <select
               id={id}
               value={value}
-              onChange={(e) => set(e.target.value as ColumnKey)}
+              onChange={(e) => {
+                set(e.target.value as ColumnKey);
+                setChip(null);
+              }}
               className={SELECT}
             >
               {MEASURES.map((m) => (
@@ -73,6 +128,8 @@ export function AtlasExplorer({ rows }: { rows: AtlasRow[] }) {
           no weighting, no composite
         </p>
       </div>
+
+      <ReadingCard reading={reading} />
 
       <div className="overflow-x-auto pt-4">
         <div className="min-w-[720px]">
