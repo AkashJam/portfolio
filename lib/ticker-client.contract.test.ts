@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  getAtlasCities,
   getCandles,
   getCostOfLiving,
   getCostOfLivingDetail,
@@ -48,5 +49,19 @@ describe("ticker API contract", () => {
     expect(detail).not.toBeNull();
     expect(detail?.series.length).toBeGreaterThan(0);
     expect(detail?.basket.length).toBeGreaterThan(0);
+  });
+
+  it("GET /atlas/cities matches atlasResponseSchema: 23 countries, 8 measures, a source and as-of on every value", async () => {
+    const atlas = await getAtlasCities();
+    expect(atlas).not.toBeNull();
+    expect(atlas?.windows).toEqual(["2021", "2016", "2010"]);
+    expect(atlas?.rows.length).toBe(23);
+    expect(new Set(atlas?.rows.map((r) => r.slug)).size).toBe(23);
+    expect(atlas?.rows.every((r) => r.hasCityPage === false)).toBe(true);
+    // The euro area has no rate against itself; every other currency is served
+    // or says why not.
+    const italy = atlas?.rows.find((r) => r.slug === "italy");
+    expect(italy?.currency.reason).toBe("euro");
+    expect(italy?.shares.change?.["2010"]).toBeTypeOf("number");
   });
 });

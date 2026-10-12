@@ -3,12 +3,14 @@ import { unstable_rethrow } from "next/navigation";
 import type { z } from "zod";
 
 import {
+  atlasResponseSchema,
   candlesResponseSchema,
   costOfLivingDetailSchema,
   costOfLivingResponseSchema,
   indicatorSeriesResponseSchema,
   symbolSnapshotSchema,
   symbolsResponseSchema,
+  type AtlasResponse,
   type CandlesResponse,
   type CostOfLiving,
   type CostOfLivingDetail,
@@ -102,4 +104,14 @@ export function getCostOfLiving(): Promise<CostOfLiving[] | null> {
 
 export function getCostOfLivingDetail(city: string): Promise<CostOfLivingDetail | null> {
   return get(`/col/${encodeURIComponent(city)}`, costOfLivingDetailSchema);
+}
+
+/**
+ * The /atlas comparison (§8): twenty-three countries, eight measures, every
+ * value with its source and as-of. Keyless on the ticker's side, and served
+ * from its embedded snapshots when Redis is down, so it is cacheable for a
+ * while; the data refreshes once a day.
+ */
+export function getAtlasCities(opts?: { revalidateSeconds?: number }): Promise<AtlasResponse | null> {
+  return get("/atlas/cities", atlasResponseSchema, opts?.revalidateSeconds);
 }

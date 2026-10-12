@@ -97,6 +97,71 @@ export const costOfLivingDetailSchema = z.object({
 });
 export type CostOfLivingDetail = z.infer<typeof costOfLivingDetailSchema>;
 
+// GET /atlas/cities (§8, Phase 10). Eight measures per country: four are change
+// over one window (shares, housing, prices, currency), four the latest level.
+// Every value carries its source and as-of, so the UI cannot show one without
+// the other; a value that cannot be served is null with a reason, never a
+// stand-in.
+export const windowStartSchema = z.enum(["2021", "2016", "2010"]);
+export type WindowStart = z.infer<typeof windowStartSchema>;
+
+export const windowChangeSchema = z
+  .object({
+    // Null as a whole when the measure cannot be served for the country
+    // (reason "euro" or "stale"); one window is null when its start point was
+    // never published (reason "unpublished": Israel's 2010, bearing.md #99).
+    change: z.record(windowStartSchema, z.number().nullable()).nullable(),
+    years: z.record(z.string(), z.number()).nullable(),
+    reason: z.enum(["euro", "stale", "unpublished"]).optional(),
+    derived: z.literal("via USD").optional(), // Chile's currency (bearing.md #85)
+    source: z.string().min(1),
+    asOf: z.string().min(1),
+  })
+  .refine((m) => m.change !== null || m.reason !== undefined, {
+    message: "a measure with no change must say why",
+  });
+export type WindowChange = z.infer<typeof windowChangeSchema>;
+
+export const sourcedSchema = z
+  .object({
+    value: z.number().nullable(),
+    unit: z.string().optional(),
+    source: z.string().min(1),
+    asOf: z.string().min(1),
+    reason: z.string().optional(),
+  })
+  .refine((v) => v.value !== null || v.reason !== undefined, {
+    message: "a value that is null must say why",
+  });
+export type Sourced = z.infer<typeof sourcedSchema>;
+
+export const atlasRowSchema = z.object({
+  slug: z.string().min(1), // the row's address: /atlas#italy
+  city: z.string(),
+  country: z.string(),
+  code: z.string().length(2),
+  sensor: z.string().nullable(), // market-sensor symbol, or null
+  hasCityPage: z.boolean(),
+  region: z.enum(["americas", "europe", "asia-pacific", "africa", "middle-east"]),
+  shares: windowChangeSchema,
+  housing: windowChangeSchema,
+  prices: windowChangeSchema,
+  currency: windowChangeSchema,
+  everydaySpendingEur: sourcedSchema,
+  gniPpp: sourcedSchema,
+  unemployment: sourcedSchema,
+  lifeExpectancy: sourcedSchema,
+});
+export type AtlasRow = z.infer<typeof atlasRowSchema>;
+
+export const atlasResponseSchema = z.object({
+  generatedAt: z.string(),
+  windows: z.array(windowStartSchema),
+  end: z.string().regex(/^\d{4}$/), // the latest year every country has for all four change measures
+  rows: z.array(atlasRowSchema),
+});
+export type AtlasResponse = z.infer<typeof atlasResponseSchema>;
+
 // SSE payloads (§8 `GET /stream`) — parsed client-side in lib/sse.ts, not
 // through lib/ticker-client.ts.
 export const quoteEventSchema = z.object({
