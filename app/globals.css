@@ -125,7 +125,13 @@
    25.4s = 13 stars × 1.8s + a 2s rest before it repeats.
    `backwards` fill-mode (applied on the .aster-node class, not here) is
    load-bearing: without it a delayed node sits fully lit until its first
-   turn instead of holding the 0% (dim) frame through its delay. */
+   turn instead of holding the 0% (dim) frame through its delay.
+   The stops are percentages of the cycle, so changing 25.4s rescales the
+   beat: recompute them with it. The catch (0.4s) is shorter than the decay
+   (1s) — a gentle 1:2.5; at 1:15 it read as a blink. Peak opacity is
+   already 1, so the flare is the 1.1× swell and the shift toward white.
+   Every stop carries the same two drop-shadows: a mismatched list snaps
+   instead of interpolating. */
 @keyframes hop {
   0% {
     opacity: 0.55;
@@ -281,8 +287,27 @@
   body {
     @apply bg-background text-foreground;
   }
+  /* Dark-only (§17), so say so to the browser: without color-scheme the
+     native scrollbars, form controls and overscroll stay light, which on
+     Windows and Linux puts a pale scrollbar beside every page and inside
+     every horizontal scroller. The thumb takes the hairline-to-faint range
+     so it reads as chrome, not content.
+     scroll-padding-top keeps fragment targets (the ToC, /atlas#japan, a
+     ledger row) clear of the sticky top bar, which is h-14 (56px); pages
+     with a second sticky bar add its height on their own root. */
   html {
     @apply font-sans;
+    color-scheme: dark;
+    scrollbar-color: var(--text-faint) transparent;
+    scroll-padding-top: calc(56px + 1rem);
+  }
+}
+
+/* For scroll areas whose position is already obvious (the ⌘K list). */
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
   }
 }
 

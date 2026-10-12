@@ -33,8 +33,9 @@ sitting in CI waiting to leak.
   plus a free-form MDX body, so publishing a case study or post is a new file rather than a schema
   migration or a CMS deploy.
 - Keyless CI/CD: GitHub Actions assumes an AWS IAM role over OIDC on every push, builds an arm64
-  image to match the Graviton host, pushes to ECR, and triggers a deploy over SSM. No static AWS
-  access keys exist in either repository's secrets.
+  image to match the Graviton host, and pushes to ECR; a deploy workflow in a separate
+  infrastructure repository rolls it out over SSM. No static AWS access keys exist in any of the
+  three repositories' secrets.
 - One EC2 box runs the whole stack behind Caddy via Docker Compose. That's sized to the traffic a
   personal site actually sees, and it buys a specific set of costs — deploys that replace
   containers in place, one failure domain, and services sharing memory with nothing enforcing a
@@ -46,7 +47,7 @@ sitting in CI waiting to leak.
   case study), Projects, and Blog — served from one box for a few dollars a month.
 - Every push runs lint, typecheck, build, and unit tests, then contract tests against a real Ticker
   container and Playwright accessibility checks. A change that fails any of them doesn't ship.
-- Zero long-lived cloud credentials anywhere in either GitHub repository — OIDC-issued short-lived
+- Zero long-lived cloud credentials anywhere in the three GitHub repositories — OIDC-issued short-lived
   tokens only, scoped per workflow run, with the role's trust policy pinned to the exact repository
   and branch allowed to assume it.
 

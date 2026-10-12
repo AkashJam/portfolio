@@ -54,6 +54,10 @@ export function Asterism() {
       className="pointer-events-none absolute top-0 left-1/2 z-0 h-[400px] w-[min(880px,170%)] -translate-x-1/2 opacity-90 [mask-image:radial-gradient(70%_58%_at_50%_16%,#000_42%,transparent_88%)] md:h-[500px] md:w-[min(1180px,138%)] md:opacity-100 md:[mask-image:radial-gradient(86%_88%_at_50%_32%,#000_60%,transparent_100%)] lg:h-[600px] lg:w-[min(1440px,116%)]"
     >
       <svg viewBox="0 0 900 380" preserveAspectRatio="xMidYMid slice" className="absolute inset-0 size-full">
+        {/* .22, not .30: at .30 a line composites to #2E3355 behind small
+            labels and drops --text-muted to 3.9:1, under AA. axe samples the
+            computed background and never sees this SVG, so nothing else
+            guards the number (portfolio.md §17). */}
         <g>
           {EDGES.map(([x1, y1, x2, y2], i) => (
             <line

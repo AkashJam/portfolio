@@ -7,6 +7,11 @@
  * exact positions carry no meaning here (unlike the asterism's
  * constellation), but porting the real values keeps this deterministic
  * for SSR without needing a seeded generator to get right.
+ *
+ * Delays step through the 14s cycle by the golden ratio (n × 0.618 × 14s,
+ * mod 14s): even coverage with no visible period, so about twelve stars are
+ * mid-flicker at any moment. A 90s cycle left barely one, which read as no
+ * motion at all.
  */
 
 // [cx, cy, r, delay(s)]
