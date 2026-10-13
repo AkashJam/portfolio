@@ -1,3 +1,4 @@
+import { gotoAtlas } from "./atlas-hydrated";
 import { expect, test } from "@playwright/test";
 
 // Phase 11 step 3: one window drives the scatter and the table together.
@@ -10,7 +11,7 @@ const row = (page: import("@playwright/test").Page, slug: string) =>
 test("the selector offers the three windows, ending at the common year, one checked", async ({
   page,
 }) => {
-  await page.goto("/atlas");
+  await gotoAtlas(page);
   const radios = page
     .locator("#compare")
     .getByRole("radiogroup", { name: /window/i })
@@ -29,7 +30,7 @@ test("the selector offers the three windows, ending at the common year, one chec
 test("choosing 2016–24 moves the table and the scatter together", async ({
   page,
 }) => {
-  await page.goto("/atlas");
+  await gotoAtlas(page);
   await page.getByLabel("Vertical").selectOption("housing");
   const india = row(page, "india");
   await expect(india).toContainText("+64%");
@@ -50,7 +51,7 @@ test("choosing 2016–24 moves the table and the scatter together", async ({
 test("Israel's currency gap is a 2010 fact, not a permanent one", async ({
   page,
 }) => {
-  await page.goto("/atlas");
+  await gotoAtlas(page);
   await expect(row(page, "israel")).toContainText("no 2010 rate");
   await page
     .locator("#compare")
@@ -63,7 +64,7 @@ test("Israel's currency gap is a 2010 fact, not a permanent one", async ({
 test("a window with fewer gaps plots more currency points", async ({
   page,
 }) => {
-  await page.goto("/atlas");
+  await gotoAtlas(page);
   await page.getByLabel("Horizontal").selectOption("currency");
   await expect(page.getByText("countries plotted")).toContainText(
     "17 countries plotted",
@@ -78,7 +79,7 @@ test("a window with fewer gaps plots more currency points", async ({
 });
 
 test("the selector is keyboard operable", async ({ page }) => {
-  await page.goto("/atlas");
+  await gotoAtlas(page);
   await page
     .locator("#compare")
     .getByRole("radio", { name: "2021–24" })

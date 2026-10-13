@@ -1,3 +1,4 @@
+import { gotoAtlas } from "./atlas-hydrated";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
@@ -10,7 +11,7 @@ const reading = (page: import("@playwright/test").Page) =>
   page.getByLabel("Reading this view");
 
 test("opens on chip 1 with Milan against New York", async ({ page }) => {
-  await page.goto("/atlas");
+  await gotoAtlas(page);
   await expect(chip(page, /What people spend/)).toHaveAttribute(
     "aria-pressed",
     "true",
@@ -23,7 +24,7 @@ test("opens on chip 1 with Milan against New York", async ({ page }) => {
 test("chip 3 sets both axes, draws y = x and names who is below", async ({
   page,
 }) => {
-  await page.goto("/atlas");
+  await gotoAtlas(page);
   await chip(page, /Did savings outrun prices/).click();
   await expect(page.getByLabel("Horizontal")).toHaveValue("prices");
   await expect(page.getByLabel("Vertical")).toHaveValue("shares");
@@ -36,7 +37,7 @@ test("chip 3 sets both axes, draws y = x and names who is below", async ({
 test("each chip names its two countries and sets its axes", async ({
   page,
 }) => {
-  await page.goto("/atlas");
+  await gotoAtlas(page);
   const cases: [RegExp, string, string, string][] = [
     [
       /What people spend/,
@@ -73,7 +74,7 @@ test("each chip names its two countries and sets its axes", async ({
 test("touching an axis dropdown clears the chip and shows the generated line", async ({
   page,
 }) => {
-  await page.goto("/atlas");
+  await gotoAtlas(page);
   await page.getByLabel("Horizontal").selectOption("gniPpp");
   await expect(page.locator("button[aria-pressed=true]")).toHaveCount(0);
   await expect(reading(page)).toContainText("is highest on income");
@@ -82,7 +83,7 @@ test("touching an axis dropdown clears the chip and shows the generated line", a
 test("a window change keeps the chip and the reading follows", async ({
   page,
 }) => {
-  await page.goto("/atlas");
+  await gotoAtlas(page);
   await chip(page, /savings and housing/).click();
   await expect(reading(page)).toContainText(
     "housing rose in India and fell in Italy",
@@ -99,7 +100,7 @@ test("a window change keeps the chip and the reading follows", async ({
 });
 
 test("a chip click returns the window to 2010–24", async ({ page }) => {
-  await page.goto("/atlas");
+  await gotoAtlas(page);
   await page
     .locator("#compare")
     .getByRole("radio", { name: "2021–24" })
@@ -111,7 +112,7 @@ test("a chip click returns the window to 2010–24", async ({ page }) => {
 });
 
 test("the chip state has no WCAG 2.1 AA violations", async ({ page }) => {
-  await page.goto("/atlas");
+  await gotoAtlas(page);
   await chip(page, /Did savings outrun prices/).click();
   const results = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa"])

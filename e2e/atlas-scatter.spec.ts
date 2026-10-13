@@ -1,3 +1,4 @@
+import { gotoAtlas } from "./atlas-hydrated";
 import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
@@ -6,7 +7,7 @@ import AxeBuilder from "@axe-core/playwright";
 test("default view plots 23 countries with Türkiye on neither clip axis", async ({
   page,
 }) => {
-  await page.goto("/atlas");
+  await gotoAtlas(page);
   await expect(page.locator("svg[role=img] g[data-slug]")).toHaveCount(23);
   await expect(page.locator("g[data-clipped]")).toHaveCount(0);
 });
@@ -14,7 +15,7 @@ test("default view plots 23 countries with Türkiye on neither clip axis", async
 test("shares on an axis clips Türkiye to the edge and says so", async ({
   page,
 }) => {
-  await page.goto("/atlas");
+  await gotoAtlas(page);
   await page.getByLabel("Vertical").selectOption("shares");
   const tr = page.locator('g[data-slug="turkiye"]');
   await expect(tr).toHaveAttribute("data-clipped", "y");
@@ -29,7 +30,7 @@ test("shares on an axis clips Türkiye to the edge and says so", async ({
 test("y = x is drawn for prices against shares and nowhere else", async ({
   page,
 }) => {
-  await page.goto("/atlas");
+  await gotoAtlas(page);
   await expect(page.getByText("kept pace with prices")).toHaveCount(0);
   await page.getByLabel("Horizontal").selectOption("prices");
   await page.getByLabel("Vertical").selectOption("shares");
@@ -57,7 +58,7 @@ test("a row address rings that row's dot, and a hash change moves the ring", asy
 });
 
 test("a gap on the chosen pair is left off and counted", async ({ page }) => {
-  await page.goto("/atlas");
+  await gotoAtlas(page);
   await page.getByLabel("Horizontal").selectOption("currency");
   await expect(page.getByText("countries plotted")).toContainText(
     "17 countries plotted",
