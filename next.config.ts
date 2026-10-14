@@ -2,7 +2,45 @@ import type { NextConfig } from "next";
 import { withContentCollections } from "@content-collections/next";
 import { withSentryConfig } from "@sentry/nextjs/config";
 
+// Security headers (portfolio.md §13). Static, not nonce-based: Next applies a
+// nonce only while rendering a request, so a nonce CSP would make every page
+// dynamic and undo §3's SSG/ISR choices (/ stays static, Phase 6). That leaves
+// 'unsafe-inline' for Next's inline bootstrap scripts, and for the inline
+// styles Recharts and Lightweight Charts set. 'unsafe-eval' is for MDX:
+// MDXRenderer builds each post and case study on the client with
+// @content-collections/mdx's MDXContent, which uses new Function(); without
+// it those pages fail to hydrate. With 'unsafe-inline' already allowed it adds
+// little, and it can go if MDX moves to the server. Everything else is
+// same-origin: fonts are self-hosted and Sentry goes through
+// /monitoring-tunnel. JSON-LD is a data block, which script-src does not
+// govern. No upgrade-insecure-requests: HSTS covers production, and it would
+// upgrade http://localhost in dev and CI.
+const contentSecurityPolicy = [
+  "default-src 'self'",
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' blob: data:",
+  "font-src 'self'",
+  "connect-src 'self'",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "frame-ancestors 'none'",
+].join("; ");
+
+const securityHeaders = [
+  { key: "Content-Security-Policy", value: contentSecurityPolicy },
+  { key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains" },
+  { key: "X-Content-Type-Options", value: "nosniff" },
+  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+  { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+];
+
 const nextConfig: NextConfig = {
+  async headers() {
+    return [{ source: "/(.*)", headers: securityHeaders }];
+  },
+
   // Lean runtime image (infra/Dockerfile's `runtime` stage) — traces only
   // the deps actually needed at runtime into .next/standalone.
   output: "standalone",
