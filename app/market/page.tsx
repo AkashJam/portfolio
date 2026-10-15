@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { FeedFreshnessProvider, FeedStatus } from "@/components/market/FeedStatus";
 import { PricesTable, type PriceEntry } from "@/components/market/PricesTable";
+import { WhatMovedEmpty } from "@/components/market/WhatMovedEmpty";
 import { Container } from "@/components/shell/Container";
 import { newestVintage } from "@/lib/prices";
 import { getSensors, getSymbolSnapshot } from "@/lib/ticker-client";
@@ -83,10 +84,11 @@ export default async function MarketPage() {
           <h2 id="what-moved" className="text-2xl font-light">
             What moved, and why
           </h2>
-          <p className={LEDE}>
+          <p className={cn(LEDE, "mb-6")}>
             When one of them moves further than it normally does, the news explaining it is fetched. Nothing else is,
             and on a quiet day nothing is fetched at all.
           </p>
+          <WhatMovedEmpty />
         </section>
 
         <section aria-labelledby="industries">
