@@ -53,6 +53,10 @@ describe("ticker API contract", () => {
     expect(sensors?.filter((s) => s.group === "global").map((s) => s.symbol)).toEqual(["NVDA", "AAPL", "XOM", "JPM", "CAT"]);
     const mufg = sensors?.find((s) => s.symbol === "MUFG");
     expect(mufg?.country).toBe("Japan");
+    // The four thin listings carry the figure and date the Prices table prints.
+    const thin = sensors?.filter((s) => s.liquidityUsdM !== null).map((s) => s.symbol).sort();
+    expect(thin).toEqual(["BCH", "KB", "TKC", "TLK"]);
+    expect(sensors?.every((s) => (s.liquidityUsdM === null) === (s.liquidity === null))).toBe(true);
   });
 
   it("an unknown symbol is a 404, so the page shows notFound() instead of a zero-price page", async () => {

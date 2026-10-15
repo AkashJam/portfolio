@@ -57,7 +57,7 @@ function prefersNoMotion(): boolean {
  * Home hero's live band (phase6.md Step 6, glide rewritten
  * in step 9's follow-up) — a ticker tape of the sim roster plus a live
  * area chart of one symbol, replacing the static glow orb + LiveChip pill.
- * One shared subscription drives both, matching SymbolCardGrid's "single
+ * One shared subscription drives both, matching PricesTable's "single
  * owner, presentational children" shape rather than opening a separate
  * EventSource per widget.
  */

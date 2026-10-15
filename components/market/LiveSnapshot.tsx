@@ -13,7 +13,7 @@ import type { SymbolSnapshot } from "@/lib/market-schemas";
  * e2e/live-tick.spec.ts's own comment used to flag: this block was
  * SSR-only and never updated client-side, unlike the market table's price
  * cells. Seeds from the SSR snapshot, then merges live via a single-symbol
- * subscribeToStream — the same seed-then-merge shape SymbolCardGrid uses
+ * subscribeToStream — the same seed-then-merge shape PricesTable uses
  * per row, here for the one symbol this page is about.
  */
 export function LiveSnapshot({ symbol, initialSnapshot }: { symbol: string; initialSnapshot: SymbolSnapshot }) {
@@ -56,7 +56,10 @@ export function LiveSnapshot({ symbol, initialSnapshot }: { symbol: string; init
           <h1 className="font-mono text-3xl">{snapshot.symbol}</h1>
         </div>
         <div className="text-right">
-          <p className={cn("font-mono text-3xl tabular-nums", up ? "text-market-up" : "text-market-down")}>
+          <p
+            data-testid="live-price"
+            className={cn("font-mono text-3xl tabular-nums", up ? "text-market-up" : "text-market-down")}
+          >
             {snapshot.price.toFixed(2)}
           </p>
           <p className={cn("font-mono text-sm tabular-nums", up ? "text-market-up" : "text-market-down")}>

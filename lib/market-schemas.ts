@@ -72,6 +72,13 @@ export const sensorSchema = z.object({
   theme: z.string().nullable(),
   region: z.string().nullable(),
   liquidity: z.string().nullable(),
+  // "telecom", "was Bancolombia": what the table must say beside the company.
+  note: z.string().nullable(),
+  // The measured figure behind "thin": 3-month average daily traded value of
+  // the US listing in $ millions, and the date it was measured. The four thin
+  // sensors only.
+  liquidityUsdM: z.number().nullable(),
+  liquidityAsOf: z.string().nullable(),
   order: z.number(),
 });
 export type Sensor = z.infer<typeof sensorSchema>;

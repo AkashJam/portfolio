@@ -10,7 +10,7 @@ const FeedTrackerContext = React.createContext<FeedTracker | null>(null);
 /**
  * One tracker per SSE subscription owner, for pages where the owner and the
  * status pill are in different parts of the tree — `/market`'s pill sits in
- * the server-rendered header, its subscription in `SymbolCardGrid` below.
+ * the server-rendered header, its subscription in `PricesTable` below.
  * Owners that render their own pill use `useLocalFeedTracker` instead.
  */
 export function FeedFreshnessProvider({

@@ -17,7 +17,7 @@ export async function generateMetadata({
 }: PageProps<"/market/[symbol]">): Promise<Metadata> {
   const symbol = decodeURIComponent((await params).symbol);
   // Canonical keeps the raw symbol (`/market/SIM:NOVA`), the form
-  // SymbolCard and CostOfLivingTable link to, not a `%3A`-encoded variant.
+  // PricesTable and the palette link to, not a `%3A`-encoded variant.
   return pageMetadata({
     path: `/market/${symbol}`,
     title: `${symbol} — Market — Akash James`,

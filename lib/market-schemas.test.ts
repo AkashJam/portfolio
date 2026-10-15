@@ -113,12 +113,26 @@ describe("sensorsResponseSchema", () => {
     theme: null,
     region: "asia-pacific",
     liquidity: null,
+    note: null,
+    liquidityUsdM: null,
+    liquidityAsOf: null,
     order: 13,
   };
   const global = { ...country, symbol: "NVDA", name: "NVIDIA", group: "global", country: null, theme: "Semiconductors", region: null, order: 14 };
 
   it("accepts a country sensor and a global one", () => {
     expect(sensorsResponseSchema.safeParse([country, global]).success).toBe(true);
+  });
+
+  it("carries a thin listing's figure and date, and a note", () => {
+    const thin = { ...country, symbol: "TKC", liquidity: "thin", note: "telecom", liquidityUsdM: 12, liquidityAsOf: "2026-10-09" };
+    const parsed = sensorsResponseSchema.safeParse([thin]);
+    expect(parsed.success).toBe(true);
+  });
+
+  it("rejects a sensor without the thin-listing fields, so an old ticker cannot slip through", () => {
+    const { liquidityUsdM: _usd, ...old } = country; // eslint-disable-line @typescript-eslint/no-unused-vars
+    expect(sensorsResponseSchema.safeParse([old]).success).toBe(false);
   });
 
   it("rejects a group the ticker does not define", () => {

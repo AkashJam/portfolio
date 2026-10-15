@@ -43,7 +43,7 @@ export function formatAge(ms: number): string {
 /**
  * Mutable, deliberately not React state: SSE handlers write it on every
  * event, and only the small status pill reads it on its own 1s clock — so
- * the heavy owners (HeroLiveBand's chart, SymbolCardGrid) never re-render
+ * the heavy owners (HeroLiveBand's chart, PricesTable) never re-render
  * because time passed.
  */
 export class FeedTracker {

@@ -1,8 +1,7 @@
 import { cn } from "@/lib/utils";
 
 /** Day-range indicator — a marker at `price`'s position between `low` and
- * `high` (both real snapshot fields). Shared by SymbolCard and
- * LiveSnapshot so the position math and markup live in one place. */
+ * `high` (both real snapshot fields). */
 export function DayRangeBar({
   low,
   high,
