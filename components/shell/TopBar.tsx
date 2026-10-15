@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { isActive, siteLinks, surfaceLinks, type NavItem } from "@/lib/nav";
 import { IdentityMark } from "@/components/shell/IdentityMark";
 import { Container } from "@/components/shell/Container";
+import { MarketDot } from "@/components/shell/MarketDot";
 
 function NavTab({ link, pathname }: { link: NavItem; pathname: string }) {
   const active = isActive(link.href, pathname);
@@ -23,6 +24,8 @@ function NavTab({ link, pathname }: { link: NavItem; pathname: string }) {
       }`}
     >
       {link.label}
+      {/* The Market tab carries the three-state indicator (bearing.md #104). */}
+      {link.icon === "market" && <MarketDot className="ml-[7px]" />}
     </Link>
   );
 }

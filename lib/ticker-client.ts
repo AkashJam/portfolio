@@ -6,12 +6,14 @@ import {
   atlasResponseSchema,
   candlesResponseSchema,
   indicatorSeriesResponseSchema,
+  marketStateSchema,
   sensorsResponseSchema,
   symbolSnapshotSchema,
   symbolsResponseSchema,
   type AtlasResponse,
   type CandlesResponse,
   type IndicatorSeriesResponse,
+  type MarketStateResponse,
   type Sensor,
   type Symbol,
   type SymbolSnapshot,
@@ -29,15 +31,15 @@ export const TICKER_API_URL = process.env.TICKER_API_URL ?? "http://localhost:80
 async function get<Schema extends z.ZodType>(
   path: string,
   schema: Schema,
-  revalidateSeconds?: number
+  revalidateSeconds?: number,
+  timeoutMs?: number
 ): Promise<z.infer<Schema> | null> {
   try {
-    const res = await fetch(
-      `${TICKER_API_URL}${path}`,
-      revalidateSeconds !== undefined
-        ? { next: { revalidate: revalidateSeconds } }
-        : { cache: "no-store" }
-    );
+    const res = await fetch(`${TICKER_API_URL}${path}`, {
+      ...(revalidateSeconds !== undefined ? { next: { revalidate: revalidateSeconds } } : { cache: "no-store" as const }),
+      // A probe must answer quickly or count as unreachable.
+      ...(timeoutMs !== undefined ? { signal: AbortSignal.timeout(timeoutMs) } : {}),
+    });
     if (!res.ok) {
       console.error(`ticker-client: ${path} → ${res.status}`);
       return null;
@@ -94,6 +96,14 @@ export function getIndicatorSeries(
     `/symbols/${encodeURIComponent(symbol)}/indicators?${query}`,
     indicatorSeriesResponseSchema
   );
+}
+
+/**
+ * The ingest feed's state, for the Market indicator. Two seconds: a ticker that
+ * cannot answer that quickly is, for this purpose, unreachable.
+ */
+export function getMarketState(): Promise<MarketStateResponse | null> {
+  return get("/market/state", marketStateSchema, undefined, 2000);
 }
 
 /**

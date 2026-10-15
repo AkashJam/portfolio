@@ -14,8 +14,9 @@ export interface NavItem {
 
 /**
  * The one list: the top bar, the drawer, the footer and the command palette all
- * read it, so they cannot drift. The Market tab's real state indicator is
- * Phase 14's; until then it is a plain tab.
+ * read it, so they cannot drift. The Market tab carries the three-state
+ * indicator (components/shell/MarketDot), and the drawer's Market row says the
+ * same state in words.
  */
 export const navItems: NavItem[] = [
   { href: "/", label: "Home", icon: "home", group: "site" },

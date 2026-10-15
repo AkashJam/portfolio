@@ -4,6 +4,7 @@ import {
   getAtlasCities,
   getCandles,
   getIndicatorSeries,
+  getMarketState,
   getSensors,
   getSymbolSnapshot,
   getSymbols,
@@ -68,6 +69,12 @@ describe("ticker API contract", () => {
       // Two daily bars are all the strip needs: the close and the one before it.
       expect(snapshot?.prevClose, symbol).toBeGreaterThan(0);
     }
+  });
+
+  it("GET /market/state matches marketStateSchema and reads live against the simulator, whose ticks never stop", async () => {
+    const state = await getMarketState();
+    expect(state).not.toBeNull();
+    expect(state?.feed).toBe("live");
   });
 
   it("an unknown symbol is a 404, so the page shows notFound() instead of a zero-price page", async () => {

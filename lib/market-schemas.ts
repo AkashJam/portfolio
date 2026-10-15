@@ -84,6 +84,13 @@ export const sensorSchema = z.object({
 export type Sensor = z.infer<typeof sensorSchema>;
 export const sensorsResponseSchema = z.array(sensorSchema);
 
+// GET /market/state (§8, Phase 14): the ingest feed's state for the Market
+// indicator. "closed" is silence the market explains; "stale" and "down" are not.
+export const marketStateSchema = z.object({
+  feed: z.enum(["live", "closed", "stale", "down"]),
+});
+export type MarketStateResponse = z.infer<typeof marketStateSchema>;
+
 // GET /atlas/cities (§8, Phase 10). Eight measures per country: four are change
 // over one window (shares, housing, prices, currency), four the latest level.
 // Every value carries its source and as-of, so the UI cannot show one without
