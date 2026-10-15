@@ -244,3 +244,14 @@ describe("atlasResponseSchema", () => {
     expect(atlasResponseSchema.safeParse({ generatedAt: "x", windows: [], end: "2024" }).success).toBe(false);
   });
 });
+
+describe("candlesResponseSchema, daily bars", () => {
+  it("accepts a swept daily bar, which carries no volume", () => {
+    const result = candlesResponseSchema.safeParse({
+      symbol: "MUFG",
+      interval: "1d",
+      candles: [{ time: "2026-10-08T00:00:00Z", symbol: "MUFG", interval: "1d", open: 22.4, high: 22.7, low: 22.1, close: 22.65 }],
+    });
+    expect(result.success).toBe(true);
+  });
+});

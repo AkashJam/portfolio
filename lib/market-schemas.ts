@@ -35,7 +35,9 @@ export const candleSchema = z.object({
   high: z.number(),
   low: z.number(),
   close: z.number(),
-  volume: z.number(),
+  // Absent on the sweep's daily bars, which carry price only (Phase 8); a schema that
+  // required it rejected the whole `1d` response, so the daily chart came back empty.
+  volume: z.number().optional(),
 });
 export type Candle = z.infer<typeof candleSchema>;
 
@@ -179,7 +181,9 @@ export const candleEventSchema = z.object({
   high: z.number(),
   low: z.number(),
   close: z.number(),
-  volume: z.number(),
+  // Absent on the sweep's daily bars, which carry price only (Phase 8); a schema that
+  // required it rejected the whole `1d` response, so the daily chart came back empty.
+  volume: z.number().optional(),
 });
 export type CandleEvent = z.infer<typeof candleEventSchema>;
 

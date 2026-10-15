@@ -222,6 +222,10 @@ test.describe("at 1440px", () => {
     expect(lines).toHaveLength(23);
     expect(lines.filter((t) => /no market sensor/.test(t))).toHaveLength(12);
     expect(lines.filter((t) => /market sensor [A-Z]/.test(t))).toHaveLength(11);
+    // The symbol is a link to its price page (Phase 14 step 8).
+    await expect(
+      page.locator("#countries tbody tr td:first-child small a[href^='/market/']"),
+    ).toHaveCount(11);
   });
 
   test("the stated absences read with the counts from the data", async ({
@@ -236,7 +240,7 @@ test.describe("at 1440px", () => {
     ).toBeVisible();
     await expect(
       notes.getByText(
-        /The name is text, not a link: this page shows no market figure/,
+        /The symbol links to its price page; this page itself shows no market figure/,
       ),
     ).toBeVisible();
     await expect(
@@ -248,7 +252,7 @@ test.describe("at 1440px", () => {
     page,
   }) => {
     await page.goto("/atlas");
-    await expect(page.locator("#countries tbody td:first-child a")).toHaveCount(
+    await expect(page.locator("#countries tbody td:first-child a:not([href^='/market/'])")).toHaveCount(
       0,
     );
     await expect(

@@ -5,7 +5,9 @@ import * as React from "react";
 import { IndicatorPanel } from "@/components/market/IndicatorPanel";
 import { IntervalSwitcher } from "@/components/market/IntervalSwitcher";
 import { PriceChart } from "@/components/market/PriceChart";
+import { useSessionState } from "@/components/market/useMarketSession";
 import type { Candle, IndicatorSeriesResponse } from "@/lib/market-schemas";
+import type { MarketState } from "@/lib/market-state";
 
 interface CandlesApiResponse {
   candles: Candle[];
@@ -14,7 +16,8 @@ interface CandlesApiResponse {
 
 /**
  * Owns the interval switcher + chart/indicator state for
- * `/market/[symbol]` (mockups/v3). Seeded with the page's SSR-fetched data
+ * `/market/[symbol]` (mockups/v3). The chart freezes with the header
+ * while the regular session is closed (Phase 14 step 8). Seeded with the page's SSR-fetched data
  * for the default interval so switching is the only client round-trip.
  */
 export function SymbolChartPanel({
@@ -22,12 +25,15 @@ export function SymbolChartPanel({
   initialInterval,
   initialCandles,
   initialIndicators,
+  initialState,
 }: {
   symbol: string;
   initialInterval: string;
   initialCandles: Candle[];
   initialIndicators: IndicatorSeriesResponse | null;
+  initialState: MarketState;
 }) {
+  const frozen = useSessionState(initialState).session === "closed";
   const [selectedInterval, setSelectedInterval] = React.useState(initialInterval);
   const [candles, setCandles] = React.useState(initialCandles);
   const [indicators, setIndicators] = React.useState(initialIndicators);
@@ -60,7 +66,7 @@ export function SymbolChartPanel({
         <IntervalSwitcher value={selectedInterval} onChange={handleChange} />
       </div>
       <div className={loading ? "opacity-60 transition-opacity" : "transition-opacity"}>
-        <PriceChart symbol={symbol} interval={selectedInterval} initialCandles={candles} initialIndicators={indicators} />
+        <PriceChart symbol={symbol} interval={selectedInterval} initialCandles={candles} initialIndicators={indicators} frozen={frozen} />
       </div>
       <IndicatorPanel indicators={indicators} />
     </div>
