@@ -8,6 +8,7 @@ import {
   getSymbolSnapshot,
   getSymbols,
 } from "@/lib/ticker-client";
+import { SECTORS } from "@/lib/sectors";
 
 /**
  * §21 "Contract" tier — runs the real ticker-client.ts fetch path against a
@@ -57,6 +58,16 @@ describe("ticker API contract", () => {
     const thin = sensors?.filter((s) => s.liquidityUsdM !== null).map((s) => s.symbol).sort();
     expect(thin).toEqual(["BCH", "KB", "TKC", "TLK"]);
     expect(sensors?.every((s) => (s.liquidityUsdM === null) === (s.liquidity === null))).toBe(true);
+  });
+
+  it("every Industries symbol is known to the ticker and carries a dated close", async () => {
+    for (const { symbol } of SECTORS) {
+      const snapshot = await getSymbolSnapshot(symbol);
+      expect(snapshot, symbol).not.toBeNull();
+      expect(snapshot?.asOf, symbol).toBeTypeOf("string");
+      // Two daily bars are all the strip needs: the close and the one before it.
+      expect(snapshot?.prevClose, symbol).toBeGreaterThan(0);
+    }
   });
 
   it("an unknown symbol is a 404, so the page shows notFound() instead of a zero-price page", async () => {

@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
 
 import { FeedFreshnessProvider, FeedStatus } from "@/components/market/FeedStatus";
+import { IndustriesStrip } from "@/components/market/IndustriesStrip";
 import { PricesTable, type PriceEntry } from "@/components/market/PricesTable";
 import { WhatMovedEmpty } from "@/components/market/WhatMovedEmpty";
 import { Container } from "@/components/shell/Container";
+import type { SectorTile } from "@/lib/industries";
 import { newestVintage } from "@/lib/prices";
+import { SECTORS } from "@/lib/sectors";
 import { getSensors, getSymbolSnapshot } from "@/lib/ticker-client";
 import { pageMetadata } from "@/lib/metadata";
 import { cn } from "@/lib/utils";
@@ -20,7 +23,28 @@ export const metadata: Metadata = pageMetadata({
 const LEDE = "mt-3 max-w-[66ch] text-[16.5px] leading-relaxed text-read";
 
 export default async function MarketPage() {
-  const sensors = await getSensors();
+  const renderedAt = new Date().toISOString();
+  // The ten sector baskets are read alongside the sensor list: neither waits on the other.
+  const [sensors, tiles] = await Promise.all([
+    getSensors(),
+    Promise.all(
+      SECTORS.map(async (sector): Promise<SectorTile> => {
+        const snap = await getSymbolSnapshot(sector.symbol);
+        return {
+          symbol: sector.symbol,
+          label: sector.label,
+          row: {
+            symbol: sector.symbol,
+            price: snap?.price ?? 0,
+            prevClose: snap?.prevClose ?? 0,
+            change: snap?.change ?? 0,
+            changePercent: snap?.changePercent ?? 0,
+            asOf: snap?.asOf ?? null,
+          },
+        };
+      }),
+    ),
+  ]);
 
   // One snapshot per sensor. A snapshot that cannot be read leaves its row in
   // place with a dash, rather than removing a sensor from the page.
@@ -74,7 +98,7 @@ export default async function MarketPage() {
             that country; a move in a global name is about the world.
           </p>
           {entries.length > 0 ? (
-            <PricesTable entries={entries} renderedAt={new Date().toISOString()} />
+            <PricesTable entries={entries} renderedAt={renderedAt} />
           ) : (
             <p className="text-sm text-text-muted">Live market data is temporarily unavailable.</p>
           )}
@@ -95,7 +119,12 @@ export default async function MarketPage() {
           <h2 id="industries" className="text-2xl font-light">
             Industries
           </h2>
-          <p className={LEDE}>Ten worldwide industry baskets, priced once a day at the close.</p>
+          <p className={cn(LEDE, "mb-6")}>Ten worldwide industry baskets, priced once a day at the close.</p>
+          {tiles.some((t) => t.row.asOf !== null) ? (
+            <IndustriesStrip tiles={tiles} renderedAt={renderedAt} />
+          ) : (
+            <p className="text-sm text-text-muted">Industry data is temporarily unavailable.</p>
+          )}
         </section>
       </Container>
     </FeedFreshnessProvider>
