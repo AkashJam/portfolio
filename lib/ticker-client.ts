@@ -5,16 +5,14 @@ import type { z } from "zod";
 import {
   atlasResponseSchema,
   candlesResponseSchema,
-  costOfLivingDetailSchema,
-  costOfLivingResponseSchema,
   indicatorSeriesResponseSchema,
+  sensorsResponseSchema,
   symbolSnapshotSchema,
   symbolsResponseSchema,
   type AtlasResponse,
   type CandlesResponse,
-  type CostOfLiving,
-  type CostOfLivingDetail,
   type IndicatorSeriesResponse,
+  type Sensor,
   type Symbol,
   type SymbolSnapshot,
 } from "@/lib/market-schemas";
@@ -98,12 +96,12 @@ export function getIndicatorSeries(
   );
 }
 
-export function getCostOfLiving(): Promise<CostOfLiving[] | null> {
-  return get("/col", costOfLivingResponseSchema);
-}
-
-export function getCostOfLivingDetail(city: string): Promise<CostOfLivingDetail | null> {
-  return get(`/col/${encodeURIComponent(city)}`, costOfLivingDetailSchema);
+/**
+ * The eighteen market sensors in display order (§8). Static between deploys and
+ * answered from the ticker's embedded snapshot, so it can be cached for a while.
+ */
+export function getSensors(opts?: { revalidateSeconds?: number }): Promise<Sensor[] | null> {
+  return get("/sensors", sensorsResponseSchema, opts?.revalidateSeconds);
 }
 
 /**

@@ -3,9 +3,8 @@ import { describe, expect, it } from "vitest";
 import {
   getAtlasCities,
   getCandles,
-  getCostOfLiving,
-  getCostOfLivingDetail,
   getIndicatorSeries,
+  getSensors,
   getSymbolSnapshot,
   getSymbols,
 } from "@/lib/ticker-client";
@@ -46,18 +45,19 @@ describe("ticker API contract", () => {
     expect(series?.series).toBeTypeOf("object");
   });
 
-  it("GET /col matches costOfLivingResponseSchema and returns the 5 seeded cities", async () => {
-    const col = await getCostOfLiving();
-    expect(col).not.toBeNull();
-    expect(col?.length).toBe(5);
-    expect(col?.every((c) => c.simulated === true)).toBe(true);
+  it("GET /sensors matches sensorsResponseSchema: eighteen in a fixed order, none of them simulated", async () => {
+    const sensors = await getSensors();
+    expect(sensors).not.toBeNull();
+    expect(sensors?.map((s) => s.order)).toEqual(Array.from({ length: 18 }, (_, i) => i + 1));
+    expect(sensors?.some((s) => s.symbol.startsWith("SIM:"))).toBe(false);
+    expect(sensors?.filter((s) => s.group === "global").map((s) => s.symbol)).toEqual(["NVDA", "AAPL", "XOM", "JPM", "CAT"]);
+    const mufg = sensors?.find((s) => s.symbol === "MUFG");
+    expect(mufg?.country).toBe("Japan");
   });
 
-  it("GET /col/{city} matches costOfLivingDetailSchema", async () => {
-    const detail = await getCostOfLivingDetail("London");
-    expect(detail).not.toBeNull();
-    expect(detail?.series.length).toBeGreaterThan(0);
-    expect(detail?.basket.length).toBeGreaterThan(0);
+  it("an unknown symbol is a 404, so the page shows notFound() instead of a zero-price page", async () => {
+    expect(await getSymbolSnapshot("NOPE")).toBeNull();
+    expect(await getCandles("NOPE", "1h")).toBeNull();
   });
 
   it("GET /atlas/cities matches atlasResponseSchema: 23 countries, 8 measures, a source and as-of on every value", async () => {

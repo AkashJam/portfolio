@@ -4,8 +4,8 @@ import {
   atlasResponseSchema,
   atlasRowSchema,
   candlesResponseSchema,
-  costOfLivingSchema,
   indicatorSeriesResponseSchema,
+  sensorsResponseSchema,
   symbolSnapshotSchema,
   symbolsResponseSchema,
 } from "@/lib/market-schemas";
@@ -104,22 +104,30 @@ describe("indicatorSeriesResponseSchema", () => {
   });
 });
 
-describe("costOfLivingSchema", () => {
-  it("requires the simulated provenance flag (§22 risk #8)", () => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- destructured only to omit it below
-    const { simulated: _simulated, ...withoutSimulated } = {
-      city: "London",
-      country: "UK",
-      localCurrency: "GBP",
-      localValue: 2522.39,
-      eurValue: 2945.39,
-      changeYoY: 3,
-      surveyYear: 2024,
-      source: "JRF / Loughborough — MIS",
-      simulated: true,
-    };
-    const result = costOfLivingSchema.safeParse(withoutSimulated);
-    expect(result.success).toBe(false);
+describe("sensorsResponseSchema", () => {
+  const country = {
+    symbol: "MUFG",
+    name: "Mitsubishi UFJ",
+    group: "country",
+    country: "Japan",
+    theme: null,
+    region: "asia-pacific",
+    liquidity: null,
+    order: 13,
+  };
+  const global = { ...country, symbol: "NVDA", name: "NVIDIA", group: "global", country: null, theme: "Semiconductors", region: null, order: 14 };
+
+  it("accepts a country sensor and a global one", () => {
+    expect(sensorsResponseSchema.safeParse([country, global]).success).toBe(true);
+  });
+
+  it("rejects a group the ticker does not define", () => {
+    expect(sensorsResponseSchema.safeParse([{ ...country, group: "sector" }]).success).toBe(false);
+  });
+
+  it("requires the fixed order, which the pages rely on to avoid re-sorting", () => {
+    const { order: _order, ...withoutOrder } = country; // eslint-disable-line @typescript-eslint/no-unused-vars
+    expect(sensorsResponseSchema.safeParse([withoutOrder]).success).toBe(false);
   });
 });
 

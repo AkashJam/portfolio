@@ -61,42 +61,21 @@ export const indicatorSeriesResponseSchema = z.object({
 });
 export type IndicatorSeriesResponse = z.infer<typeof indicatorSeriesResponseSchema>;
 
-export const costOfLivingSchema = z.object({
-  city: z.string(),
-  country: z.string(),
-  localCurrency: z.string(),
-  localValue: z.number(),
-  eurValue: z.number(),
-  changeYoY: z.number(),
-  surveyYear: z.number(),
-  source: z.string(),
-  simulated: z.boolean(),
+// GET /sensors (§8, Phase 14): the eighteen market sensors in their fixed
+// display order. Country sensors carry a country and region from the ticker's
+// country table; global sensors carry a theme instead.
+export const sensorSchema = z.object({
+  symbol: z.string(),
+  name: z.string(),
+  group: z.enum(["country", "global"]),
+  country: z.string().nullable(),
+  theme: z.string().nullable(),
+  region: z.string().nullable(),
+  liquidity: z.string().nullable(),
+  order: z.number(),
 });
-export type CostOfLiving = z.infer<typeof costOfLivingSchema>;
-export const costOfLivingResponseSchema = z.array(costOfLivingSchema);
-
-const costOfLivingSeriesPointSchema = z.object({
-  time: z.string(),
-  value: z.number(),
-});
-const costOfLivingBasketItemSchema = z.object({
-  label: z.string(),
-  value: z.number(),
-});
-
-export const costOfLivingDetailSchema = z.object({
-  city: z.string(),
-  localCurrency: z.string(),
-  localValue: z.number(),
-  eurValue: z.number(),
-  surveyYear: z.number(),
-  source: z.string(),
-  fxToEur: z.number(),
-  series: z.array(costOfLivingSeriesPointSchema),
-  basket: z.array(costOfLivingBasketItemSchema),
-  simulated: z.boolean(),
-});
-export type CostOfLivingDetail = z.infer<typeof costOfLivingDetailSchema>;
+export type Sensor = z.infer<typeof sensorSchema>;
+export const sensorsResponseSchema = z.array(sensorSchema);
 
 // GET /atlas/cities (§8, Phase 10). Eight measures per country: four are change
 // over one window (shares, housing, prices, currency), four the latest level.

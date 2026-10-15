@@ -1,19 +1,16 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
-import { CostOfLivingChart } from "@/components/market/CostOfLivingChart";
 import { LiveSnapshot } from "@/components/market/LiveSnapshot";
 import { SymbolChartPanel } from "@/components/market/SymbolChartPanel";
 import {
   getCandles,
-  getCostOfLivingDetail,
   getIndicatorSeries,
   getSymbolSnapshot,
 } from "@/lib/ticker-client";
 import { pageMetadata } from "@/lib/metadata";
 
 const DEFAULT_INTERVAL = "1h";
-const COL_PREFIX = "COL:";
 
 export async function generateMetadata({
   params,
@@ -24,26 +21,13 @@ export async function generateMetadata({
   return pageMetadata({
     path: `/market/${symbol}`,
     title: `${symbol} — Market — Akash James`,
-    description: symbol.startsWith(COL_PREFIX)
-      ? `Simulated cost-of-living series for ${symbol.slice(COL_PREFIX.length)}, from the Ticker backend.`
-      : `${symbol}: live price, candlesticks and indicators, streamed from the Ticker backend.`,
+    description: `${symbol}: live price, candlesticks and indicators, streamed from the Ticker backend.`,
   });
 }
 
 export default async function SymbolPage({ params }: PageProps<"/market/[symbol]">) {
   const { symbol: rawSymbol } = await params;
   const symbol = decodeURIComponent(rawSymbol);
-
-  if (symbol.startsWith(COL_PREFIX)) {
-    const city = symbol.slice(COL_PREFIX.length);
-    const detail = await getCostOfLivingDetail(city);
-    if (!detail) notFound();
-    return (
-      <div className="mx-auto max-w-4xl px-4 py-16">
-        <CostOfLivingChart detail={detail} />
-      </div>
-    );
-  }
 
   const [snapshot, candles, indicators] = await Promise.all([
     getSymbolSnapshot(symbol),

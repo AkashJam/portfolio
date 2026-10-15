@@ -3,10 +3,9 @@ import type { Metadata } from "next";
 import { FeedFreshnessProvider, FeedStatus } from "@/components/market/FeedStatus";
 import { SymbolCardGrid } from "@/components/market/SymbolCardGrid";
 import type { MarketRow } from "@/components/market/SymbolCard";
-import { CostOfLivingTable } from "@/components/market/CostOfLivingTable";
 import { newestTimestamp } from "@/lib/feed-freshness";
 import { volumeFormat } from "@/lib/format";
-import { getCandles, getCostOfLiving, getSymbolSnapshot, getSymbols } from "@/lib/ticker-client";
+import { getCandles, getSymbolSnapshot, getSymbols } from "@/lib/ticker-client";
 import { pageMetadata } from "@/lib/metadata";
 
 export const metadata: Metadata = pageMetadata({
@@ -19,7 +18,7 @@ const DEFAULT_INTERVAL = "1h";
 const SPARKLINE_POINTS = 20;
 
 export default async function MarketPage() {
-  const [symbols, costOfLiving] = await Promise.all([getSymbols(), getCostOfLiving()]);
+  const symbols = await getSymbols();
 
   const rows = symbols
     ? (
@@ -89,14 +88,6 @@ export default async function MarketPage() {
           )}
         </section>
 
-        <section>
-          <h2 className="mb-4 text-lg font-medium">Cost of Living</h2>
-          {costOfLiving && costOfLiving.length > 0 ? (
-            <CostOfLivingTable rows={costOfLiving} />
-          ) : (
-            <p className="text-sm text-text-muted">Cost-of-living data is temporarily unavailable.</p>
-          )}
-        </section>
       </div>
     </FeedFreshnessProvider>
   );
