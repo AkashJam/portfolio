@@ -23,8 +23,9 @@ export const symbolSnapshotSchema = z.object({
   dayHigh: z.number(),
   dayLow: z.number(),
   prevClose: z.number(),
-  updatedAt: z.string(),
-  simulated: z.boolean(),
+  // The price's vintage: the last trade, or the latest daily bar. Null when
+  // the service has neither (ADR-006).
+  asOf: z.string().nullable(),
 });
 export type SymbolSnapshot = z.infer<typeof symbolSnapshotSchema>;
 
@@ -169,7 +170,6 @@ export const quoteEventSchema = z.object({
   price: z.number(),
   volume: z.number(),
   time: z.string(),
-  simulated: z.boolean(),
 });
 export type QuoteEvent = z.infer<typeof quoteEventSchema>;
 

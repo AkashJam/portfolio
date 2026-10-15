@@ -38,7 +38,7 @@ export function CostOfLivingTable({ rows }: { rows: CostOfLiving[] }) {
                 €{row.eurValue.toLocaleString(undefined, { maximumFractionDigits: 0 })}
               </TableCell>
               <TableCell
-                className={cn("text-right font-mono", row.changeYoY >= 0 ? "text-simulated" : "text-market-down")}
+                className={cn("text-right font-mono", row.changeYoY >= 0 ? "text-stale" : "text-market-down")}
               >
                 {row.changeYoY >= 0 ? "+" : ""}
                 {row.changeYoY.toFixed(1)}%

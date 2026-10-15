@@ -7,7 +7,7 @@ const VARIANTS = {
   // mockup audit as a v2 regression, not a decision to propagate).
   note: "border-brand bg-brand/10 text-text",
   tip: "border-market-up bg-market-up/10 text-text",
-  warn: "border-simulated bg-simulated/10 text-text",
+  warn: "border-warn bg-warn/10 text-text",
 } as const;
 
 export function Callout({

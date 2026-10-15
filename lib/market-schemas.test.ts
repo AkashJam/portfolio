@@ -40,10 +40,31 @@ describe("symbolSnapshotSchema", () => {
       dayHigh: 188.1,
       dayLow: 184.55,
       prevClose: 185.59,
-      updatedAt: "2026-08-08T14:32:07Z",
-      simulated: true,
+      asOf: "2026-08-08T14:32:07Z",
     });
     expect(result.success).toBe(false);
+  });
+
+  const snapshot = {
+    symbol: "RY",
+    name: "Royal Bank of Canada",
+    price: 187.42,
+    change: 1.83,
+    changePercent: 0.99,
+    dayHigh: 188.1,
+    dayLow: 184.55,
+    prevClose: 185.59,
+    asOf: "2026-08-08T14:32:07Z",
+  };
+
+  it("carries a vintage instead of a simulated flag (ADR-006)", () => {
+    expect(symbolSnapshotSchema.safeParse(snapshot).success).toBe(true);
+    expect(symbolSnapshotSchema.safeParse({ ...snapshot, asOf: null }).success).toBe(true);
+  });
+
+  it("rejects a snapshot with no asOf key, so the old shape cannot slip through", () => {
+    const { asOf: _asOf, ...withoutAsOf } = snapshot; // eslint-disable-line @typescript-eslint/no-unused-vars
+    expect(symbolSnapshotSchema.safeParse(withoutAsOf).success).toBe(false);
   });
 });
 

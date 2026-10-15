@@ -4,7 +4,6 @@ import * as React from "react";
 
 import { DayRangeBar } from "@/components/market/DayRangeBar";
 import { FeedStatus, useLocalFeedTracker } from "@/components/market/FeedStatus";
-import { LiveBadge } from "@/components/market/LiveBadge";
 import { subscribeToStream } from "@/lib/sse";
 import { cn } from "@/lib/utils";
 import type { SymbolSnapshot } from "@/lib/market-schemas";
@@ -22,7 +21,7 @@ export function LiveSnapshot({ symbol, initialSnapshot }: { symbol: string; init
   // Staleness (Phase 7 step 1). PriceChart below holds a second connection
   // of its own; one indicator per page is enough, since both go through the
   // same proxy and die together.
-  const feed = useLocalFeedTracker(initialSnapshot.updatedAt);
+  const feed = useLocalFeedTracker(initialSnapshot.asOf);
 
   React.useEffect(() => {
     return subscribeToStream([symbol], {
@@ -34,8 +33,7 @@ export function LiveSnapshot({ symbol, initialSnapshot }: { symbol: string; init
           price: quote.price,
           change: quote.price - prev.prevClose,
           changePercent: prev.prevClose !== 0 ? ((quote.price - prev.prevClose) / prev.prevClose) * 100 : 0,
-          updatedAt: quote.time,
-          simulated: quote.simulated,
+          asOf: quote.time,
           // A live tick past the known day range genuinely is a new
           // intraday high/low — not fabricated, just extending the same
           // real quantity the backend's own daily candle would compute.
@@ -66,11 +64,8 @@ export function LiveSnapshot({ symbol, initialSnapshot }: { symbol: string; init
             {snapshot.change.toFixed(2)} ({up ? "+" : ""}
             {snapshot.changePercent.toFixed(2)}%)
           </p>
-          {/* Provenance (LiveBadge) and freshness (FeedStatus) answer
-              different questions, so both stay: Phase 12 reworks the first. */}
           <div className="mt-2 flex items-center justify-end gap-2">
             <FeedStatus tracker={feed} />
-            <LiveBadge simulated={snapshot.simulated} />
           </div>
         </div>
       </div>

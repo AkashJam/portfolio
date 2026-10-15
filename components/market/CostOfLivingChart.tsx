@@ -63,8 +63,8 @@ export function CostOfLivingChart({ detail }: { detail: CostOfLivingDetail }) {
             <Area
               type="monotone"
               dataKey="value"
-              stroke="var(--color-simulated)"
-              fill="var(--color-simulated)"
+              stroke="var(--color-stale)"
+              fill="var(--color-stale)"
               fillOpacity={0.15}
               strokeWidth={1.5}
               isAnimationActive={false}
@@ -80,7 +80,7 @@ export function CostOfLivingChart({ detail }: { detail: CostOfLivingDetail }) {
             <span className="w-40 shrink-0 truncate">{item.label}</span>
             <div className="h-2 flex-1 overflow-hidden rounded-full bg-panel-2">
               <div
-                className="h-full bg-simulated"
+                className="h-full bg-stale"
                 style={{ width: `${(item.value / basketTotal) * 100}%` }}
               />
             </div>

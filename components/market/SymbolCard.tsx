@@ -5,7 +5,6 @@ import { Area, AreaChart, ResponsiveContainer } from "recharts";
 
 import { Badge } from "@/components/ui/badge";
 import { DayRangeBar } from "@/components/market/DayRangeBar";
-import { LiveBadge } from "@/components/market/LiveBadge";
 import { volumeFormat } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { SymbolSnapshot } from "@/lib/market-schemas";
@@ -55,7 +54,6 @@ export function SymbolCard({ row }: { row: MarketRow }) {
           {up ? "+" : ""}
           {snapshot.changePercent.toFixed(2)}%
         </span>
-        <LiveBadge simulated={snapshot.simulated} className="ml-auto" />
       </div>
 
       <div className="h-14 w-full">

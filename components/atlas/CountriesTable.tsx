@@ -120,7 +120,7 @@ function DataCell({
   const dot = old && (
     <span
       aria-hidden="true"
-      className="ml-1.5 inline-block size-[5px] rounded-full bg-simulated align-[2px]"
+      className="ml-1.5 inline-block size-[5px] rounded-full bg-stale align-[2px]"
     />
   );
   return (

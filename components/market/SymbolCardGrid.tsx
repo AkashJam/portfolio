@@ -33,8 +33,7 @@ export function SymbolCardGrid({ rows: initialRows }: { rows: MarketRow[] }) {
                     price: quote.price,
                     change: quote.price - row.snapshot.prevClose,
                     changePercent: ((quote.price - row.snapshot.prevClose) / row.snapshot.prevClose) * 100,
-                    updatedAt: quote.time,
-                    simulated: quote.simulated,
+                    asOf: quote.time,
                   },
                   sparkline: [...row.sparkline.slice(1), quote.price],
                 }

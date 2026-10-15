@@ -6,6 +6,7 @@ import {
   getCostOfLiving,
   getCostOfLivingDetail,
   getIndicatorSeries,
+  getSymbolSnapshot,
   getSymbols,
 } from "@/lib/ticker-client";
 
@@ -23,6 +24,14 @@ describe("ticker API contract", () => {
     expect(symbols).not.toBeNull();
     expect(symbols?.length).toBeGreaterThanOrEqual(4);
     expect(symbols?.every((s) => s.symbol.startsWith("SIM:"))).toBe(true);
+  });
+
+  it("GET /symbols/{symbol} matches symbolSnapshotSchema, dated by asOf with no simulated flag (ADR-006)", async () => {
+    const snapshot = await getSymbolSnapshot("SIM:NOVA");
+    expect(snapshot).not.toBeNull();
+    expect(typeof snapshot?.asOf).toBe("string");
+    expect(snapshot).not.toHaveProperty("simulated");
+    expect(snapshot).not.toHaveProperty("updatedAt");
   });
 
   it("GET /symbols/{symbol}/candles matches candlesResponseSchema", async () => {

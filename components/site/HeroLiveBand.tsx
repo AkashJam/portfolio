@@ -122,7 +122,7 @@ export function HeroLiveBand({
   const trackRef = React.useRef<HTMLDivElement>(null);
   // Staleness (Phase 7 step 1): seeded from the newest snapshot, so a feed
   // that is dead from first load reports how old the tape really is.
-  const feed = useLocalFeedTracker(newestTimestamp(initialSnapshots.map((s) => s.updatedAt)));
+  const feed = useLocalFeedTracker(newestTimestamp(initialSnapshots.map((s) => s.asOf)));
 
   React.useEffect(() => {
     const symbols = initialSnapshots.map((s) => s.symbol);

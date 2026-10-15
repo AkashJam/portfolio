@@ -13,7 +13,7 @@ export function LiveBadge({ simulated, className }: { simulated: boolean; classN
       variant="outline"
       className={cn(
         "gap-1.5 border-transparent font-mono uppercase",
-        simulated ? "bg-simulated/15 text-simulated" : "bg-market-up/15 text-market-up",
+        simulated ? "bg-stale/15 text-stale" : "bg-market-up/15 text-market-up",
         className
       )}
     >
@@ -21,7 +21,7 @@ export function LiveBadge({ simulated, className }: { simulated: boolean; classN
         aria-hidden="true"
         className={cn(
           "size-1.5 rounded-full",
-          simulated ? "bg-simulated" : "bg-market-up motion-safe:animate-pulse"
+          simulated ? "bg-stale" : "bg-market-up motion-safe:animate-pulse"
         )}
       />
       {simulated ? "Simulated" : "Live"}

@@ -12,7 +12,7 @@ import { pageMetadata } from "@/lib/metadata";
 export const metadata: Metadata = pageMetadata({
   path: "/market",
   title: "Market — Akash James",
-  description: "Live SIM: markets and simulated cost-of-living data, streamed from the Ticker backend.",
+  description: "Live market data streamed from the Ticker backend, with each figure dated.",
 });
 
 const DEFAULT_INTERVAL = "1h";
@@ -54,7 +54,7 @@ export default async function MarketPage() {
     // The provider spans the header and the grid: SymbolCardGrid owns the
     // page's one SSE subscription, but the pill that reports on it sits up
     // here in the header.
-    <FeedFreshnessProvider seedQuoteAt={newestTimestamp(rows.map((r) => r.snapshot.updatedAt))}>
+    <FeedFreshnessProvider seedQuoteAt={newestTimestamp(rows.map((r) => r.snapshot.asOf))}>
       <div className="mx-auto max-w-6xl space-y-16 px-4 py-16">
         <div>
           <p className="text-xs uppercase tracking-[0.3em] text-text-muted">Market</p>
@@ -67,9 +67,6 @@ export default async function MarketPage() {
                 </span>
               }
             />
-            <span className="rounded-full border border-simulated/30 bg-panel-2 px-2.5 py-1 font-mono text-[11px] font-medium text-simulated">
-              ◆ Simulated feed
-            </span>
           </div>
         </div>
 
