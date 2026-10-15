@@ -5,8 +5,11 @@ import Link from "next/link";
 
 import { useScrollEdges } from "@/components/atlas/useScrollEdges";
 import { useFeedTracker } from "@/components/market/FeedStatus";
+import { useNow, useSessionState } from "@/components/market/useMarketSession";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { frozenLine } from "@/lib/market-session";
 import type { Sensor } from "@/lib/market-schemas";
+import type { MarketState } from "@/lib/market-state";
 import {
   applyQuote,
   changeDirection,
@@ -58,12 +61,35 @@ const DIRECTION = { up: "text-market-up", down: "text-market-down", flat: "text-
  * shared SSE subscription for every row. It owns the page's subscription, so
  * the staleness pill in the header reads the same tracker through the
  * FeedFreshnessProvider.
+ *
+ * While the regular session is closed the table is frozen (Phase 14 step 7): live
+ * quotes that still arrive, extended-hours trades, are not applied, the ink goes
+ * to muted with no up or down colour, and the as-of line says how old the prices
+ * are and when it opens. Frozen is drawn in ink, not opacity: the mock's 55%
+ * opacity takes the muted second lines to about 3:1 and fails AA in the state most
+ * readers see.
  */
-export function PricesTable({ entries, renderedAt }: { entries: PriceEntry[]; renderedAt: string }) {
+export function PricesTable({
+  entries,
+  renderedAt,
+  initialState,
+}: {
+  entries: PriceEntry[];
+  renderedAt: string;
+  initialState: MarketState;
+}) {
   const [rows, setRows] = React.useState(() => new Map(entries.map((e) => [e.sensor.symbol, e.row])));
   const [sawLive, setSawLive] = React.useState(false);
   const feed = useFeedTracker();
   const edges = useScrollEdges();
+  const session = useSessionState(initialState);
+  const frozen = session.session === "closed";
+  const now = useNow(renderedAt);
+  // The subscription outlives a change of session, so it reads the latest through a ref.
+  const frozenRef = React.useRef(frozen);
+  React.useEffect(() => {
+    frozenRef.current = frozen;
+  }, [frozen]);
 
   React.useEffect(() => {
     const symbols = entries.map((e) => e.sensor.symbol);
@@ -71,6 +97,8 @@ export function PricesTable({ entries, renderedAt }: { entries: PriceEntry[]; re
       onHeartbeat: () => feed.noteEvent(),
       onQuote: (quote) => {
         feed.noteQuote();
+        // Closed: an extended-hours print does not move a table that says it is frozen.
+        if (frozenRef.current) return;
         setSawLive(true);
         setRows((prev) => {
           const current = prev.get(quote.symbol);
@@ -85,14 +113,16 @@ export function PricesTable({ entries, renderedAt }: { entries: PriceEntry[]; re
 
   const asOfs = entries.map((e) => rows.get(e.sensor.symbol)?.asOf ?? null);
   const tableAsOf = newestVintage(asOfs);
-  const vintage = pricesVintage(asOfs, new Date(renderedAt), sawLive);
+  const vintage = frozen
+    ? frozenLine(pricesVintage(asOfs, now, false), session.opensAt, now)
+    : pricesVintage(asOfs, new Date(renderedAt), sawLive);
 
   return (
     <div>
       <p data-testid="prices-vintage" className="mb-3 font-mono text-[12.5px] text-text-muted">
         {vintage}
       </p>
-      <div className="panel-elevated overflow-hidden rounded-2xl">
+      <div data-session={frozen ? "closed" : "open"} className="panel-elevated overflow-hidden rounded-2xl">
         <Table
           containerClassName="atlas-edge-cue"
           containerProps={{ ref: edges.attach, ...PINNED_ATTR, ...edges.attrs }}
@@ -120,7 +150,13 @@ export function PricesTable({ entries, renderedAt }: { entries: PriceEntry[]; re
               {entries
                 .filter((e) => e.sensor.group === group)
                 .map(({ sensor }) => (
-                  <PriceRowView key={sensor.symbol} sensor={sensor} row={rows.get(sensor.symbol)!} tableAsOf={tableAsOf} />
+                  <PriceRowView
+                    key={sensor.symbol}
+                    sensor={sensor}
+                    row={rows.get(sensor.symbol)!}
+                    tableAsOf={tableAsOf}
+                    frozen={frozen}
+                  />
                 ))}
             </TableBody>
           ))}
@@ -130,11 +166,22 @@ export function PricesTable({ entries, renderedAt }: { entries: PriceEntry[]; re
   );
 }
 
-function PriceRowView({ sensor, row, tableAsOf }: { sensor: Sensor; row: PriceRow; tableAsOf: string | null }) {
+function PriceRowView({
+  sensor,
+  row,
+  tableAsOf,
+  frozen,
+}: {
+  sensor: Sensor;
+  row: PriceRow;
+  tableAsOf: string | null;
+  frozen: boolean;
+}) {
   const place = sensor.country ?? sensor.theme ?? sensor.name;
   const hasPrice = row.asOf !== null;
   const own = rowVintage(row.asOf, tableAsOf);
-  const direction = changeDirection(row);
+  // Frozen: no up or down colour, because nothing is moving.
+  const direction = frozen ? "flat" : changeDirection(row);
 
   return (
     <TableRow data-testid={`market-row-${sensor.symbol}`}>
@@ -144,7 +191,10 @@ function PriceRowView({ sensor, row, tableAsOf }: { sensor: Sensor; row: PriceRo
         <Link
           href={`/market/${sensor.symbol}`}
           aria-label={`${place}, ${sensor.symbol}`}
-          className="rounded-sm text-text hover:text-brand-hover focus-visible:outline-2 focus-visible:outline-brand"
+          className={cn(
+            "rounded-sm hover:text-brand-hover focus-visible:outline-2 focus-visible:outline-brand",
+            frozen ? "text-text-muted" : "text-text",
+          )}
         >
           {place}
         </Link>
@@ -161,7 +211,7 @@ function PriceRowView({ sensor, row, tableAsOf }: { sensor: Sensor; row: PriceRo
       </TableCell>
       <TableCell className="px-2 font-mono text-[13px] text-text-muted">{sensor.symbol}</TableCell>
       <TableCell className="px-2 text-right font-mono tabular-nums">
-        <span data-testid="price" className="text-text">
+        <span data-testid="price" className={frozen ? "text-text-muted" : "text-text"}>
           {hasPrice ? row.price.toFixed(2) : "—"}
         </span>
         {own && <small className="block text-[11px] text-text-muted">{own}</small>}

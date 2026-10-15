@@ -2,7 +2,7 @@
 
 import * as React from "react";
 
-import { deriveMarketState, toFeed, type MarketState } from "@/lib/market-state";
+import { deriveMarketState, toFeed, toSession, type MarketState } from "@/lib/market-state";
 
 const POLL_MS = 60_000;
 
@@ -30,11 +30,19 @@ export function MarketStateProvider({ children }: { children: React.ReactNode })
         next = deriveMarketState({
           feed: res.ok ? toFeed(record.feed) : "unreachable",
           tripped: record.tripped === true,
+          session: res.ok ? toSession(record.session) : "unknown",
+          opensAt: typeof record.opensAt === "string" ? record.opensAt : null,
         });
       } catch {
         next = deriveMarketState({ feed: "unreachable", tripped: false });
       }
-      if (!cancelled) setState((prev) => (prev && prev.state === next.state && prev.live === next.live ? prev : next));
+      if (!cancelled) {
+        setState((prev) =>
+          prev && prev.state === next.state && prev.live === next.live && prev.session === next.session && prev.opensAt === next.opensAt
+            ? prev
+            : next,
+        );
+      }
     }
 
     void poll();

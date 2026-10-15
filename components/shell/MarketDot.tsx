@@ -30,7 +30,7 @@ export function MarketDot({ className, decorative = false }: { className?: strin
   return <DotFor state={state} className={className} decorative={decorative} />;
 }
 
-function DotFor({ state, className, decorative }: { state: MarketState; className?: string; decorative: boolean }) {
+export function DotFor({ state, className, decorative = false }: { state: Pick<MarketState, "state" | "live">; className?: string; decorative?: boolean }) {
   return (
     <span
       {...(decorative ? { "aria-hidden": true } : { role: "img", "aria-label": stateAriaLabel(state) })}

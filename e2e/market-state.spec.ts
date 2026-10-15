@@ -8,11 +8,13 @@ import { expect, test, type Page } from "@playwright/test";
 // the trigger on, so a stub is the only way to see it, and it proves the rendering
 // is built.
 
-type Stub = { feed: string; tripped: boolean } | "fail";
+type Stub = { feed: string; tripped: boolean; session?: string; opensAt?: string | null } | "fail";
 
 async function stub(page: Page, body: Stub) {
   await page.route("**/api/market-state", (route) =>
-    body === "fail" ? route.abort() : route.fulfill({ json: body }),
+    // The real route always sends a session; these tests are about the dot, so
+    // the session is open unless a case says otherwise.
+    body === "fail" ? route.abort() : route.fulfill({ json: { session: "open", opensAt: null, ...body } }),
   );
 }
 
@@ -108,7 +110,7 @@ test.describe("at 1440px", () => {
     // A variable, not a call count: in development React runs effects twice, so
     // the page's first load asks twice.
     let feed = "live";
-    await page.route("**/api/market-state", (route) => route.fulfill({ json: { feed, tripped: false } }));
+    await page.route("**/api/market-state", (route) => route.fulfill({ json: { feed, tripped: false, session: "open", opensAt: null } }));
     await page.goto("/about");
     await expect(dot(page)).toHaveAttribute("data-market-state", "quiet");
     feed = "stale";

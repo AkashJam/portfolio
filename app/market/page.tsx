@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 
 import { FeedFreshnessProvider, FeedStatus } from "@/components/market/FeedStatus";
+import { MarketStateLine } from "@/components/market/MarketStateLine";
+import { SessionPill } from "@/components/market/SessionPill";
 import { IndustriesStrip } from "@/components/market/IndustriesStrip";
 import { PricesTable, type PriceEntry } from "@/components/market/PricesTable";
 import { WhatMovedEmpty } from "@/components/market/WhatMovedEmpty";
@@ -8,7 +10,8 @@ import { Container } from "@/components/shell/Container";
 import type { SectorTile } from "@/lib/industries";
 import { newestVintage } from "@/lib/prices";
 import { SECTORS } from "@/lib/sectors";
-import { getSensors, getSymbolSnapshot } from "@/lib/ticker-client";
+import { seedFromResponse } from "@/lib/market-session";
+import { getMarketState, getSensors, getSymbolSnapshot } from "@/lib/ticker-client";
 import { pageMetadata } from "@/lib/metadata";
 import { cn } from "@/lib/utils";
 
@@ -24,9 +27,11 @@ const LEDE = "mt-3 max-w-[66ch] text-[16.5px] leading-relaxed text-read";
 
 export default async function MarketPage() {
   const renderedAt = new Date().toISOString();
-  // The ten sector baskets are read alongside the sensor list: neither waits on the other.
-  const [sensors, tiles] = await Promise.all([
+  // The ten sector baskets and the session are read alongside the sensor list:
+  // none waits on another.
+  const [sensors, marketState, tiles] = await Promise.all([
     getSensors(),
+    getMarketState(),
     Promise.all(
       SECTORS.map(async (sector): Promise<SectorTile> => {
         const snap = await getSymbolSnapshot(sector.symbol);
@@ -67,10 +72,15 @@ export default async function MarketPage() {
       )
     : [];
 
+  // The server's own answer is the first paint's state, so a closed market does not
+  // flash its open treatment; the shell's poll takes over from there.
+  const initialState = seedFromResponse(marketState);
+  const newestAsOf = newestVintage(entries.map((e) => e.row.asOf));
+
   return (
     // The provider spans the header and the table: PricesTable owns the page's
     // one SSE subscription, but the pill that reports on it sits up here.
-    <FeedFreshnessProvider seedQuoteAt={newestVintage(entries.map((e) => e.row.asOf))}>
+    <FeedFreshnessProvider seedQuoteAt={newestAsOf}>
       <Container className="space-y-16 py-16">
         <header>
           <h1 className="text-4xl font-light">Market</h1>
@@ -78,6 +88,7 @@ export default async function MarketPage() {
             Eighteen real instruments: one bank or telecom for each of thirteen countries, and five global names.
             Prices are below; the threshold that picks out an unusual move switches on in the next release.
           </p>
+          <MarketStateLine initial={initialState} renderedAt={renderedAt} newestAsOf={newestAsOf} />
         </header>
 
         <section aria-labelledby="prices">
@@ -85,20 +96,14 @@ export default async function MarketPage() {
             <h2 id="prices" className="text-2xl font-light">
               Prices
             </h2>
-            <FeedStatus
-              fresh={
-                <span className="rounded-full border border-market-up/30 bg-panel-2 px-2.5 py-1 font-mono text-[11px] font-medium text-market-up">
-                  ● SSE live
-                </span>
-              }
-            />
+            <FeedStatus fresh={<SessionPill initial={initialState} />} />
           </div>
           <p className={cn(LEDE, "mb-6")}>
             One bank or telecom per country, plus five global industries. A move in a country&rsquo;s name is about
             that country; a move in a global name is about the world.
           </p>
           {entries.length > 0 ? (
-            <PricesTable entries={entries} renderedAt={renderedAt} />
+            <PricesTable entries={entries} renderedAt={renderedAt} initialState={initialState} />
           ) : (
             <p className="text-sm text-text-muted">Live market data is temporarily unavailable.</p>
           )}

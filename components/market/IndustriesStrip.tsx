@@ -10,6 +10,10 @@ const DIRECTION = { up: "text-market-up", down: "text-market-down", flat: "text-
  * this renders on the server with no client JS, and it is complete from the first
  * day: two sessions, not sixty. A close is the only honest print for a global
  * basket, whose intraday price is market-makers re-pricing markets that are shut.
+ *
+ * It is deliberately never frozen or dimmed, unlike the Prices table beside it: when
+ * the session is closed a basket's close is its most accurate print of the day
+ * (Phase 14 step 7).
  */
 export function IndustriesStrip({ tiles, renderedAt }: { tiles: SectorTile[]; renderedAt: string }) {
   const ranked = rankTiles(tiles);

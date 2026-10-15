@@ -14,6 +14,10 @@ export async function GET() {
       // A ticker that cannot be reached, or answers late, is exactly what
       // "unreachable" means.
       feed: state?.feed ?? "unreachable",
+      // Whether the regular session is open, and when it next opens. A ticker that
+      // could not be asked says neither: the page does not claim closed on a guess.
+      session: state?.session ?? "unknown",
+      opensAt: state?.opensAt ?? null,
       // Whether a sensor tripped. Nothing can yet: the trigger is Phase 15's, and it
       // will read GET /market/events for the latest session. Until then the honest
       // answer is no, and the indicator says quiet or unreachable, never tripped.

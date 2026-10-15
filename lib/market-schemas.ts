@@ -85,9 +85,14 @@ export type Sensor = z.infer<typeof sensorSchema>;
 export const sensorsResponseSchema = z.array(sensorSchema);
 
 // GET /market/state (§8, Phase 14): the ingest feed's state for the Market
-// indicator. "closed" is silence the market explains; "stale" and "down" are not.
+// indicator and the closed state. "closed" is silence the market explains; "stale"
+// and "down" are not.
+// `session` is the regular session's, separate from the feed's: after the close the
+// feed can still carry extended-hours trades. `opensAt` is the next open while closed.
 export const marketStateSchema = z.object({
   feed: z.enum(["live", "closed", "stale", "down"]),
+  session: z.enum(["open", "closed"]),
+  opensAt: z.string().nullable(),
 });
 export type MarketStateResponse = z.infer<typeof marketStateSchema>;
 
