@@ -42,6 +42,41 @@ export function dayKey(iso: string): string {
   return isClose(iso) ? iso.slice(0, 10) : nyDay.format(new Date(iso));
 }
 
+const nyWeekday = new Intl.DateTimeFormat("en-US", { timeZone: NY, weekday: "short" });
+const nyMinutes = (d: Date): number => {
+  const [h, m] = timeFormat.format(d).split(":").map(Number);
+  return h * 60 + m;
+};
+const OPEN_MINUTES = 9 * 60 + 30;
+const ISO_DAY = 86_400_000;
+
+/**
+ * The regular session a vintage belongs to, as `YYYY-MM-DD`: the "last session" the
+ * closed state names and the one whose path the home band draws. A close is its own
+ * session date. A trade is in the session of its New York day, except that a trade
+ * *before* the open (the real feed streams pre-market) belongs to the session before,
+ * and a weekend trade to the Friday. Holidays are not known here: a pre-market print
+ * on the morning after one names the holiday, and the band falls back to daily closes.
+ */
+export function sessionDayKey(iso: string): string {
+  if (isClose(iso)) return iso.slice(0, 10);
+  const d = new Date(iso);
+  let day = new Date(`${nyDay.format(d)}T00:00:00Z`);
+  const weekday = nyWeekday.format(d);
+  const beforeOpen = nyMinutes(d) < OPEN_MINUTES;
+  // Step back to the last weekday that has finished its session.
+  if (weekday === "Sat") day = new Date(day.getTime() - ISO_DAY);
+  else if (weekday === "Sun") day = new Date(day.getTime() - 2 * ISO_DAY);
+  else if (beforeOpen) day = new Date(day.getTime() - (weekday === "Mon" ? 3 : 1) * ISO_DAY);
+  return day.toISOString().slice(0, 10);
+}
+
+/** The vintage in a few words, for beside a price: `8 Oct close` or `last trade 07:21 ET`. */
+export function vintageNote(iso: string): string {
+  const d = new Date(iso);
+  return isClose(iso) ? `${closeShort.format(d)} close` : `last trade ${timeFormat.format(d)} ET`;
+}
+
 /** Applies a live quote: the price, the change against yesterday's close, and the new vintage. */
 export function applyQuote(row: PriceRow, quote: { price: number; time: string }): PriceRow {
   const change = quote.price - row.prevClose;

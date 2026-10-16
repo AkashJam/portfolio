@@ -23,6 +23,11 @@ describe("sessionWindow", () => {
     expect(sessionWindow("2026-12-04T00:00:00Z").from.toISOString()).toBe("2026-12-04T12:00:00.000Z");
   });
 
+  it("puts a pre-market print in the session before it", () => {
+    // 07:21 New York on Fri 16 Oct: the session that has closed is Thu 15 Oct's.
+    expect(sessionWindow("2026-10-16T11:21:00Z").from.toISOString()).toBe("2026-10-15T12:00:00.000Z");
+  });
+
   it("takes a live trade's New York date, not its UTC one", () => {
     // 23:30 New York on 8 Oct is 03:30 UTC on 9 Oct.
     expect(sessionWindow("2026-10-09T03:30:00Z").from.toISOString()).toBe("2026-10-08T12:00:00.000Z");
@@ -91,7 +96,8 @@ describe("shapeClosed", () => {
 describe("closeLabel", () => {
   it("names the day of a close or a trade", () => {
     expect(closeLabel("2026-10-06T00:00:00Z")).toBe("6 Oct close");
-    expect(closeLabel("2026-10-08T01:00:00Z")).toBe("7 Oct close"); // 21:00 New York on the 7th
+    // A trade is not a close, and says when it was: 21:00 New York on the 7th.
+    expect(closeLabel("2026-10-08T01:00:00Z")).toBe("last trade 21:00 ET");
     expect(closeLabel(null)).toBeNull();
   });
 });

@@ -11,6 +11,8 @@ import {
   rowVintage,
   thinListing,
   type PriceRow,
+  sessionDayKey,
+  vintageNote,
 } from "@/lib/prices";
 
 const row = (over: Partial<PriceRow> = {}): PriceRow => ({
@@ -116,5 +118,40 @@ describe("rowVintage and newestVintage", () => {
 describe("thinListing", () => {
   it("states the measured figure and its date", () => {
     expect(thinListing(13, "2026-10-09")).toBe("thin listing, $13M a day (9 Oct 2026)");
+  });
+});
+
+describe("sessionDayKey", () => {
+  it("is a close's own date", () => {
+    expect(sessionDayKey("2026-10-15T00:00:00Z")).toBe("2026-10-15");
+  });
+
+  it("keeps a trade in its New York day once the session has opened", () => {
+    expect(sessionDayKey("2026-10-15T13:30:00Z")).toBe("2026-10-15"); // 09:30 EDT, the open
+    expect(sessionDayKey("2026-10-15T19:59:00Z")).toBe("2026-10-15");
+    expect(sessionDayKey("2026-10-16T01:00:00Z")).toBe("2026-10-15"); // 21:00 EDT on the 15th, after hours
+  });
+
+  it("puts a pre-market print in the session before it", () => {
+    expect(sessionDayKey("2026-10-16T11:21:00Z")).toBe("2026-10-15"); // 07:21 EDT Friday
+    expect(sessionDayKey("2026-10-15T13:29:00Z")).toBe("2026-10-14"); // 09:29, a minute before the open
+  });
+
+  it("puts a Monday pre-market print, and a weekend one, on the Friday", () => {
+    expect(sessionDayKey("2026-10-19T11:00:00Z")).toBe("2026-10-16"); // Mon 07:00 EDT
+    expect(sessionDayKey("2026-10-17T15:00:00Z")).toBe("2026-10-16"); // Saturday
+    expect(sessionDayKey("2026-10-18T15:00:00Z")).toBe("2026-10-16"); // Sunday
+  });
+
+  it("holds in winter, when New York is an hour further from UTC", () => {
+    expect(sessionDayKey("2026-12-04T14:29:00Z")).toBe("2026-12-03"); // 09:29 EST
+    expect(sessionDayKey("2026-12-04T14:30:00Z")).toBe("2026-12-04"); // 09:30 EST
+  });
+});
+
+describe("vintageNote", () => {
+  it("says close for a close and the time for a trade", () => {
+    expect(vintageNote("2026-10-08T00:00:00Z")).toBe("8 Oct close");
+    expect(vintageNote("2026-10-16T11:21:00Z")).toBe("last trade 07:21 ET");
   });
 });

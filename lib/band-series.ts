@@ -1,4 +1,4 @@
-import { dayKey } from "@/lib/prices";
+import { sessionDayKey, vintageNote } from "@/lib/prices";
 
 /**
  * The home band's line (portfolio.md §15 Phase 14 step 9), pure so the windows and
@@ -37,7 +37,7 @@ export function openWindow(now: Date): { from: Date } {
  * at most about 720 bars, under the ticker's limit; `regularSession` trims the rest.
  */
 export function sessionWindow(asOf: string): { from: Date; to: Date } {
-  const day = dayKey(asOf);
+  const day = sessionDayKey(asOf);
   const from = new Date(`${day}T12:00:00Z`);
   return { from, to: new Date(from.getTime() + 12 * HOUR) };
 }
@@ -85,11 +85,10 @@ export function seriesNote(series: BandSeries): string | null {
   return series.source === "daily" ? `last ${series.points.length} sessions` : null;
 }
 
-/** `6 Oct close`: the tape's note beside a closed price. Takes the vintage's day. */
-const closeDay = new Intl.DateTimeFormat("en-GB", { timeZone: "UTC", day: "numeric", month: "short" });
+/** `6 Oct close`, or `last trade 07:21 ET` when the newest price is a trade, never a close: the tape's note beside a closed price. */
 export function closeLabel(asOf: string | null): string | null {
   if (asOf === null || Number.isNaN(Date.parse(asOf))) return null;
-  return `${closeDay.format(new Date(`${dayKey(asOf)}T00:00:00Z`))} close`;
+  return vintageNote(asOf);
 }
 
 /** Points to SVG path coordinates in a `width` × `height` box, padded so the line never touches an edge. */

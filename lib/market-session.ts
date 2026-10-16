@@ -1,5 +1,5 @@
 import { deriveMarketState, toFeed, toSession, type MarketState } from "@/lib/market-state";
-import { dayKey } from "@/lib/prices";
+import { sessionDayKey } from "@/lib/prices";
 
 /**
  * The closed state's rules (portfolio.md §15 Phase 14 step 7), pure so they are
@@ -32,10 +32,10 @@ export function opensIn(opensAt: string, now: Date): string {
 
 const sessionDay = new Intl.DateTimeFormat("en-GB", { timeZone: "UTC", day: "numeric", month: "short" });
 
-/** `6 Oct`: the day of the newest price, a session's close or a trade's New York day. */
+/** `6 Oct`: the last regular session the newest price belongs to. A pre-market trade belongs to the one before. */
 export function lastSessionLabel(newestAsOf: string | null): string | null {
   if (newestAsOf === null || Number.isNaN(Date.parse(newestAsOf))) return null;
-  return sessionDay.format(new Date(`${dayKey(newestAsOf)}T00:00:00Z`));
+  return sessionDay.format(new Date(`${sessionDayKey(newestAsOf)}T00:00:00Z`));
 }
 
 /** The as-of line while closed: the frozen vintage, and when it opens. */
