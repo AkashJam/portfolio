@@ -15,7 +15,7 @@ const END = WIDTH - 8;
 export function BandClosedChart({ points, label }: { points: number[]; label: string }) {
   const { line, area, last } = toPath(points, END, HEIGHT);
   return (
-    <div className="relative h-56 w-full md:h-64" data-testid="band-chart-closed">
+    <div className="relative h-56 w-full overflow-hidden md:h-64" data-testid="band-chart-closed">
       <svg
         viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
         preserveAspectRatio="none"
@@ -49,7 +49,9 @@ export function BandClosedChart({ points, label }: { points: number[]; label: st
       <span
         aria-hidden="true"
         className="absolute size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-[1.5px] border-text-muted bg-canvas"
-        style={{ left: `${(last[0] / WIDTH) * 100}%`, top: `${(last[1] / HEIGHT) * 100}%` }}
+        // Centred on the line's end, but never closer than its own radius to the edge: on a
+        // phone the end is under 3px from the edge, and a ring centred there would overflow.
+        style={{ left: `min(${(last[0] / WIDTH) * 100}%, calc(100% - 6px))`, top: `${(last[1] / HEIGHT) * 100}%` }}
       />
       <span aria-hidden="true" className="absolute top-1 right-4 font-mono text-[11px] tracking-[0.06em] text-text-muted">
         CLOSE
