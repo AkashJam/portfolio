@@ -6,10 +6,16 @@ import { expect, test } from "@playwright/test";
 //
 // It fails loudly instead of passing vacuously: if the session is closed it says
 // so rather than skipping, and every assertion is on something only the real feed
-// can produce. RY is the most-traded country sensor, so it ticks within seconds
-// of the open. The GATE: line printed at the end is what phase14.md records.
+// can produce. The GATE: line printed at the end is what phase14.md records.
+//
+// The symbol is NVDA, not the home band's RY: on 16 Oct RY went 90 seconds without a
+// trade at 09:45 ET while NVDA and AAPL streamed several a second, so a country
+// sensor can be too quiet to prove a tick inside any short timeout. The gate needs a
+// busy name; GATE_SYMBOL overrides it.
 
-const SYMBOL = "RY";
+const SYMBOL = process.env.GATE_SYMBOL ?? "NVDA";
+// The home band's fixed default (bearing.md #75): checked for being live, not for ticking.
+const BAND_DEFAULT = "RY";
 
 test.describe.configure({ mode: "serial" });
 
@@ -71,7 +77,7 @@ test("the Prices table row ticks and is dated", async ({ page }) => {
 test("the home band is live on the fixed default", async ({ page }) => {
   await page.goto("/");
   await expect(page.locator("section[data-session]")).toHaveAttribute("data-session", "open");
-  await expect(page.getByTestId("band-picker")).toContainText(SYMBOL);
+  await expect(page.getByTestId("band-picker")).toContainText(BAND_DEFAULT);
   await expect(page.getByText("LIVE", { exact: true })).toBeVisible();
 });
 
