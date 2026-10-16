@@ -85,3 +85,39 @@ export const experience: ExperienceEntry[] = [
     ],
   },
 ];
+
+/**
+ * The proof strip's figures on the home page (Phase 14 step 9), typed once, here,
+ * next to the roles they come from. They are the same ones /about's impact ledger
+ * tells the story of. "4+ yrs" is not among them: `fullStackYears` sums it from the
+ * role dates below, so it cannot drift from them.
+ */
+export const proofFigures = [
+  { value: "50,000+", label: "learners" },
+  { value: "99.9%", label: "uptime" },
+  { value: "5m\u219230s", label: "dashboard rescue" },
+] as const;
+
+const MONTHS = [
+  "january", "february", "march", "april", "may", "june",
+  "july", "august", "september", "october", "november", "december",
+] as const;
+
+/** "October 2023" as a month count; throws on anything else, so a typo fails the build. */
+function monthIndex(date: string): number {
+  const [name, year] = date.toLowerCase().split(" ");
+  const month = MONTHS.indexOf(name as (typeof MONTHS)[number]);
+  if (month < 0 || !/^\d{4}$/.test(year ?? "")) throw new Error(`experience: cannot read "${date}"`);
+  return Number(year) * 12 + month;
+}
+
+/** Whole months worked across the roles; a role with no end runs to `now`. */
+export function monthsWorked(entries: Pick<ExperienceEntry, "start" | "end">[], now: Date): number {
+  const nowIndex = now.getUTCFullYear() * 12 + now.getUTCMonth();
+  return entries.reduce((sum, e) => sum + Math.max(0, (e.end ? monthIndex(e.end) : nowIndex) - monthIndex(e.start)), 0);
+}
+
+/** `4+`: whole years, never rounded up. */
+export function fullStackYears(now: Date = new Date()): string {
+  return `${Math.floor(monthsWorked(experience, now) / 12)}+`;
+}

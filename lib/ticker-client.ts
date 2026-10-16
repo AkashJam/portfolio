@@ -77,10 +77,16 @@ export function getSymbolSnapshot(
 export function getCandles(
   symbol: string,
   interval: string,
-  opts?: { revalidateSeconds?: number }
+  opts?: { revalidateSeconds?: number; from?: Date; to?: Date }
 ): Promise<CandlesResponse | null> {
+  // The ticker returns the *oldest* bars first and stops at 1000, so a read with no
+  // `from` on a long history is the wrong end of it. A caller that wants recent bars
+  // says where to start (Phase 14 step 9).
+  const query = new URLSearchParams({ interval });
+  if (opts?.from) query.set("from", opts.from.toISOString());
+  if (opts?.to) query.set("to", opts.to.toISOString());
   return get(
-    `/symbols/${encodeURIComponent(symbol)}/candles?interval=${encodeURIComponent(interval)}`,
+    `/symbols/${encodeURIComponent(symbol)}/candles?${query}`,
     candlesResponseSchema,
     opts?.revalidateSeconds
   );
@@ -102,8 +108,8 @@ export function getIndicatorSeries(
  * The ingest feed's state, for the Market indicator. Two seconds: a ticker that
  * cannot answer that quickly is, for this purpose, unreachable.
  */
-export function getMarketState(): Promise<MarketStateResponse | null> {
-  return get("/market/state", marketStateSchema, undefined, 2000);
+export function getMarketState(opts?: { revalidateSeconds?: number }): Promise<MarketStateResponse | null> {
+  return get("/market/state", marketStateSchema, opts?.revalidateSeconds, 2000);
 }
 
 /**

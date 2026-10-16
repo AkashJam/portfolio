@@ -17,7 +17,7 @@ const STATS: Stat[] = [
 
 export function AboutStats() {
   return (
-    <div className="mt-10 grid grid-cols-2 gap-x-8 gap-y-5 md:grid-cols-3 lg:grid-cols-5">
+    <div id="impact" className="mt-10 grid scroll-mt-24 grid-cols-2 gap-x-8 gap-y-5 md:grid-cols-3 lg:grid-cols-5">
       {STATS.map((stat) => (
         <div key={stat.label} className="flex flex-col gap-0.5">
           <b className="font-mono text-xl font-semibold text-text tabular-nums md:text-2xl">

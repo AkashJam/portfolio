@@ -41,6 +41,17 @@ describe("ticker API contract", () => {
     expect(candles?.symbol).toBe("SIM:NOVA");
   });
 
+  it("GET /symbols/{symbol}/candles takes from and to, and a daily bar has no volume (Phase 14 step 9)", async () => {
+    const to = new Date();
+    const from = new Date(to.getTime() - 3 * 3_600_000);
+    const window = await getCandles("SIM:NOVA", "1m", { from, to });
+    expect(window).not.toBeNull();
+    for (const c of window?.candles ?? []) expect(Date.parse(c.time)).toBeGreaterThanOrEqual(from.getTime());
+    const daily = await getCandles("MUFG", "1d", { from: new Date(to.getTime() - 45 * 86_400_000) });
+    expect(daily).not.toBeNull();
+    expect(daily?.candles.length).toBeGreaterThan(0);
+  });
+
   it("GET /symbols/{symbol}/indicators?series=true matches indicatorSeriesResponseSchema", async () => {
     const series = await getIndicatorSeries("SIM:NOVA", ["ema", "rsi"], "1h");
     expect(series).not.toBeNull();

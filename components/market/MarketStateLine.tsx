@@ -17,10 +17,15 @@ export function MarketStateLine({
   initial,
   renderedAt,
   newestAsOf,
+  note,
+  className,
 }: {
   initial: MarketState;
   renderedAt: string;
   newestAsOf: string | null;
+  /** A closing clause for the closed line, such as the home band's `last 20 sessions`. */
+  note?: string | null;
+  className?: string;
 }) {
   const state = useSessionState(initial);
   const now = useNow(renderedAt);
@@ -30,13 +35,16 @@ export function MarketStateLine({
     <p
       data-testid="market-state-line"
       data-tone={line.tone}
-      className="mt-5 flex items-start gap-3 font-mono text-[13px] leading-normal text-text-muted"
+      className={cn("mt-5 flex items-start gap-3 font-mono text-[13px] leading-normal text-text-muted", className)}
     >
       {/* Beside the first line, not on a line of its own, when the facts wrap on a phone. */}
       <DotFor state={state} decorative className="mt-[6px] size-2" />
       <span>
         <b className={cn("font-medium", line.tone === "unreachable" ? "text-stale" : "text-read")}>{line.word}</b>{" "}
-        <span data-testid="market-state-facts">{line.facts}</span>
+        <span data-testid="market-state-facts">
+          {line.facts}
+          {note && line.tone === "closed" ? ` · ${note}` : ""}
+        </span>
       </span>
     </p>
   );
