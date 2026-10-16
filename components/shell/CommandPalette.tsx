@@ -55,7 +55,7 @@ export function CommandPalette({
 
   return (
     <CommandDialog open={open} onOpenChange={onOpenChange}>
-      <CommandInput placeholder="Search pages..." />
+      <CommandInput placeholder="Search pages, sensors, actions…" />
       <CommandList>
         <CommandEmpty>No results found.</CommandEmpty>
         <CommandGroup heading="Pages">
@@ -72,11 +72,12 @@ export function CommandPalette({
           ))}
         </CommandGroup>
         {symbols.length > 0 && (
-          <CommandGroup heading="Symbols">
+          <CommandGroup heading="Sensors">
             {symbols.map((s) => (
-              <CommandItem key={s.href} onSelect={() => go(s.href)}>
-                <span>{s.label}</span>
+              <CommandItem key={s.href} value={`${s.label} ${s.sublabel}`} onSelect={() => go(s.href)}>
+                <span className="font-mono">{s.label}</span>
                 <span className="text-text-muted">{s.sublabel}</span>
+                <CommandShortcut className="font-mono tracking-normal">{s.href}</CommandShortcut>
               </CommandItem>
             ))}
           </CommandGroup>

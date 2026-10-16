@@ -52,7 +52,7 @@ test.describe("at 1440px", () => {
     ]);
   });
 
-  test("the right-side market icon is gone and the Market tab carries no indicator", async ({
+  test("the right-side market icon is gone; the Market tab carries the one state dot and Atlas none", async ({
     page,
   }) => {
     await page.goto("/about");
@@ -60,10 +60,17 @@ test.describe("at 1440px", () => {
       0,
     );
     await expect(page.locator('header a[href="/market"]')).toHaveCount(1);
+    // The state indicator is a dot (market-state.spec.ts), never an icon or a pulse.
     await expect(
       page.locator(
         'header a[href="/market"] svg, header a[href="/market"] [class*="animate-pulse"]',
       ),
+    ).toHaveCount(0);
+    await expect(
+      page.locator('header a[href="/market"] [data-market-state]'),
+    ).toHaveCount(1);
+    await expect(
+      page.locator('header a[href="/atlas"] [data-market-state]'),
     ).toHaveCount(0);
   });
 
@@ -260,11 +267,17 @@ test.describe("at 390px", () => {
   test("the drawer lists the same six with route hints, grouped between dividers, then Résumé and the social links", async ({
     page,
   }) => {
+    // The Market row says its state where the others show their route; pin it so
+    // the list is the same on every run (market-state.spec.ts covers each state).
+    await page.route("**/api/market-state", (route) =>
+      route.fulfill({ json: { feed: "closed", tripped: false } }),
+    );
     await page.goto("/about");
     await page.getByRole("button", { name: "Open menu" }).click();
     const menu = page
       .getByRole("dialog")
       .getByRole("navigation", { name: "Menu" });
+    await expect(page.getByTestId("drawer-market-state")).toHaveText("quiet");
     const rows = (await menu.getByRole("link").allInnerTexts()).map((t) =>
       t.replace(/\s+/g, " ").trim(),
     );
@@ -273,7 +286,7 @@ test.describe("at 390px", () => {
       "Projects /projects",
       "Blog /blog",
       "About /about",
-      "Market /market",
+      "Market quiet",
       "Atlas /atlas",
       "Résumé PDF",
     ]);

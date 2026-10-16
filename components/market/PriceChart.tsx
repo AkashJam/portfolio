@@ -38,12 +38,23 @@ export function PriceChart({
   interval,
   initialCandles,
   initialIndicators,
+  frozen,
 }: {
   symbol: string;
   interval: string;
   initialCandles: Candle[];
   initialIndicators: IndicatorSeriesResponse | null;
+  /** The regular session is closed: a live candle that still arrives is not drawn. */
+  frozen: boolean;
 }) {
+  // The sweep's daily bars carry price only (Phase 8), so a volume panel on `1d`
+  // would draw a flat zero.
+  const showVolume = interval !== "1d";
+  // The subscription outlives a change of session, so it reads the latest through a ref.
+  const frozenRef = React.useRef(frozen);
+  React.useEffect(() => {
+    frozenRef.current = frozen;
+  }, [frozen]);
   const containerRef = React.useRef<HTMLDivElement>(null);
   const chartRef = React.useRef<IChartApi | null>(null);
   const candleSeriesRef = React.useRef<ISeriesApi<"Candlestick"> | null>(null);
@@ -83,20 +94,22 @@ export function PriceChart({
       }))
     );
 
-    const volumeSeries = chart.addSeries(HistogramSeries, {
-      color: tokens.up,
-      priceFormat: { type: "volume" },
-      priceScaleId: "",
-    });
-    volumeSeries.priceScale().applyOptions({ scaleMargins: { top: 0.8, bottom: 0 } });
-    volumeSeriesRef.current = volumeSeries;
-    volumeSeries.setData(
-      initialCandles.map((c) => ({
-        time: toUTCTimestamp(c.time),
-        value: c.volume,
-        color: c.close >= c.open ? tokens.up : tokens.down,
-      }))
-    );
+    if (showVolume) {
+      const volumeSeries = chart.addSeries(HistogramSeries, {
+        color: tokens.up,
+        priceFormat: { type: "volume" },
+        priceScaleId: "",
+      });
+      volumeSeries.priceScale().applyOptions({ scaleMargins: { top: 0.8, bottom: 0 } });
+      volumeSeriesRef.current = volumeSeries;
+      volumeSeries.setData(
+        initialCandles.map((c) => ({
+          time: toUTCTimestamp(c.time),
+          value: c.volume ?? 0,
+          color: c.close >= c.open ? tokens.up : tokens.down,
+        }))
+      );
+    }
 
     const emaPoints = initialIndicators?.series.ema;
     if (emaPoints?.length) {
@@ -117,7 +130,7 @@ export function PriceChart({
     // Re-mounts the whole chart on symbol/timeframe change (new initial
     // data) rather than diffing in place — simplest correct behavior for a
     // chart library that isn't a React-native component.
-  }, [symbol, initialCandles, initialIndicators]);
+  }, [symbol, initialCandles, initialIndicators, showVolume]);
 
   React.useEffect(() => {
     return subscribeToStream([symbol], {
@@ -128,6 +141,8 @@ export function PriceChart({
         // check, a finest-interval tick would silently corrupt whatever
         // coarser interval (e.g. 1d) happens to be displayed.
         if (candle.interval !== interval) return;
+        // Closed: an extended-hours bar does not move a chart beside a price that is frozen.
+        if (frozenRef.current) return;
         const time = toUTCTimestamp(candle.time);
         candleSeriesRef.current?.update({
           time,
@@ -146,5 +161,5 @@ export function PriceChart({
     });
   }, [symbol, interval]);
 
-  return <div ref={containerRef} className="h-100 w-full" />;
+  return <div ref={containerRef} data-testid="price-chart" data-volume={showVolume} className="h-100 w-full" />;
 }

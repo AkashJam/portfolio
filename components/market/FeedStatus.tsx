@@ -10,7 +10,7 @@ const FeedTrackerContext = React.createContext<FeedTracker | null>(null);
 /**
  * One tracker per SSE subscription owner, for pages where the owner and the
  * status pill are in different parts of the tree — `/market`'s pill sits in
- * the server-rendered header, its subscription in `SymbolCardGrid` below.
+ * the server-rendered header, its subscription in `PricesTable` below.
  * Owners that render their own pill use `useLocalFeedTracker` instead.
  */
 export function FeedFreshnessProvider({
@@ -93,11 +93,11 @@ export function FeedStatus({
         <span
           data-testid="feed-stale"
           className={cn(
-            "inline-flex items-center gap-2 rounded-full border border-simulated/35 bg-simulated/10 font-mono text-simulated",
+            "inline-flex items-center gap-2 rounded-full border border-stale/35 bg-stale/10 font-mono text-stale",
             className ?? "px-2.5 py-1 text-[11px] font-medium"
           )}
         >
-          <span aria-hidden="true" className="size-1.5 rounded-full bg-simulated" />
+          <span aria-hidden="true" className="size-1.5 rounded-full bg-stale" />
           <span className="sr-only">Live feed interrupted</span>
           <span aria-hidden="true">{staleAge ? `last tick ${staleAge} ago` : "feed interrupted"}</span>
         </span>

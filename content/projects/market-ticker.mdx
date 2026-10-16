@@ -74,8 +74,9 @@ because a server can't time what it never sees.
   pipeline a real feed would use.
 - Runs alongside the rest of the site on one `t4g.small` box: Go, Redis, TimescaleDB, Next.js, and
   Caddy together, effectively $0 marginal infrastructure cost beyond the box that was already there.
-- Every simulated value carries a `simulated: true` flag end-to-end, from the Go API through to a
-  visible badge in the UI — it can't silently pass itself off as a real market feed.
+- Every figure carries the time it is dated to (`asOf`) end-to-end, from the Go API through to the
+  page, and a feed that stops says so instead of falling back to invented numbers. The simulator
+  exists for development and CI only.
 - Contract tests run against a real Ticker container in CI, so the frontend's assumptions about the
   API are checked against the API rather than against a fixture of it.
 

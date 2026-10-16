@@ -8,7 +8,7 @@ import type { Project } from "content-collections";
 // Exported for reuse by the case-study fact grid (app/projects/[project]/page.tsx).
 export const STATUS_COLOR: Record<Project["status"], string> = {
   Live: "text-market-up",
-  Research: "text-simulated",
+  Research: "text-warn",
   "This site": "text-text-muted",
 };
 

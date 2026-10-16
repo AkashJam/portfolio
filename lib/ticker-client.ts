@@ -5,16 +5,16 @@ import type { z } from "zod";
 import {
   atlasResponseSchema,
   candlesResponseSchema,
-  costOfLivingDetailSchema,
-  costOfLivingResponseSchema,
   indicatorSeriesResponseSchema,
+  marketStateSchema,
+  sensorsResponseSchema,
   symbolSnapshotSchema,
   symbolsResponseSchema,
   type AtlasResponse,
   type CandlesResponse,
-  type CostOfLiving,
-  type CostOfLivingDetail,
   type IndicatorSeriesResponse,
+  type MarketStateResponse,
+  type Sensor,
   type Symbol,
   type SymbolSnapshot,
 } from "@/lib/market-schemas";
@@ -31,15 +31,15 @@ export const TICKER_API_URL = process.env.TICKER_API_URL ?? "http://localhost:80
 async function get<Schema extends z.ZodType>(
   path: string,
   schema: Schema,
-  revalidateSeconds?: number
+  revalidateSeconds?: number,
+  timeoutMs?: number
 ): Promise<z.infer<Schema> | null> {
   try {
-    const res = await fetch(
-      `${TICKER_API_URL}${path}`,
-      revalidateSeconds !== undefined
-        ? { next: { revalidate: revalidateSeconds } }
-        : { cache: "no-store" }
-    );
+    const res = await fetch(`${TICKER_API_URL}${path}`, {
+      ...(revalidateSeconds !== undefined ? { next: { revalidate: revalidateSeconds } } : { cache: "no-store" as const }),
+      // A probe must answer quickly or count as unreachable.
+      ...(timeoutMs !== undefined ? { signal: AbortSignal.timeout(timeoutMs) } : {}),
+    });
     if (!res.ok) {
       console.error(`ticker-client: ${path} → ${res.status}`);
       return null;
@@ -77,10 +77,16 @@ export function getSymbolSnapshot(
 export function getCandles(
   symbol: string,
   interval: string,
-  opts?: { revalidateSeconds?: number }
+  opts?: { revalidateSeconds?: number; from?: Date; to?: Date }
 ): Promise<CandlesResponse | null> {
+  // The ticker returns the *oldest* bars first and stops at 1000, so a read with no
+  // `from` on a long history is the wrong end of it. A caller that wants recent bars
+  // says where to start (Phase 14 step 9).
+  const query = new URLSearchParams({ interval });
+  if (opts?.from) query.set("from", opts.from.toISOString());
+  if (opts?.to) query.set("to", opts.to.toISOString());
   return get(
-    `/symbols/${encodeURIComponent(symbol)}/candles?interval=${encodeURIComponent(interval)}`,
+    `/symbols/${encodeURIComponent(symbol)}/candles?${query}`,
     candlesResponseSchema,
     opts?.revalidateSeconds
   );
@@ -98,12 +104,20 @@ export function getIndicatorSeries(
   );
 }
 
-export function getCostOfLiving(): Promise<CostOfLiving[] | null> {
-  return get("/col", costOfLivingResponseSchema);
+/**
+ * The ingest feed's state, for the Market indicator. Two seconds: a ticker that
+ * cannot answer that quickly is, for this purpose, unreachable.
+ */
+export function getMarketState(opts?: { revalidateSeconds?: number }): Promise<MarketStateResponse | null> {
+  return get("/market/state", marketStateSchema, opts?.revalidateSeconds, 2000);
 }
 
-export function getCostOfLivingDetail(city: string): Promise<CostOfLivingDetail | null> {
-  return get(`/col/${encodeURIComponent(city)}`, costOfLivingDetailSchema);
+/**
+ * The eighteen market sensors in display order (§8). Static between deploys and
+ * answered from the ticker's embedded snapshot, so it can be cached for a while.
+ */
+export function getSensors(opts?: { revalidateSeconds?: number }): Promise<Sensor[] | null> {
+  return get("/sensors", sensorsResponseSchema, opts?.revalidateSeconds);
 }
 
 /**

@@ -44,7 +44,7 @@ const REAL = [
 describe("sensorLine", () => {
   it("counts the rows from the data, in words", () => {
     expect(sensorLine(REAL)).toBe(
-      "Eleven of these rows name a US-listed bank or telecom as their market sensor; the other twelve have none. The name is text, not a link: this page shows no market figure, so it never depends on a market feed.",
+      "Eleven of these rows name a US-listed bank or telecom as their market sensor; the other twelve have none. The symbol links to its price page; this page itself shows no market figure, so it never depends on a market feed.",
     );
   });
 

@@ -120,7 +120,7 @@ function DataCell({
   const dot = old && (
     <span
       aria-hidden="true"
-      className="ml-1.5 inline-block size-[5px] rounded-full bg-simulated align-[2px]"
+      className="ml-1.5 inline-block size-[5px] rounded-full bg-stale align-[2px]"
     />
   );
   return (
@@ -386,9 +386,19 @@ export function CountriesTable({ rows }: { rows: AtlasRow[] }) {
                     )}
                     <small className="text-xs text-text-muted">
                       {r.country} {"·"}{" "}
-                      {r.sensor
-                        ? `market sensor ${r.sensor}`
-                        : "no market sensor"}
+                      {r.sensor ? (
+                        <>
+                          market sensor{" "}
+                          <Link
+                            href={`/market/${r.sensor}`}
+                            className="font-mono underline-offset-4 hover:text-brand-hover hover:underline"
+                          >
+                            {r.sensor}
+                          </Link>
+                        </>
+                      ) : (
+                        "no market sensor"
+                      )}
                       {noCityPageNote(r, rows) &&
                         ` · ${noCityPageNote(r, rows)}`}
                     </small>

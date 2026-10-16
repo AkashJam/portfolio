@@ -210,6 +210,15 @@ jobs:
 
       - run: npx playwright test
 
+      # §21 "Performance": Lighthouse budgets on /, /about and /atlas
+      # (lighthouserc.js). Runs after Playwright so it reuses the standalone
+      # build Playwright's webServer made, after the 1m-candle wait, so Home
+      # is measured with its live band. Chrome comes from the runner image.
+      # Never run on Actions before this; if lhci's own collect step fails
+      # here for environment reasons (as it did in the sandbox, phase4.md),
+      # portfolio.md §21 falls back to the manual per-phase check.
+      - run: npm run lhci
+
       - if: always()
         name: Ticker logs (on failure, for debugging)
         run: docker logs ticker || true

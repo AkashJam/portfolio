@@ -10,14 +10,14 @@ const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 /**
  * "Eleven of these rows name a US-listed bank or telecom as their market
- * sensor; the other twelve have none." The name is text because this page shows
- * no market figure, so it never depends on a market feed.
+ * sensor; the other twelve have none." The symbol is a link to its price page,
+ * but this page shows no market figure itself, so it never depends on a market feed.
  */
 export function sensorLine(rows: AtlasRow[]): string {
   const withSensor = rows.filter((r) => r.sensor).length;
   const without = rows.length - withSensor;
   const tail =
-    " The name is text, not a link: this page shows no market figure, so it never depends on a market feed.";
+    " The symbol links to its price page; this page itself shows no market figure, so it never depends on a market feed.";
   if (withSensor === 0) return `No row names a market sensor.${tail}`;
   if (without === 0)
     return `Every row names a US-listed bank or telecom as its market sensor.${tail}`;

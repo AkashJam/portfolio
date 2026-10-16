@@ -19,6 +19,10 @@ import {
   RESUME_HREF,
 } from "@/lib/contact";
 import { IdentityMark } from "@/components/shell/IdentityMark";
+import { MarketDot } from "@/components/shell/MarketDot";
+import { useMarketState } from "@/components/shell/MarketStateProvider";
+import { stateLabel } from "@/lib/market-state";
+import { cn } from "@/lib/utils";
 import { heroRole } from "@/data/profile";
 
 const row =
@@ -28,6 +32,38 @@ function Hint({ children }: { children: string }) {
   return (
     <span className="ml-auto font-mono text-[11px] text-text-muted">
       {children}
+    </span>
+  );
+}
+
+/**
+ * The Market row's right-hand side: the same state as the tab, in words, where
+ * the other rows show their route (bearing.md #104). "Live" appears only while
+ * ticks flow, so only in US hours.
+ */
+function MarketStateHint() {
+  const state = useMarketState();
+  if (!state) return null;
+  const word = stateLabel({ ...state, live: false });
+  return (
+    <span
+      data-testid="drawer-market-state"
+      className={cn(
+        "ml-auto flex min-w-0 items-start gap-1.5 font-mono text-[11px] leading-snug",
+        state.state === "tripped" ? "text-brand-hover" : state.state === "unreachable" ? "text-stale" : "text-text-muted",
+      )}
+    >
+      <MarketDot decorative className="mt-[3px]" />
+      {/* "live" may drop to its own line on a narrow drawer, but the state word never truncates. */}
+      <span className="text-right">
+        <span className="whitespace-nowrap">{word}</span>
+        {state.live && (
+          <>
+            {" "}
+            <span className="whitespace-nowrap">&middot; live</span>
+          </>
+        )}
+      </span>
     </span>
   );
 }
@@ -58,9 +94,9 @@ export function MobileDrawer({
       onClick={() => onOpenChange(false)}
       className={row}
     >
-      <NavIcon icon={link.icon} className="size-[15px] text-text-muted" />
+      <NavIcon icon={link.icon} className="size-[15px] shrink-0 text-text-muted" />
       {link.label}
-      <Hint>{link.href}</Hint>
+      {link.icon === "market" ? <MarketStateHint /> : <Hint>{link.href}</Hint>}
     </Link>
   );
 

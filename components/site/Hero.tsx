@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { ProofStrip } from "@/components/site/ProofStrip";
 import { Button } from "@/components/ui/button";
 import { heroHeadline, heroRole } from "@/data/profile";
 
@@ -15,8 +16,8 @@ export function Hero({ hasLiveBand }: { hasLiveBand: boolean }) {
         </h1>
         {hasLiveBand && (
           <p className="mt-5 max-w-[52ch] text-lg text-text-muted">
-            The chart below is one of them — ingesting, storing and pushing to your browser right
-            now.
+            The chart below is one of them — eighteen real instruments, ingested, stored, and
+            pushed to your browser while New York trades.
           </p>
         )}
         <div className="mt-7 flex flex-col items-stretch gap-4 md:flex-row md:items-center">
@@ -30,6 +31,7 @@ export function Hero({ hasLiveBand }: { hasLiveBand: boolean }) {
             How it was built →
           </Link>
         </div>
+        <ProofStrip />
       </div>
     </section>
   );

@@ -43,7 +43,7 @@ export function formatAge(ms: number): string {
 /**
  * Mutable, deliberately not React state: SSE handlers write it on every
  * event, and only the small status pill reads it on its own 1s clock — so
- * the heavy owners (HeroLiveBand's chart, SymbolCardGrid) never re-render
+ * the heavy owners (HeroLiveBand's chart, PricesTable) never re-render
  * because time passed.
  */
 export class FeedTracker {
@@ -51,7 +51,7 @@ export class FeedTracker {
   lastQuoteAt: number | null;
 
   /**
-   * `seedQuoteAt` is the SSR snapshot's `updatedAt`, so a feed that is dead
+   * `seedQuoteAt` is the SSR snapshot's `asOf`, so a feed that is dead
    * from first load reports the real age of the rendered number. The event
    * clock starts at construction: a page gets the full threshold to connect
    * before it is called stale.
@@ -78,7 +78,7 @@ export class FeedTracker {
   }
 }
 
-/** Newest `updatedAt` among snapshots — the seed for a multi-symbol owner. */
+/** Newest `asOf` among snapshots — the seed for a multi-symbol owner. */
 export function newestTimestamp(values: (string | null | undefined)[]): string | null {
   let best: string | null = null;
   let bestMs = -Infinity;

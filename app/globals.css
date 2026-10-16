@@ -49,7 +49,7 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 
   /* portfolio.md §17 palette, exposed as Tailwind utilities
-     (bg-canvas, text-brand, text-market-up, bg-simulated, etc.) */
+     (bg-canvas, text-brand, text-market-up, bg-stale, etc.) */
   --color-canvas: var(--canvas);
   --color-panel: var(--panel);
   --color-panel-2: var(--panel-2);
@@ -61,7 +61,8 @@
   --color-brand-hover: var(--brand-hover);
   --color-market-up: var(--market-up);
   --color-market-down: var(--market-down);
-  --color-simulated: var(--simulated);
+  --color-stale: var(--stale);
+  --color-warn: var(--warn);
 
   /* §17 "animated gradient loading sweep" — top-of-viewport loader now,
      reused as a section-divider accent once real pages exist (Days 3-4+) */
@@ -208,7 +209,8 @@
   --brand-hover: #818cf8;
   --market-up: #26a69a;
   --market-down: #ef5350;
-  --simulated: #e0a83a;
+  --stale: #e0a83a;
+  --warn: #e0a83a;
   /* mockups/html/about.html — brighter body text for dense bullet lists
      (Experience cards), distinct from --text-muted's broader role elsewhere. */
   --read: #c7cbd1;

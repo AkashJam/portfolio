@@ -23,8 +23,9 @@ export const symbolSnapshotSchema = z.object({
   dayHigh: z.number(),
   dayLow: z.number(),
   prevClose: z.number(),
-  updatedAt: z.string(),
-  simulated: z.boolean(),
+  // The price's vintage: the last trade, or the latest daily bar. Null when
+  // the service has neither (ADR-006).
+  asOf: z.string().nullable(),
 });
 export type SymbolSnapshot = z.infer<typeof symbolSnapshotSchema>;
 
@@ -34,7 +35,9 @@ export const candleSchema = z.object({
   high: z.number(),
   low: z.number(),
   close: z.number(),
-  volume: z.number(),
+  // Absent on the sweep's daily bars, which carry price only (Phase 8); a schema that
+  // required it rejected the whole `1d` response, so the daily chart came back empty.
+  volume: z.number().optional(),
 });
 export type Candle = z.infer<typeof candleSchema>;
 
@@ -60,42 +63,40 @@ export const indicatorSeriesResponseSchema = z.object({
 });
 export type IndicatorSeriesResponse = z.infer<typeof indicatorSeriesResponseSchema>;
 
-export const costOfLivingSchema = z.object({
-  city: z.string(),
-  country: z.string(),
-  localCurrency: z.string(),
-  localValue: z.number(),
-  eurValue: z.number(),
-  changeYoY: z.number(),
-  surveyYear: z.number(),
-  source: z.string(),
-  simulated: z.boolean(),
+// GET /sensors (§8, Phase 14): the eighteen market sensors in their fixed
+// display order. Country sensors carry a country and region from the ticker's
+// country table; global sensors carry a theme instead.
+export const sensorSchema = z.object({
+  symbol: z.string(),
+  name: z.string(),
+  group: z.enum(["country", "global"]),
+  country: z.string().nullable(),
+  theme: z.string().nullable(),
+  region: z.string().nullable(),
+  liquidity: z.string().nullable(),
+  // "telecom", "was Bancolombia": what the table must say beside the company.
+  note: z.string().nullable(),
+  // The measured figure behind "thin": 3-month average daily traded value of
+  // the US listing in $ millions, and the date it was measured. The four thin
+  // sensors only.
+  liquidityUsdM: z.number().nullable(),
+  liquidityAsOf: z.string().nullable(),
+  order: z.number(),
 });
-export type CostOfLiving = z.infer<typeof costOfLivingSchema>;
-export const costOfLivingResponseSchema = z.array(costOfLivingSchema);
+export type Sensor = z.infer<typeof sensorSchema>;
+export const sensorsResponseSchema = z.array(sensorSchema);
 
-const costOfLivingSeriesPointSchema = z.object({
-  time: z.string(),
-  value: z.number(),
+// GET /market/state (§8, Phase 14): the ingest feed's state for the Market
+// indicator and the closed state. "closed" is silence the market explains; "stale"
+// and "down" are not.
+// `session` is the regular session's, separate from the feed's: after the close the
+// feed can still carry extended-hours trades. `opensAt` is the next open while closed.
+export const marketStateSchema = z.object({
+  feed: z.enum(["live", "closed", "stale", "down"]),
+  session: z.enum(["open", "closed"]),
+  opensAt: z.string().nullable(),
 });
-const costOfLivingBasketItemSchema = z.object({
-  label: z.string(),
-  value: z.number(),
-});
-
-export const costOfLivingDetailSchema = z.object({
-  city: z.string(),
-  localCurrency: z.string(),
-  localValue: z.number(),
-  eurValue: z.number(),
-  surveyYear: z.number(),
-  source: z.string(),
-  fxToEur: z.number(),
-  series: z.array(costOfLivingSeriesPointSchema),
-  basket: z.array(costOfLivingBasketItemSchema),
-  simulated: z.boolean(),
-});
-export type CostOfLivingDetail = z.infer<typeof costOfLivingDetailSchema>;
+export type MarketStateResponse = z.infer<typeof marketStateSchema>;
 
 // GET /atlas/cities (§8, Phase 10). Eight measures per country: four are change
 // over one window (shares, housing, prices, currency), four the latest level.
@@ -169,7 +170,6 @@ export const quoteEventSchema = z.object({
   price: z.number(),
   volume: z.number(),
   time: z.string(),
-  simulated: z.boolean(),
 });
 export type QuoteEvent = z.infer<typeof quoteEventSchema>;
 
@@ -181,7 +181,9 @@ export const candleEventSchema = z.object({
   high: z.number(),
   low: z.number(),
   close: z.number(),
-  volume: z.number(),
+  // Absent on the sweep's daily bars, which carry price only (Phase 8); a schema that
+  // required it rejected the whole `1d` response, so the daily chart came back empty.
+  volume: z.number().optional(),
 });
 export type CandleEvent = z.infer<typeof candleEventSchema>;
 

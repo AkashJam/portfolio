@@ -7,8 +7,10 @@ import { Hero } from "@/components/site/Hero";
 import { HeroLiveBand } from "@/components/site/HeroLiveBand";
 import { Container } from "@/components/shell/Container";
 import { ProjectCard } from "@/components/projects/ProjectCard";
-import { getCandles, getSymbolSnapshot, getSymbols } from "@/lib/ticker-client";
-import type { SymbolSnapshot } from "@/lib/market-schemas";
+import { getMarketState, getSensors, getSymbolSnapshot } from "@/lib/ticker-client";
+import type { PriceEntry } from "@/components/market/PricesTable";
+import { fetchBandSeries } from "@/lib/band-fetch";
+import { seedFromResponse } from "@/lib/market-session";
 import { builtWith } from "@/data/profile";
 import { JsonLd, homeLd } from "@/lib/json-ld";
 import { pageMetadata } from "@/lib/metadata";
@@ -25,60 +27,56 @@ export const metadata: Metadata = pageMetadata({
 
 // Revalidated every 5 min rather than `no-store` — keeps Home statically
 // generated (ISR) instead of forcing it fully dynamic just for the hero's
-// live band, unlike the `no-store` reads Phase C's /market pages use.
-const HERO_STAT_REVALIDATE_SECONDS = 300;
-const HERO_TAPE_SIZE = 4;
-const HERO_SPARKLINE_POINTS = 20;
-const HERO_SPARKLINE_INTERVAL = "1m";
+// live band, unlike the `no-store` reads /market uses. The session is read the
+// same way, so the band's first paint is at most five minutes old; the shell's
+// poll takes over from there.
+const HERO_REVALIDATE_SECONDS = 300;
+// The band opens on one fixed sensor and nothing re-ranks it (bearing.md #75, #92):
+// the most-traded country sensor, so its line visibly moves in US hours where a
+// thin listing would sit flat. If it is missing the first sensor stands in.
+const HERO_DEFAULT_SYMBOL = "RY";
 
 const isDev = process.env.NODE_ENV !== "production";
 
 export default async function Home() {
-  const symbols = await getSymbols({ revalidateSeconds: HERO_STAT_REVALIDATE_SECONDS });
-  // Alphabetical rather than a hardcoded symbol list — reproduces the sim
-  // roster's own HELIX/NOVA/ORBIT/PULSE order without assuming exact names
-  // this environment can't verify against a running backend.
-  const tapeSymbols = (symbols ?? [])
-    .slice()
-    .sort((a, b) => a.symbol.localeCompare(b.symbol))
-    .slice(0, HERO_TAPE_SIZE);
-  const snapshots = await Promise.all(
-    tapeSymbols.map((s) =>
-      getSymbolSnapshot(s.symbol, { revalidateSeconds: HERO_STAT_REVALIDATE_SECONDS })
-    )
+  const renderedAt = new Date().toISOString();
+  const [sensors, marketState] = await Promise.all([
+    getSensors({ revalidateSeconds: HERO_REVALIDATE_SECONDS }),
+    getMarketState({ revalidateSeconds: HERO_REVALIDATE_SECONDS }),
+  ]);
+  // One snapshot per sensor: the picker's change column, and the quote beside it.
+  const entries: PriceEntry[] = await Promise.all(
+    (sensors ?? []).map(async (sensor): Promise<PriceEntry> => {
+      const snap = await getSymbolSnapshot(sensor.symbol, { revalidateSeconds: HERO_REVALIDATE_SECONDS });
+      return {
+        sensor,
+        row: {
+          symbol: sensor.symbol,
+          price: snap?.price ?? 0,
+          prevClose: snap?.prevClose ?? 0,
+          change: snap?.change ?? 0,
+          changePercent: snap?.changePercent ?? 0,
+          asOf: snap?.asOf ?? null,
+        },
+      };
+    }),
   );
-  const heroSnapshots = snapshots.filter((s): s is SymbolSnapshot => s !== null);
-  // The hero chart wants one symbol whose shape reads as "the live system
-  // working" at a glance — the day's largest mover, from real snapshot
-  // data, rather than the `regime` field: the backend doesn't populate it
-  // (always ""), so a regime-based pick silently degrades to whichever
-  // symbol sorts first alphabetically, regardless of how it's actually
-  // behaving. Sorting (not just reducing to the max) also gives the mover
-  // chips their order for free, from this same fetch.
-  const movers = heroSnapshots
-    .slice()
-    .sort((a, b) => Math.abs(b.changePercent) - Math.abs(a.changePercent));
-  const chartSnapshot = movers[0] ?? null;
-  // Seed every mover's sparkline, not just the charted one, so clicking a
-  // chip can swap the chart locally with no network request.
-  const moverCandles = await Promise.all(
-    movers.map((s) =>
-      getCandles(s.symbol, HERO_SPARKLINE_INTERVAL, {
-        revalidateSeconds: HERO_STAT_REVALIDATE_SECONDS,
+
+  const initialState = seedFromResponse(marketState);
+  // A session the ticker could not report reads as open, not closed: the page never
+  // says closed on a guess. An unreachable ticker leaves no sensors, so no band.
+  const mode = initialState.session === "closed" ? "closed" : "open";
+  const preferred = entries.find((e) => e.sensor.symbol === HERO_DEFAULT_SYMBOL && e.row.asOf !== null);
+  const defaultEntry = preferred ?? entries.find((e) => e.row.asOf !== null) ?? null;
+  const initialSeries = defaultEntry
+    ? await fetchBandSeries(defaultEntry.sensor.symbol, mode, defaultEntry.row.asOf, {
+        revalidateSeconds: HERO_REVALIDATE_SECONDS,
       })
-    )
-  );
-  const initialSparklines = Object.fromEntries(
-    movers.map((s, i) => [
-      s.symbol,
-      (moverCandles[i]?.candles ?? []).slice(-HERO_SPARKLINE_POINTS).map((c) => c.close),
-    ])
-  );
-  const heroSparkline = initialSparklines[chartSnapshot?.symbol ?? ""] ?? [];
-  // Single source of truth for "is there a live band to show" — Hero's
-  // second sentence and the band itself must always agree, or the page
-  // asserts a live chart directly above where nothing renders.
-  const hasLiveBand = heroSnapshots.length > 0 && chartSnapshot !== null && heroSparkline.length > 0;
+    : null;
+  // Single source of truth for "is there a live band to show" — Hero's second
+  // sentence and the band itself must always agree, or the page asserts a chart
+  // directly above where nothing renders.
+  const hasLiveBand = defaultEntry !== null && initialSeries !== null;
 
   // Home showcases other work, not the site visitors are already on —
   // exclude the "This site" entry rather than hardcoding which three
@@ -92,11 +90,13 @@ export default async function Home() {
     <>
       <JsonLd data={homeLd()} />
       <Hero hasLiveBand={hasLiveBand} />
-      {hasLiveBand && chartSnapshot && (
+      {hasLiveBand && defaultEntry && initialSeries && (
         <HeroLiveBand
-          initialSnapshots={movers}
-          chartSymbol={chartSnapshot.symbol}
-          initialSparklines={initialSparklines}
+          entries={entries}
+          defaultSymbol={defaultEntry.sensor.symbol}
+          initialSeries={initialSeries}
+          initialState={initialState}
+          renderedAt={renderedAt}
         />
       )}
 

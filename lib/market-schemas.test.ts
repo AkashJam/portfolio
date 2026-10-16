@@ -4,8 +4,8 @@ import {
   atlasResponseSchema,
   atlasRowSchema,
   candlesResponseSchema,
-  costOfLivingSchema,
   indicatorSeriesResponseSchema,
+  sensorsResponseSchema,
   symbolSnapshotSchema,
   symbolsResponseSchema,
 } from "@/lib/market-schemas";
@@ -40,10 +40,31 @@ describe("symbolSnapshotSchema", () => {
       dayHigh: 188.1,
       dayLow: 184.55,
       prevClose: 185.59,
-      updatedAt: "2026-08-08T14:32:07Z",
-      simulated: true,
+      asOf: "2026-08-08T14:32:07Z",
     });
     expect(result.success).toBe(false);
+  });
+
+  const snapshot = {
+    symbol: "RY",
+    name: "Royal Bank of Canada",
+    price: 187.42,
+    change: 1.83,
+    changePercent: 0.99,
+    dayHigh: 188.1,
+    dayLow: 184.55,
+    prevClose: 185.59,
+    asOf: "2026-08-08T14:32:07Z",
+  };
+
+  it("carries a vintage instead of a simulated flag (ADR-006)", () => {
+    expect(symbolSnapshotSchema.safeParse(snapshot).success).toBe(true);
+    expect(symbolSnapshotSchema.safeParse({ ...snapshot, asOf: null }).success).toBe(true);
+  });
+
+  it("rejects a snapshot with no asOf key, so the old shape cannot slip through", () => {
+    const { asOf: _asOf, ...withoutAsOf } = snapshot; // eslint-disable-line @typescript-eslint/no-unused-vars
+    expect(symbolSnapshotSchema.safeParse(withoutAsOf).success).toBe(false);
   });
 });
 
@@ -83,22 +104,44 @@ describe("indicatorSeriesResponseSchema", () => {
   });
 });
 
-describe("costOfLivingSchema", () => {
-  it("requires the simulated provenance flag (§22 risk #8)", () => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- destructured only to omit it below
-    const { simulated: _simulated, ...withoutSimulated } = {
-      city: "London",
-      country: "UK",
-      localCurrency: "GBP",
-      localValue: 2522.39,
-      eurValue: 2945.39,
-      changeYoY: 3,
-      surveyYear: 2024,
-      source: "JRF / Loughborough — MIS",
-      simulated: true,
-    };
-    const result = costOfLivingSchema.safeParse(withoutSimulated);
-    expect(result.success).toBe(false);
+describe("sensorsResponseSchema", () => {
+  const country = {
+    symbol: "MUFG",
+    name: "Mitsubishi UFJ",
+    group: "country",
+    country: "Japan",
+    theme: null,
+    region: "asia-pacific",
+    liquidity: null,
+    note: null,
+    liquidityUsdM: null,
+    liquidityAsOf: null,
+    order: 13,
+  };
+  const global = { ...country, symbol: "NVDA", name: "NVIDIA", group: "global", country: null, theme: "Semiconductors", region: null, order: 14 };
+
+  it("accepts a country sensor and a global one", () => {
+    expect(sensorsResponseSchema.safeParse([country, global]).success).toBe(true);
+  });
+
+  it("carries a thin listing's figure and date, and a note", () => {
+    const thin = { ...country, symbol: "TKC", liquidity: "thin", note: "telecom", liquidityUsdM: 12, liquidityAsOf: "2026-10-09" };
+    const parsed = sensorsResponseSchema.safeParse([thin]);
+    expect(parsed.success).toBe(true);
+  });
+
+  it("rejects a sensor without the thin-listing fields, so an old ticker cannot slip through", () => {
+    const { liquidityUsdM: _usd, ...old } = country; // eslint-disable-line @typescript-eslint/no-unused-vars
+    expect(sensorsResponseSchema.safeParse([old]).success).toBe(false);
+  });
+
+  it("rejects a group the ticker does not define", () => {
+    expect(sensorsResponseSchema.safeParse([{ ...country, group: "sector" }]).success).toBe(false);
+  });
+
+  it("requires the fixed order, which the pages rely on to avoid re-sorting", () => {
+    const { order: _order, ...withoutOrder } = country; // eslint-disable-line @typescript-eslint/no-unused-vars
+    expect(sensorsResponseSchema.safeParse([withoutOrder]).success).toBe(false);
   });
 });
 
@@ -199,5 +242,16 @@ describe("atlasResponseSchema", () => {
     expect(atlasResponseSchema.safeParse({ ...response, end: "2024-12" }).success).toBe(false);
     expect(atlasResponseSchema.safeParse({ ...response, windows: ["2021", "2005"] }).success).toBe(false);
     expect(atlasResponseSchema.safeParse({ generatedAt: "x", windows: [], end: "2024" }).success).toBe(false);
+  });
+});
+
+describe("candlesResponseSchema, daily bars", () => {
+  it("accepts a swept daily bar, which carries no volume", () => {
+    const result = candlesResponseSchema.safeParse({
+      symbol: "MUFG",
+      interval: "1d",
+      candles: [{ time: "2026-10-08T00:00:00Z", symbol: "MUFG", interval: "1d", open: 22.4, high: 22.7, low: 22.1, close: 22.65 }],
+    });
+    expect(result.success).toBe(true);
   });
 });
