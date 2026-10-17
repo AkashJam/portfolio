@@ -248,16 +248,16 @@ test.describe("at 1440px", () => {
     ).toBeVisible();
   });
 
-  test("a city name is a link where its page exists, and the other eight rows say so", async ({
+  test("a city name is a link where its page exists, and the other six rows say so", async ({
     page,
   }) => {
     await page.goto("/atlas");
-    // Fifteen verified surveys have a page; the six unverified ones and the three
+    // Seventeen verified surveys have a page; the four unverified ones and the three
     // newcomers (Indonesia, Chile, New Zealand) do not, and say "no city page yet".
     const links = page.locator("#countries tbody td:first-child a[href^='/atlas/']");
-    await expect(links).toHaveCount(15);
+    await expect(links).toHaveCount(17);
     await expect(page.locator("#countries tbody a[href='/atlas/japan']")).toHaveText("Tokyo");
-    await expect(page.locator("#countries tbody").getByText("no city page yet")).toHaveCount(8);
+    await expect(page.locator("#countries tbody").getByText("no city page yet")).toHaveCount(6);
   });
 
   test("the page shows no market figure: no price, no feed badge", async ({

@@ -139,7 +139,7 @@ describe("ticker API contract", () => {
     expect(dijon?.city).toBe("Dijon");
     expect(dijon?.cost.carried.value).toBeGreaterThan(1571);
     expect(dijon?.cost.eur.reason).toBe("euro");
-    expect((await getAtlasCity("ireland"))?.verified).toBe(false);
+    expect((await getAtlasCity("korea"))?.verified).toBe(false);
     expect(await getAtlasCity("singapore")).toBeNull();
     expect(await getAtlasCity("chile")).toBeNull();
   });
@@ -173,10 +173,10 @@ describe("ticker API contract", () => {
     expect(atlas?.rates.japan?.currency).toBe("JPY");
     expect(atlas?.rates.japan?.perEur).toBeGreaterThan(0);
     expect(atlas?.rates.italy).toBeUndefined();
-    // A page exists for a verified survey record: fifteen cities, none of the three newcomers.
-    expect(atlas?.rows.filter((r) => r.hasCityPage).length).toBe(15);
+    // A page exists for a verified survey record: seventeen cities, none of the three newcomers.
+    expect(atlas?.rows.filter((r) => r.hasCityPage).length).toBe(17);
     expect(atlas?.rows.find((r) => r.slug === "japan")?.hasCityPage).toBe(true);
-    expect(atlas?.rows.find((r) => r.slug === "ireland")?.hasCityPage).toBe(false);
+    expect(atlas?.rows.find((r) => r.slug === "korea")?.hasCityPage).toBe(false);
     // The euro area has no rate against itself; every other currency is served
     // or says why not.
     const italy = atlas?.rows.find((r) => r.slug === "italy");

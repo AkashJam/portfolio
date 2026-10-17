@@ -51,6 +51,32 @@ test.describe("at 1440px", () => {
     await expect(page.getByTestId("sensor-link")).toHaveCount(0);
   });
 
+  test("Dublin: the 2026 MESL edition, housing as private rent and a medical-card part that says how it was derived", async ({ page }) => {
+    await page.goto("/atlas/ireland");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Dublin");
+    await expect(page.getByTestId("headline")).toContainText("€2,726.01");
+    await expect(page.getByTestId("headline")).toContainText("2026");
+    await expect(page.getByTestId("housing-tag")).toHaveAttribute("data-tag", "private_rent");
+    await expect(page.getByTestId("second-line")).toContainText("Excluding housing €1,156.18");
+    await expect(page.getByTestId("part")).toHaveCount(13);
+    await page.evaluate(() => document.querySelectorAll("details").forEach((d) => (d.open = true)));
+    await expect(page.getByTestId("part").last()).toContainText("Health and insurance, net of the medical card");
+    await expect(page.getByTestId("part").last()).toContainText("full medical card deduction €26.48");
+    await expect(page.getByTestId("sources")).toContainText("MESL 2026");
+    // Ireland's income figure carries a caveat on that one cell elsewhere; the survey is the point here.
+    await expect(page.getByTestId("afford-ratio")).toBeVisible();
+  });
+
+  test("Amsterdam: verified on the July 2025 edition, which the page says may be superseded", async ({ page }) => {
+    await page.goto("/atlas/netherlands");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Amsterdam");
+    await expect(page.getByTestId("headline")).toContainText("€1,747");
+    await expect(page.getByTestId("headline")).toContainText("2025");
+    await expect(page.getByText("the July 2025 edition").first()).toBeVisible();
+    await expect(page.getByTestId("sources")).toContainText("a 2026 edition may already exist");
+    await expect(page.getByTestId("part")).toHaveCount(12);
+  });
+
   test("Milan publishes a total, not a split, and has no currency line", async ({ page }) => {
     await page.goto("/atlas/italy");
     await expect(page.getByTestId("headline")).toContainText("€1,224.64");
@@ -134,7 +160,7 @@ test.describe("at 1440px", () => {
   });
 
   test("an unverified city, a country with no survey and an unknown name have no page", async ({ page }) => {
-    for (const slug of ["ireland", "korea", "south-africa", "chile", "singapore", "nowhere"]) {
+    for (const slug of ["korea", "south-africa", "chile", "singapore", "nowhere"]) {
       const res = await page.goto(`/atlas/${slug}`);
       expect(res?.status(), slug).toBe(404);
     }
