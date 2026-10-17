@@ -337,11 +337,22 @@ export const atlasRowSchema = z.object({
 });
 export type AtlasRow = z.infer<typeof atlasRowSchema>;
 
+// The one rate a view shown in a home city's currency converts at (Phase 16 step 6).
+export const displayRateSchema = z.object({
+  currency: z.string(),
+  perEur: z.number().positive(),
+  year: z.number(),
+  source: z.string(),
+});
+export type DisplayRate = z.infer<typeof displayRateSchema>;
+
 export const atlasResponseSchema = z.object({
   generatedAt: z.string(),
   windows: z.array(windowStartSchema),
   end: z.string().regex(/^\d{4}$/), // the latest year every country has for all four change measures
   rows: z.array(atlasRowSchema),
+  // By country slug; absent for the euro area and for a currency with no ECB average.
+  rates: z.record(z.string(), displayRateSchema).default({}),
 });
 export type AtlasResponse = z.infer<typeof atlasResponseSchema>;
 

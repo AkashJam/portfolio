@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState, type ReactNode } from "react";
 
+import { useAtlasHome } from "@/components/atlas/AtlasHome";
 import { useAtlasWindow } from "@/components/atlas/AtlasWindow";
 import {
   CellButton,
@@ -32,9 +33,10 @@ import {
 import { useScrollEdges } from "@/components/atlas/useScrollEdges";
 import { useTargetSlug } from "@/components/atlas/useTargetSlug";
 import { cityHref, noCityPageNote } from "@/lib/atlas-absences";
+import { computedLine, deltaUnit, homeDelta, homeMoney } from "@/lib/atlas-home";
 import { cellNote } from "@/lib/atlas-notes";
 import { columnInfo, vintageOf } from "@/lib/atlas-provenance";
-import type { AtlasRow, WindowStart } from "@/lib/market-schemas";
+import type { AtlasRow, DisplayRate, WindowStart } from "@/lib/market-schemas";
 import { cn } from "@/lib/utils";
 
 /**
@@ -81,6 +83,8 @@ const num = "px-2 text-right font-mono tabular-nums last:pr-4";
 interface ColumnCtx {
   rows: AtlasRow[];
   window: WindowStart;
+  /** The home city, when one is set: every other cited figure gains a comparison line. */
+  home: AtlasRow | null;
   olderSlugs: Set<string>;
   modal: string;
 }
@@ -110,6 +114,13 @@ function DataCell({
 }) {
   const note = cellNote(row, k, ctx.rows, ctx.window);
   const old = ctx.olderSlugs.has(row.slug);
+  const delta = ctx.home ? homeDelta(row, ctx.home, k, ctx.window) : null;
+  const deltaLine = delta && (
+    <small data-testid="home-delta" className="block text-[11px] text-brand-hover">
+      {delta}
+      <span className="sr-only">{` against ${ctx.home?.city}, computed`}</span>
+    </small>
+  );
   const hidden = (
     <span className="sr-only">
       {`, ${provenance({ source, asOf })}`}
@@ -138,12 +149,14 @@ function DataCell({
           <span className="flex flex-col items-end">{children}</span>
           {dot}
           {hidden}
+          {deltaLine}
         </CellButton>
       ) : (
         <>
           {children}
           {dot}
           {hidden}
+          {deltaLine}
         </>
       )}
     </TableCell>
@@ -233,11 +246,15 @@ function ColumnPanel({
   rows,
   window,
   end,
+  home,
+  rate,
 }: {
   k: ColumnKey;
   rows: AtlasRow[];
   window: WindowStart;
   end: string;
+  home: AtlasRow | null;
+  rate: DisplayRate | null;
 }) {
   const info = columnInfo(k, rows, window, end);
   return (
@@ -253,19 +270,28 @@ function ColumnPanel({
         ))}
       </dl>
       <p className="mt-2.5 border-t border-hairline pt-2.5">{info.note}</p>
+      {home && (
+        <p data-testid="computed-line" className="mt-2.5 border-t border-hairline pt-2.5 text-brand-hover">
+          <b className="font-mono text-[11px] font-medium uppercase tracking-wider">Computed</b> {computedLine(k, home, window, end, rate)}
+        </p>
+      )}
     </>
   );
 }
 
 export function CountriesTable({ rows }: { rows: AtlasRow[] }) {
   const { window, end } = useAtlasWindow();
+  const { home, rate } = useAtlasHome();
   const [sort, setSort] = useState<{ key: ColumnKey; dir: SortDir }>({
     key: "everydaySpendingEur",
     dir: "asc",
   });
   const target = useTargetSlug();
   const edges = useScrollEdges();
-  const sorted = sortRows(rows, sort.key, sort.dir, window);
+  // The home row is pinned above the sort; the rest keep their order.
+  const sortedAll = sortRows(rows, sort.key, sort.dir, window);
+  const sorted = home ? [home, ...sortedAll.filter((r) => r.slug !== home.slug)] : sortedAll;
+  const spendFormat = rate ? (v: number) => homeMoney(v, rate) : formatEur;
   const ctxs = useMemo(() => {
     const out = {} as Record<ColumnKey, ColumnCtx>;
     for (const c of COLUMNS) {
@@ -273,12 +299,13 @@ export function CountriesTable({ rows }: { rows: AtlasRow[] }) {
       out[c.key] = {
         rows,
         window,
+        home,
         modal: v.modal,
         olderSlugs: new Set(v.older.flatMap((o) => o.rows.map((r) => r.slug))),
       };
     }
     return out;
-  }, [rows, window]);
+  }, [rows, window, home]);
 
   // First press on a column sorts it high-to-low for change measures, since
   // the question is "who rose most"; a repeat press flips it.
@@ -325,6 +352,8 @@ export function CountriesTable({ rows }: { rows: AtlasRow[] }) {
                             rows={rows}
                             window={window}
                             end={end}
+                            home={home}
+                            rate={rate}
                           />
                         </InfoButton>
                         <button
@@ -349,8 +378,13 @@ export function CountriesTable({ rows }: { rows: AtlasRow[] }) {
                         onClick={() => onSort(c.key)}
                         className="max-w-[7rem] cursor-pointer whitespace-normal text-right text-[11px] font-normal text-text-muted"
                       >
-                        {c.sub(end)}
+                        {c.key === "everydaySpendingEur" && rate ? `${rate.currency} / person / month` : c.sub(end)}
                       </small>
+                      {home && (
+                        <small data-testid="delta-unit" className="max-w-[7rem] whitespace-normal text-right text-[11px] font-normal text-brand-hover">
+                          {deltaUnit(c.key)}
+                        </small>
+                      )}
                     </div>
                   </TableHead>
                 );
@@ -363,7 +397,8 @@ export function CountriesTable({ rows }: { rows: AtlasRow[] }) {
                 key={r.slug}
                 id={r.slug}
                 data-target={r.slug === target ? "true" : undefined}
-                className="data-[target=true]:bg-brand/15 data-[target=true]:shadow-[inset_3px_0_0_var(--brand)]"
+                data-home={r.slug === home?.slug ? "true" : undefined}
+                className="data-[home=true]:bg-brand/[0.07] data-[target=true]:bg-brand/15 data-[target=true]:shadow-[inset_3px_0_0_var(--brand)]"
               >
                 <TableCell
                   className={cn(
@@ -383,6 +418,11 @@ export function CountriesTable({ rows }: { rows: AtlasRow[] }) {
                       </Link>
                     ) : (
                       <span className="font-medium">{r.city}</span>
+                    )}
+                    {r.slug === home?.slug && (
+                      <span data-testid="home-tag" className="font-mono text-[10.5px] uppercase tracking-wider text-brand-hover">
+                        home
+                      </span>
                     )}
                     <small className="text-xs text-text-muted">
                       {r.country} {"·"}{" "}
@@ -412,7 +452,7 @@ export function CountriesTable({ rows }: { rows: AtlasRow[] }) {
                   row={r}
                   k="everydaySpendingEur"
                   ctx={ctxs.everydaySpendingEur}
-                  format={formatEur}
+                  format={spendFormat}
                 />
                 <LevelCell
                   row={r}

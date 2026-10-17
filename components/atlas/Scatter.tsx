@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { PLOT, type PlotModel, measureOf } from "@/lib/atlas-plot";
+import { PLOT, type Measure, type PlotModel, measureOf } from "@/lib/atlas-plot";
 import type { ColumnKey } from "@/lib/atlas";
 
 /**
@@ -13,15 +13,31 @@ export function Scatter({
   yKey,
   targetSlug,
   windowLabel,
+  homeSlug = null,
+  spending,
 }: {
   model: PlotModel;
   xKey: ColumnKey;
   yKey: ColumnKey;
   targetSlug: string | null;
   windowLabel: string;
+  /** The home city: its dot is highlighted and crosshairs run through it. Nothing else on the plot moves. */
+  homeSlug?: string | null;
+  /** When spending is shown in the home currency: its code and tick format (the values are already converted). */
+  spending?: { code: string; tick: (v: number) => string };
 }) {
-  const xm = measureOf(xKey);
-  const ym = measureOf(yKey);
+  const shown = (m: Measure): Measure =>
+    m.key === "everydaySpendingEur" && spending
+      ? {
+          ...m,
+          tick: spending.tick,
+          option: `Everyday spending · ${spending.code} per person, monthly`,
+          title: `Everyday spending · ${spending.code} per person, per month`,
+        }
+      : m;
+  const xm = shown(measureOf(xKey));
+  const ym = shown(measureOf(yKey));
+  const home = homeSlug ? (model.points.find((p) => p.slug === homeSlug) ?? null) : null;
   const { xDomain, yDomain } = model;
   const px = (v: number) =>
     PLOT.left +
@@ -176,13 +192,22 @@ export function Scatter({
         {ym.title}
       </text>
 
+      {home && (
+        <g data-testid="home-crosshairs" data-home={home.slug} aria-hidden="true">
+          <line x1={home.cx} y1={PLOT.top} x2={home.cx} y2={PLOT.bottom} className="stroke-brand-hover" strokeDasharray="2 4" strokeWidth={1.25} />
+          <line x1={PLOT.left} y1={home.cy} x2={PLOT.right} y2={home.cy} className="stroke-brand-hover" strokeDasharray="2 4" strokeWidth={1.25} />
+        </g>
+      )}
+
       {model.points.map((p) => {
         const target = p.slug === targetSlug;
+        const isHome = p.slug === homeSlug;
         return (
           <g
             key={p.slug}
             data-slug={p.slug}
             data-target={target || undefined}
+            data-home={isHome || undefined}
             data-clipped={
               p.clip ? p.clip.map((c) => c.axis).join(" ") : undefined
             }
@@ -190,9 +215,9 @@ export function Scatter({
             <circle
               cx={p.cx}
               cy={p.cy}
-              r={target ? 8 : 5.5}
+              r={target ? 8 : isHome ? 7 : 5.5}
               className={cn(
-                target
+                target || isHome
                   ? "fill-brand-hover stroke-text"
                   : "fill-brand stroke-canvas",
                 // A label suppressed for collision: the point sits in a crowded
@@ -200,7 +225,7 @@ export function Scatter({
                 // collision, not a hand-edited radius; nothing is encoded, so no legend.
                 "data-[q=true]:opacity-[.72]",
               )}
-              strokeWidth={target ? 2.5 : 1.5}
+              strokeWidth={target || isHome ? 2.5 : 1.5}
               // A point whose label was suppressed for collision (step 9 styles it).
               data-q={p.label ? undefined : "true"}
             >

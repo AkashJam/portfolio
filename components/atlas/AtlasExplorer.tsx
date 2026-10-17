@@ -2,13 +2,15 @@
 
 import { useMemo, useState } from "react";
 
+import { useAtlasHome } from "@/components/atlas/AtlasHome";
 import { WindowSelect, useAtlasWindow } from "@/components/atlas/AtlasWindow";
 import { useScrollEdges } from "@/components/atlas/useScrollEdges";
 import { useTargetSlug } from "@/components/atlas/useTargetSlug";
 import { ReadingCard } from "@/components/atlas/ReadingCard";
 import { ReadingGuide } from "@/components/atlas/ReadingGuide";
 import { Scatter } from "@/components/atlas/Scatter";
-import { type ColumnKey, windowLabel as labelOf } from "@/lib/atlas";
+import { type ColumnKey, formatEur, windowLabel as labelOf } from "@/lib/atlas";
+import { convertRows, homeMoney, homeReading } from "@/lib/atlas-home";
 import { MEASURES, buildPlot } from "@/lib/atlas-plot";
 import {
   CHIPS,
@@ -37,12 +39,22 @@ export function AtlasExplorer({ rows }: { rows: AtlasRow[] }) {
   const [y, setY] = useState<ColumnKey>(CHIPS[0].y);
   const target = useTargetSlug();
   const { attach: attachScroller, attrs: scrollerAttrs } = useScrollEdges();
-  const model = useMemo(() => buildPlot(rows, x, y, win), [rows, x, y, win]);
+  const { home, rate } = useAtlasHome();
+  // Spending is shown in the home currency at the one rate: the values are converted
+  // before the axis is built, so its ticks stay round in that currency.
+  const plotRows = useMemo(() => convertRows(rows, rate), [rows, rate]);
+  const spendFormat = useMemo(() => (rate ? (v: number) => homeMoney(v / rate.perEur, rate) : formatEur), [rate]);
+  const model = useMemo(() => buildPlot(plotRows, x, y, win), [plotRows, x, y, win]);
   const windowLabel = labelOf(win, end);
   const reading = useMemo(
-    () => buildReading(chip, rows, x, y, win),
-    [chip, rows, x, y, win],
+    () => buildReading(chip, plotRows, x, y, win, spendFormat),
+    [chip, plotRows, x, y, win, spendFormat],
   );
+  const against = useMemo(() => {
+    const t = plotRows.find((r) => r.slug === target);
+    const h = plotRows.find((r) => r.slug === home?.slug);
+    return t && h ? homeReading(t, h, win, spendFormat) : null;
+  }, [plotRows, target, home, win, spendFormat]);
 
   function pick(id: ChipId) {
     const c = CHIPS.find((q) => q.id === id);
@@ -124,13 +136,21 @@ export function AtlasExplorer({ rows }: { rows: AtlasRow[] }) {
 
       <div className="grid items-start gap-7 border-b border-hairline py-5 lg:grid-cols-[1.15fr_1fr]">
         <ReadingGuide />
-        <ReadingCard reading={reading} />
+        <div className="space-y-5">
+          <ReadingCard reading={reading} />
+          {against && <ReadingCard reading={against} className="border-brand-hover/70" />}
+        </div>
       </div>
 
       <div
         ref={attachScroller}
         {...scrollerAttrs}
-        className="atlas-edge-cue overflow-x-auto pt-4"
+        // Sideways-scrolling at phone width, so a keyboard has to be able to reach it
+        // (axe: scrollable-region-focusable, found while testing the home city at 390px).
+        tabIndex={0}
+        role="region"
+        aria-label="Scatter plot, scrolls sideways on a narrow screen"
+        className="atlas-edge-cue overflow-x-auto pt-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
       >
         <div className="min-w-[720px]">
           <Scatter
@@ -139,6 +159,8 @@ export function AtlasExplorer({ rows }: { rows: AtlasRow[] }) {
             yKey={y}
             targetSlug={target}
             windowLabel={windowLabel}
+            homeSlug={home?.slug ?? null}
+            spending={rate ? { code: rate.currency, tick: spendFormat } : undefined}
           />
         </div>
       </div>

@@ -166,6 +166,15 @@ const shortName: Record<ColumnKey, string> = {
   lifeExpectancy: "life expectancy",
 };
 
+// How a spending figure prints. It is the euro by default; a view shown in a home
+// currency sets another for the length of one (synchronous) build, so the chips and
+// the generated reading say the same currency as the axis.
+let spendFormat: (v: number) => string = formatEur;
+
+function tickOf(key: ColumnKey): (v: number) => string {
+  return key === "everydaySpendingEur" ? spendFormat : measureOf(key).tick;
+}
+
 function fig(row: AtlasRow, key: ColumnKey, v: number): Fig {
   const measure = measureOf(key);
   if (measure.kind === "change") {
@@ -178,7 +187,7 @@ function fig(row: AtlasRow, key: ColumnKey, v: number): Fig {
   }
   const value =
     key === "everydaySpendingEur"
-      ? formatEur(v)
+      ? spendFormat(v)
       : key === "lifeExpectancy"
         ? formatYears(v)
         : measure.tick(v);
@@ -375,7 +384,7 @@ export function generatedReading(
   }
   const hi = pts[0];
   const lo = pts[pts.length - 1];
-  const ty = measureOf(y).tick;
+  const ty = tickOf(y);
   return {
     title: `${hi.r.city} against ${lo.r.city}`,
     figs: [
@@ -394,7 +403,19 @@ export function buildReading(
   x: ColumnKey,
   y: ColumnKey,
   win: WindowStart,
+  /** How a spending figure prints; the euro unless the view is shown in a home currency. */
+  spend: (v: number) => string = formatEur,
 ): Reading {
+  const before = spendFormat;
+  spendFormat = spend;
+  try {
+    return build(chipId, rows, x, y, win);
+  } finally {
+    spendFormat = before;
+  }
+}
+
+function build(chipId: ChipId | null, rows: AtlasRow[], x: ColumnKey, y: ColumnKey, win: WindowStart): Reading {
   const chip = CHIPS.find((c) => c.id === chipId);
   if (chip) {
     const ctx: Ctx = { rows, win };

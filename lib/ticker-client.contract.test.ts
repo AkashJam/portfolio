@@ -169,6 +169,10 @@ describe("ticker API contract", () => {
     expect(atlas?.windows).toEqual(["2021", "2016", "2010"]);
     expect(atlas?.rows.length).toBe(23);
     expect(new Set(atlas?.rows.map((r) => r.slug)).size).toBe(23);
+    // Phase 16 step 6: the one rate a home city's currency is shown at.
+    expect(atlas?.rates.japan?.currency).toBe("JPY");
+    expect(atlas?.rates.japan?.perEur).toBeGreaterThan(0);
+    expect(atlas?.rates.italy).toBeUndefined();
     // A page exists for a verified survey record: fifteen cities, none of the three newcomers.
     expect(atlas?.rows.filter((r) => r.hasCityPage).length).toBe(15);
     expect(atlas?.rows.find((r) => r.slug === "japan")?.hasCityPage).toBe(true);

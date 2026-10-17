@@ -6,6 +6,7 @@ import {
   AtlasWindowProvider,
   WindowHint,
 } from "@/components/atlas/AtlasWindow";
+import { AtlasHomeProvider, HomePicker } from "@/components/atlas/AtlasHome";
 import { AtlasExplorer } from "@/components/atlas/AtlasExplorer";
 import { WorldMap } from "@/components/atlas/WorldMap";
 import { CountriesTable } from "@/components/atlas/CountriesTable";
@@ -117,7 +118,10 @@ export default async function AtlasPage() {
 
       {atlas ? (
         <AtlasWindowProvider windows={atlas.windows} end={atlas.end}>
-          {sections}
+          <AtlasHomeProvider rows={atlas.rows} rates={atlas.rates}>
+            <HomePicker />
+            {sections}
+          </AtlasHomeProvider>
         </AtlasWindowProvider>
       ) : (
         sections
