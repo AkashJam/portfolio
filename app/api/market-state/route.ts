@@ -18,10 +18,11 @@ export async function GET() {
       // could not be asked says neither: the page does not claim closed on a guess.
       session: state?.session ?? "unknown",
       opensAt: state?.opensAt ?? null,
-      // Whether a sensor tripped. Nothing can yet: the trigger is Phase 15's, and it
-      // will read GET /market/events for the latest session. Until then the honest
-      // answer is no, and the indicator says quiet or unreachable, never tripped.
-      tripped: false,
+      // Whether the last close tripped something: the ticker says so when the newest
+      // event is from the newest session with bars, and clears it after the next
+      // close that trips nothing (Phase 15 step 7). A ticker that could not be asked
+      // cannot claim a trip.
+      tripped: state?.tripped ?? false,
     },
     { headers: { "Cache-Control": "no-store" } },
   );

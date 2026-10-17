@@ -79,12 +79,12 @@ export function stateLine(state: MarketState, now: Date, newestAsOf: string | nu
  * a closed market does not flash its open treatment before the shell's poll lands.
  */
 export function seedFromResponse(
-  res: { feed: string; session?: string; opensAt?: string | null } | null,
+  res: { feed: string; session?: string; opensAt?: string | null; tripped?: boolean } | null,
 ): MarketState {
   if (res === null) return deriveMarketState({ feed: "unreachable", tripped: false });
   return deriveMarketState({
     feed: toFeed(res.feed),
-    tripped: false, // Phase 15 reads GET /market/events
+    tripped: res.tripped === true,
     session: toSession(res.session),
     opensAt: typeof res.opensAt === "string" ? res.opensAt : null,
   });

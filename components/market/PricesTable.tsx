@@ -8,7 +8,11 @@ import { useFeedTracker } from "@/components/market/FeedStatus";
 import { useNow, useSessionState } from "@/components/market/useMarketSession";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { frozenLine } from "@/lib/market-session";
-import type { Sensor } from "@/lib/market-schemas";
+import { Sparkline } from "@/components/market/Sparkline";
+import { sigmaBarWidth } from "@/lib/band-path";
+import { sigmaLabel } from "@/lib/ledger";
+import type { Sensor, TapeSensor } from "@/lib/market-schemas";
+import { pastThreshold } from "@/lib/tape";
 import type { MarketState } from "@/lib/market-state";
 import {
   applyQuote,
@@ -73,10 +77,16 @@ export function PricesTable({
   entries,
   renderedAt,
   initialState,
+  tape,
+  tripped,
 }: {
   entries: PriceEntry[];
   renderedAt: string;
   initialState: MarketState;
+  /** The tape by symbol: the sparkline and the "σ · last close" column. Empty when it could not be read. */
+  tape: Map<string, TapeSensor>;
+  /** The symbols that tripped at the last close, whose rows are tinted. */
+  tripped: Set<string>;
 }) {
   const [rows, setRows] = React.useState(() => new Map(entries.map((e) => [e.sensor.symbol, e.row])));
   const [sawLive, setSawLive] = React.useState(false);
@@ -131,14 +141,17 @@ export function PricesTable({
             <TableRow>
               <TableHead className={cn("pl-4 pr-2", PINNED)}>Country</TableHead>
               <TableHead className="px-2">Sensor</TableHead>
+              {/* Below 768px the sparkline gives way: the figures must stay on screen beside the pinned country column (bearing.md #107). */}
+              <TableHead className="px-2 max-md:hidden">60 sessions</TableHead>
               <TableHead className="px-2 text-right">Last</TableHead>
-              <TableHead className="px-2 pr-4 text-right">Change</TableHead>
+              <TableHead className="px-2 text-right">Change</TableHead>
+              <TableHead className="px-2 pr-4 text-right">σ · last close</TableHead>
             </TableRow>
           </TableHeader>
           {GROUPS.map(({ group, title, gloss }) => (
             <TableBody key={group}>
               <TableRow className="border-t border-hairline hover:bg-transparent">
-                <TableHead scope="rowgroup" colSpan={4} className="whitespace-normal px-4 pb-1.5 pt-4 text-left">
+                <TableHead scope="rowgroup" colSpan={6} className="whitespace-normal px-4 pb-1.5 pt-4 text-left">
                   <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-text-muted">
                     {title}
                   </span>
@@ -156,6 +169,8 @@ export function PricesTable({
                     row={rows.get(sensor.symbol)!}
                     tableAsOf={tableAsOf}
                     frozen={frozen}
+                    tape={tape.get(sensor.symbol)}
+                    tripped={tripped.has(sensor.symbol)}
                   />
                 ))}
             </TableBody>
@@ -171,11 +186,15 @@ function PriceRowView({
   row,
   tableAsOf,
   frozen,
+  tape,
+  tripped,
 }: {
   sensor: Sensor;
   row: PriceRow;
   tableAsOf: string | null;
   frozen: boolean;
+  tape: TapeSensor | undefined;
+  tripped: boolean;
 }) {
   const place = sensor.country ?? sensor.theme ?? sensor.name;
   const hasPrice = row.asOf !== null;
@@ -184,7 +203,7 @@ function PriceRowView({
   const direction = frozen ? "flat" : changeDirection(row);
 
   return (
-    <TableRow data-testid={`market-row-${sensor.symbol}`}>
+    <TableRow data-testid={`market-row-${sensor.symbol}`} data-tripped={tripped ? "true" : undefined} className={tripped ? "bg-market-down/[0.07]" : undefined}>
       {/* On a phone the pinned column must leave room for the figures, so its
           second line wraps instead of widening the column to the whole screen. */}
       <TableCell className={cn("pl-4 pr-2 max-md:w-[12.5rem] max-md:max-w-[12.5rem] max-md:whitespace-normal", PINNED)}>
@@ -210,15 +229,61 @@ function PriceRowView({
         </small>
       </TableCell>
       <TableCell className="px-2 font-mono text-[13px] text-text-muted">{sensor.symbol}</TableCell>
+      <TableCell className="px-2 py-2 max-md:hidden">
+        <Sparkline
+          closes={tape?.closes ?? []}
+          label={`${sensor.symbol}, its last sixty closes`}
+          tripped={tripped}
+          direction={tape?.z != null && tape.z > 0 ? "up" : "down"}
+        />
+      </TableCell>
       <TableCell className="px-2 text-right font-mono tabular-nums">
         <span data-testid="price" className={frozen ? "text-text-muted" : "text-text"}>
           {hasPrice ? row.price.toFixed(2) : "—"}
         </span>
         {own && <small className="block text-[11px] text-text-muted">{own}</small>}
       </TableCell>
-      <TableCell className={cn("px-2 pr-4 text-right font-mono tabular-nums", DIRECTION[direction])}>
+      <TableCell className={cn("px-2 text-right font-mono tabular-nums", DIRECTION[direction])}>
         <span data-testid="change">{changeLabel(row)}</span>
       </TableCell>
+      <TableCell className="px-2 pr-4 text-right">
+        <SigmaCell tape={tape} />
+      </TableCell>
     </TableRow>
+  );
+}
+
+/**
+ * σ · last close: the trigger's own z on the last close, from the tape, so the
+ * column reads the number that would have fired. It does not tick: the sector
+ * baskets it is measured against print only at the close, so a live σ would be a
+ * different number from the one that fires (portfolio.md §15 Phase 15 step 7).
+ */
+function SigmaCell({ tape }: { tape: TapeSensor | undefined }) {
+  if (!tape || tape.z === null) {
+    return (
+      <span data-testid="sigma-none" title="Not enough history to judge this sensor yet" className="font-mono text-[13px] text-text-muted">
+        <span aria-hidden="true">—</span>
+        <span className="sr-only">not enough history yet</span>
+      </span>
+    );
+  }
+  const past = pastThreshold(tape.z);
+  return (
+    <span data-testid="sigma" className="inline-flex items-center justify-end gap-[9px]">
+      <i
+        aria-hidden="true"
+        style={{ width: sigmaBarWidth(tape.z) }}
+        className={cn("block h-[5px] rounded-[2px]", past === "up" ? "bg-market-up" : past === "down" ? "bg-market-down" : "bg-text-muted")}
+      />
+      <b
+        className={cn(
+          "min-w-[3.1rem] text-right font-mono text-[13px] font-semibold tabular-nums",
+          past === "up" ? "text-market-up" : past === "down" ? "text-market-down" : "text-text-muted",
+        )}
+      >
+        {sigmaLabel(tape.z)}
+      </b>
+    </span>
   );
 }

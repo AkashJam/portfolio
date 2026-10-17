@@ -1,8 +1,9 @@
 import { z } from "zod";
 
 // Hand-derived from portfolio.md §8 (the Ticker API contract) — only the
-// shapes actually consumed by /market and /market/[symbol] (§18). No
-// Movers schema: nothing in this phase renders GET /market/movers.
+// shapes actually consumed by /market and /market/[symbol] (§18). There is no
+// Movers schema: GET /market/movers is deleted (Phase 15 step 7), because "what
+// moved most?" is the question the threshold exists not to ask.
 
 export const symbolSchema = z.object({
   symbol: z.string(),
@@ -95,8 +96,156 @@ export const marketStateSchema = z.object({
   feed: z.enum(["live", "closed", "stale", "down"]),
   session: z.enum(["open", "closed"]),
   opensAt: z.string().nullable(),
+  // Whether the last close tripped something: the newest event is from the newest
+  // session with bars (Phase 15 step 7). Defaults to false so a ticker that
+  // predates the ledger still parses.
+  tripped: z.boolean().default(false),
 });
 export type MarketStateResponse = z.infer<typeof marketStateSchema>;
+
+// GET /market/events (§8, Phase 15 step 7): the ledger. Every event the trigger
+// recorded, newest session first and never ranked. The split and the coverage are
+// stored JSON the ticker passes through whole, so they are described here by what
+// the view reads and nothing is required that a source can legitimately lack.
+export const sideSchema = z.enum(["before", "after"]);
+export type Side = z.infer<typeof sideSchema>;
+
+export const splitPartSchema = z.object({ value: z.number(), sigma: z.number(), z: z.number() });
+
+export const splitSchema = z.object({
+  status: z.enum(["ok", "none"]),
+  // Why there is no split, from a closed set (no_home_currency, no_ecb_currency,
+  // monthly_only, ecb_not_published, insufficient_history, zero_sigma).
+  reason: z.string().optional(),
+  label: z.enum(["currency-led", "stock-led", "both", "neither"]).optional(),
+  currency: z.string().optional(),
+  source: z.string().optional(),
+  fixDate: z.string().optional(),
+  ratePrevious: z.number().optional(),
+  rateCurrent: z.number().optional(),
+  residual: z.number().optional(),
+  currencyPart: splitPartSchema.optional(),
+  stockPart: splitPartSchema.optional(),
+  threshold: z.number().optional(),
+  window: z.number().optional(),
+  windowStart: z.string().optional(),
+});
+export type Split = z.infer<typeof splitSchema>;
+
+const headlineSchema = z.object({
+  title: z.string(),
+  link: z.string(),
+  publishedAt: z.string(),
+  side: sideSchema,
+});
+
+export const coverageOutletSchema = z.object({
+  name: z.string(),
+  url: z.string().optional(),
+  items: z.array(headlineSchema),
+});
+export type CoverageOutlet = z.infer<typeof coverageOutletSchema>;
+
+export const coverageItemSchema = headlineSchema.extend({
+  language: z.string().optional(),
+  form: z.string().optional(),
+  itemCodes: z.array(z.object({ code: z.string(), title: z.string().optional() })).optional(),
+});
+export type CoverageItem = z.infer<typeof coverageItemSchema>;
+
+export const coverageSourceSchema = z.object({
+  status: z.enum(["ok", "empty", "error"]),
+  attempts: z.number(),
+  fetchedAt: z.string(),
+  error: z.string().optional(),
+  absent: z.object({ reason: z.string() }).optional(),
+  query: z.string().optional(),
+  outlets: z.array(coverageOutletSchema).optional(),
+  total: z.number().optional(),
+  excluded: z.number().optional(),
+  nonEnglish: z.number().optional(),
+  undated: z.number().optional(),
+  items: z.array(coverageItemSchema).optional(),
+  categorised: z.boolean().optional(),
+});
+export type CoverageSource = z.infer<typeof coverageSourceSchema>;
+
+export const coverageSchema = z.object({
+  stage: z.enum(["trip", "followUp"]),
+  complete: z.boolean(),
+  routing: z.string(),
+  window: z.object({ from: z.string(), to: z.string() }),
+  closedAt: z.string(),
+  sources: z.record(z.string(), coverageSourceSchema),
+});
+export type Coverage = z.infer<typeof coverageSchema>;
+
+export const bandSchema = z.object({
+  dates: z.array(z.string()),
+  close: z.array(z.number()),
+  lower: z.array(z.number()),
+  upper: z.array(z.number()),
+});
+export type Band = z.infer<typeof bandSchema>;
+
+export const ledgerEventSchema = z.object({
+  id: z.string(), // the fragment: /market#japan-2026-10-15
+  symbol: z.string(),
+  name: z.string(),
+  sessionDate: z.string(),
+  closedAt: z.string(),
+  sessionsAgo: z.number(),
+  // Every country sensor carries one (Colombia and Peru too, with atlas false);
+  // a global name has none and a theme instead.
+  country: z.object({ slug: z.string(), name: z.string(), atlas: z.boolean() }).nullable(),
+  theme: z.string().nullable(),
+  price: z
+    .object({ close: z.number(), prevClose: z.number(), change: z.number(), changePercent: z.number() })
+    .nullable(),
+  trigger: z.object({
+    symbolReturn: z.number(),
+    benchmark: z.string().nullable(),
+    benchmarkReturn: z.number().nullable(),
+    benchmarkReason: z.string().nullable(),
+    residual: z.number(),
+    sigma: z.number(),
+    z: z.number(),
+    threshold: z.number(),
+    window: z.number(),
+  }),
+  band: bandSchema.nullable(),
+  split: splitSchema.nullable(),
+  coverage: coverageSchema.nullable(),
+  caveats: z.array(z.string()),
+  thin: z.object({ usdM: z.number(), asOf: z.string(), label: z.string() }).nullable(),
+});
+export type LedgerEvent = z.infer<typeof ledgerEventSchema>;
+
+export const eventsResponseSchema = z.object({
+  events: z.array(ledgerEventSchema),
+  truncated: z.boolean(),
+  latestSession: z.string().nullable(),
+});
+export type EventsResponse = z.infer<typeof eventsResponseSchema>;
+
+// GET /market/tape (§8, Phase 15 step 7): the Prices table's two history columns.
+// z is the trigger's own residual z on the last close, or null with the reason the
+// trigger could not judge the sensor (insufficient_history under sixty returns).
+export const tapeSensorSchema = z.object({
+  symbol: z.string(),
+  dates: z.array(z.string()),
+  closes: z.array(z.number()),
+  z: z.number().nullable(),
+  sigma: z.number().nullable(),
+  reason: z.string().optional(),
+});
+export type TapeSensor = z.infer<typeof tapeSensorSchema>;
+
+export const tapeResponseSchema = z.object({
+  asOf: z.string().nullable(),
+  sensors: z.array(tapeSensorSchema),
+});
+export type TapeResponse = z.infer<typeof tapeResponseSchema>;
 
 // GET /atlas/cities (§8, Phase 10). Eight measures per country: four are change
 // over one window (shares, housing, prices, currency), four the latest level.

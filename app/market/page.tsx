@@ -5,13 +5,15 @@ import { MarketStateLine } from "@/components/market/MarketStateLine";
 import { SessionPill } from "@/components/market/SessionPill";
 import { IndustriesStrip } from "@/components/market/IndustriesStrip";
 import { PricesTable, type PriceEntry } from "@/components/market/PricesTable";
-import { WhatMovedEmpty } from "@/components/market/WhatMovedEmpty";
+import { Ledger } from "@/components/market/Ledger";
+import { LedgerHead } from "@/components/market/LedgerHead";
 import { Container } from "@/components/shell/Container";
 import type { SectorTile } from "@/lib/industries";
 import { newestVintage } from "@/lib/prices";
 import { SECTORS } from "@/lib/sectors";
 import { seedFromResponse } from "@/lib/market-session";
-import { getMarketState, getSensors, getSymbolSnapshot } from "@/lib/ticker-client";
+import { tapeBySymbol, trippedSymbols } from "@/lib/tape";
+import { getEvents, getMarketState, getSensors, getSymbolSnapshot, getTape } from "@/lib/ticker-client";
 import { pageMetadata } from "@/lib/metadata";
 import { cn } from "@/lib/utils";
 
@@ -29,9 +31,13 @@ export default async function MarketPage() {
   const renderedAt = new Date().toISOString();
   // The ten sector baskets and the session are read alongside the sensor list:
   // none waits on another.
-  const [sensors, marketState, tiles] = await Promise.all([
+  const [sensors, marketState, events, tape, tiles] = await Promise.all([
     getSensors(),
     getMarketState(),
+    // The ledger and the tape change at the close, not by the second; the ticker
+    // holds them for a minute and the page reads them no more often than that.
+    getEvents({ revalidateSeconds: 60 }),
+    getTape({ revalidateSeconds: 60 }),
     Promise.all(
       SECTORS.map(async (sector): Promise<SectorTile> => {
         const snap = await getSymbolSnapshot(sector.symbol);
@@ -75,6 +81,9 @@ export default async function MarketPage() {
   // The server's own answer is the first paint's state, so a closed market does not
   // flash its open treatment; the shell's poll takes over from there.
   const initialState = seedFromResponse(marketState);
+  const ledger = events?.events ?? [];
+  const tapeBySym = tapeBySymbol(tape);
+  const tripped = trippedSymbols(ledger);
   const newestAsOf = newestVintage(entries.map((e) => e.row.asOf));
 
   return (
@@ -85,10 +94,12 @@ export default async function MarketPage() {
         <header>
           <h1 className="text-4xl font-light">Market</h1>
           <p className={LEDE}>
-            Eighteen real instruments: one bank or telecom for each of thirteen countries, and five global names.
-            Prices are below; the threshold that picks out an unusual move switches on in the next release.
+            Eighteen real instruments: one bank or telecom for each of thirteen countries, and five global names, read
+            once a day at the close. When one moves further than it usually does, the news that explains it is fetched,
+            and nothing is fetched when nothing moves. The page is quiet by construction, not by filtering.
           </p>
           <MarketStateLine initial={initialState} renderedAt={renderedAt} newestAsOf={newestAsOf} />
+          {events !== null && <LedgerHead events={ledger} />}
         </header>
 
         <section aria-labelledby="prices">
@@ -103,7 +114,13 @@ export default async function MarketPage() {
             that country; a move in a global name is about the world.
           </p>
           {entries.length > 0 ? (
-            <PricesTable entries={entries} renderedAt={renderedAt} initialState={initialState} />
+            <PricesTable
+              entries={entries}
+              renderedAt={renderedAt}
+              initialState={initialState}
+              tape={tapeBySym}
+              tripped={tripped}
+            />
           ) : (
             <p className="text-sm text-text-muted">Live market data is temporarily unavailable.</p>
           )}
@@ -117,7 +134,11 @@ export default async function MarketPage() {
             When one of them moves further than it normally does, the news explaining it is fetched. Nothing else is,
             and on a quiet day nothing is fetched at all.
           </p>
-          <WhatMovedEmpty />
+          {events !== null ? (
+            <Ledger events={ledger} truncated={events.truncated} />
+          ) : (
+            <p className="text-sm text-text-muted">The ledger is temporarily unavailable.</p>
+          )}
         </section>
 
         <section aria-labelledby="industries">

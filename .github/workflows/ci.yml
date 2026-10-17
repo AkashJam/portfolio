@@ -210,6 +210,12 @@ jobs:
 
       - run: npx playwright test
 
+      # Phase 15 step 7: the populated ledger. The simulator's database holds no events,
+      # so the run above only sees the empty state. This runs the same standalone build
+      # three times against fixture tickers (e2e-fixture/) that serve canned events:
+      # tripped, quiet and empty. It reuses the build Playwright's webServer just made.
+      - run: npm run test:fixture
+
       # §21 "Performance": Lighthouse budgets on /, /about and /atlas
       # (lighthouserc.js). Runs after Playwright so it reuses the standalone
       # build Playwright's webServer made, after the 1m-candle wait, so Home

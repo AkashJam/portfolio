@@ -1,0 +1,2627 @@
+{
+  "events": [
+    {
+      "id": "japan-2026-10-15",
+      "symbol": "MUFG",
+      "name": "Mitsubishi UFJ",
+      "sessionDate": "2026-10-15",
+      "closedAt": "2026-10-15T20:00:00Z",
+      "sessionsAgo": 0,
+      "country": {
+        "slug": "japan",
+        "name": "Japan",
+        "atlas": true
+      },
+      "theme": null,
+      "price": {
+        "close": 18.93,
+        "prevClose": 19.9,
+        "change": -0.97,
+        "changePercent": -4.87
+      },
+      "trigger": {
+        "symbolReturn": -0.0483,
+        "benchmark": "IXG",
+        "benchmarkReturn": -0.0043,
+        "benchmarkReason": null,
+        "residual": -0.044,
+        "sigma": 0.0142,
+        "z": -3.1,
+        "threshold": 2.5,
+        "window": 60
+      },
+      "band": {
+        "dates": [
+          "2026-07-24T00:00:00.000Z",
+          "2026-07-27T00:00:00.000Z",
+          "2026-07-28T00:00:00.000Z",
+          "2026-07-29T00:00:00.000Z",
+          "2026-07-30T00:00:00.000Z",
+          "2026-07-31T00:00:00.000Z",
+          "2026-08-03T00:00:00.000Z",
+          "2026-08-04T00:00:00.000Z",
+          "2026-08-05T00:00:00.000Z",
+          "2026-08-06T00:00:00.000Z",
+          "2026-08-07T00:00:00.000Z",
+          "2026-08-10T00:00:00.000Z",
+          "2026-08-11T00:00:00.000Z",
+          "2026-08-12T00:00:00.000Z",
+          "2026-08-13T00:00:00.000Z",
+          "2026-08-14T00:00:00.000Z",
+          "2026-08-17T00:00:00.000Z",
+          "2026-08-18T00:00:00.000Z",
+          "2026-08-19T00:00:00.000Z",
+          "2026-08-20T00:00:00.000Z",
+          "2026-08-21T00:00:00.000Z",
+          "2026-08-24T00:00:00.000Z",
+          "2026-08-25T00:00:00.000Z",
+          "2026-08-26T00:00:00.000Z",
+          "2026-08-27T00:00:00.000Z",
+          "2026-08-28T00:00:00.000Z",
+          "2026-08-31T00:00:00.000Z",
+          "2026-09-01T00:00:00.000Z",
+          "2026-09-02T00:00:00.000Z",
+          "2026-09-03T00:00:00.000Z",
+          "2026-09-04T00:00:00.000Z",
+          "2026-09-07T00:00:00.000Z",
+          "2026-09-08T00:00:00.000Z",
+          "2026-09-09T00:00:00.000Z",
+          "2026-09-10T00:00:00.000Z",
+          "2026-09-11T00:00:00.000Z",
+          "2026-09-14T00:00:00.000Z",
+          "2026-09-15T00:00:00.000Z",
+          "2026-09-16T00:00:00.000Z",
+          "2026-09-17T00:00:00.000Z",
+          "2026-09-18T00:00:00.000Z",
+          "2026-09-21T00:00:00.000Z",
+          "2026-09-22T00:00:00.000Z",
+          "2026-09-23T00:00:00.000Z",
+          "2026-09-24T00:00:00.000Z",
+          "2026-09-25T00:00:00.000Z",
+          "2026-09-28T00:00:00.000Z",
+          "2026-09-29T00:00:00.000Z",
+          "2026-09-30T00:00:00.000Z",
+          "2026-10-01T00:00:00.000Z",
+          "2026-10-02T00:00:00.000Z",
+          "2026-10-05T00:00:00.000Z",
+          "2026-10-06T00:00:00.000Z",
+          "2026-10-07T00:00:00.000Z",
+          "2026-10-08T00:00:00.000Z",
+          "2026-10-09T00:00:00.000Z",
+          "2026-10-12T00:00:00.000Z",
+          "2026-10-13T00:00:00.000Z",
+          "2026-10-14T00:00:00.000Z",
+          "2026-10-15T00:00:00.000Z"
+        ],
+        "close": [
+          21.89,
+          21.79,
+          21.72,
+          21.54,
+          21.63,
+          21.78,
+          21.6,
+          21.69,
+          21.52,
+          21.4,
+          21.52,
+          21.42,
+          21.36,
+          21.3,
+          21.31,
+          21.37,
+          21.32,
+          21.31,
+          21.39,
+          21.34,
+          21.18,
+          21.28,
+          21.4,
+          21.2,
+          21.12,
+          20.96,
+          20.99,
+          20.8,
+          20.74,
+          20.92,
+          21.05,
+          21.14,
+          21.34,
+          21.15,
+          21.09,
+          21.21,
+          21.01,
+          20.89,
+          21.04,
+          20.9,
+          20.81,
+          20.97,
+          21.07,
+          21.26,
+          21.35,
+          21.2,
+          21.19,
+          21.23,
+          21.26,
+          21.22,
+          21.12,
+          21.17,
+          21.15,
+          20.96,
+          21.06,
+          20.91,
+          20.72,
+          20.47,
+          19.9,
+          18.93
+        ],
+        "lower": [
+          21.068,
+          21.057,
+          20.964,
+          20.939,
+          20.755,
+          20.832,
+          20.989,
+          20.899,
+          20.866,
+          20.806,
+          20.61,
+          20.69,
+          20.596,
+          20.666,
+          20.595,
+          20.52,
+          20.684,
+          20.585,
+          20.58,
+          20.591,
+          20.504,
+          20.405,
+          20.52,
+          20.684,
+          20.444,
+          20.378,
+          20.228,
+          20.282,
+          20.055,
+          19.937,
+          20.208,
+          20.266,
+          20.407,
+          20.516,
+          20.371,
+          20.257,
+          20.474,
+          20.253,
+          20.206,
+          20.317,
+          20.176,
+          20.116,
+          20.2,
+          20.323,
+          20.55,
+          20.532,
+          20.436,
+          20.355,
+          20.485,
+          20.582,
+          20.412,
+          20.322,
+          20.496,
+          20.461,
+          20.247,
+          20.27,
+          20.199,
+          19.957,
+          19.736,
+          19.119
+        ],
+        "upper": [
+          22.622,
+          22.612,
+          22.511,
+          22.482,
+          22.284,
+          22.367,
+          22.535,
+          22.432,
+          22.406,
+          22.334,
+          22.13,
+          22.218,
+          22.117,
+          22.182,
+          22.108,
+          22.033,
+          22.201,
+          22.099,
+          22.093,
+          22.109,
+          22.019,
+          21.908,
+          22.031,
+          22.203,
+          21.949,
+          21.877,
+          21.716,
+          21.772,
+          21.532,
+          21.409,
+          21.693,
+          21.76,
+          21.907,
+          22.031,
+          21.873,
+          21.755,
+          21.98,
+          21.745,
+          21.689,
+          21.811,
+          21.66,
+          21.593,
+          21.689,
+          21.819,
+          22.06,
+          22.047,
+          21.941,
+          21.86,
+          21.992,
+          22.092,
+          21.918,
+          21.822,
+          21.999,
+          21.962,
+          21.735,
+          21.765,
+          21.684,
+          21.429,
+          21.189,
+          20.532
+        ]
+      },
+      "split": {
+        "status": "ok",
+        "label": "both",
+        "currency": "JPY",
+        "source": "daily",
+        "fixDate": "2026-10-15",
+        "ratePrevious": 150.1,
+        "rateCurrent": 152.9,
+        "residual": -0.044,
+        "currencyPart": {
+          "value": -0.019,
+          "sigma": 0.0073,
+          "z": -2.6
+        },
+        "stockPart": {
+          "value": -0.025,
+          "sigma": 0.0114,
+          "z": -2.2
+        },
+        "threshold": 2,
+        "window": 60,
+        "windowStart": "2026-07-21"
+      },
+      "coverage": {
+        "stage": "followUp",
+        "complete": true,
+        "routing": "both",
+        "window": {
+          "from": "2026-10-14",
+          "to": "2026-10-17"
+        },
+        "closedAt": "2026-10-15T20:00:00Z",
+        "sources": {
+          "centralBank": {
+            "status": "ok",
+            "attempts": 2,
+            "fetchedAt": "2026-10-16T21:20:00Z",
+            "query": "https://www.boj.or.jp/en/rss/whatsnew.xml",
+            "items": [
+              {
+                "title": "Bank of Japan: Summary of Opinions at the Monetary Policy Meeting",
+                "link": "https://www.boj.or.jp/en/mopo/example",
+                "publishedAt": "2026-10-15T08:00:00Z",
+                "side": "before",
+                "language": "en"
+              }
+            ]
+          },
+          "economyNews": {
+            "status": "ok",
+            "attempts": 2,
+            "fetchedAt": "2026-10-16T21:20:00Z",
+            "query": "\"Bank of Japan\" OR \"Japanese yen\" OR \"Japan economy\"",
+            "outlets": [
+              {
+                "name": "Nikkei",
+                "url": "https://www.nikkei.example",
+                "items": [
+                  {
+                    "title": "Yen slides as policy outlook shifts (Nikkei)",
+                    "link": "https://news.google.com/rss/articles/Nikkei0",
+                    "publishedAt": "2026-10-15T05:00:00Z",
+                    "side": "before"
+                  },
+                  {
+                    "title": "Yen slides as policy outlook shifts, a second look (Nikkei)",
+                    "link": "https://news.google.com/rss/articles/Nikkei0b",
+                    "publishedAt": "2026-10-15T06:30:00Z",
+                    "side": "before"
+                  }
+                ]
+              },
+              {
+                "name": "Reuters",
+                "url": "https://www.reuters.example",
+                "items": [
+                  {
+                    "title": "Yen slides as policy outlook shifts (Reuters)",
+                    "link": "https://news.google.com/rss/articles/Reuters1",
+                    "publishedAt": "2026-10-15T06:07:00Z",
+                    "side": "before"
+                  }
+                ]
+              },
+              {
+                "name": "Bloomberg",
+                "url": "https://www.bloomberg.example",
+                "items": [
+                  {
+                    "title": "Yen slides as policy outlook shifts (Bloomberg)",
+                    "link": "https://news.google.com/rss/articles/Bloomberg2",
+                    "publishedAt": "2026-10-15T07:14:00Z",
+                    "side": "before"
+                  }
+                ]
+              },
+              {
+                "name": "Japan Times",
+                "url": "https://www.japantimes.example",
+                "items": [
+                  {
+                    "title": "Yen slides as policy outlook shifts (Japan Times)",
+                    "link": "https://news.google.com/rss/articles/JapanTimes3",
+                    "publishedAt": "2026-10-15T08:21:00Z",
+                    "side": "before"
+                  }
+                ]
+              },
+              {
+                "name": "Kyodo",
+                "url": "https://www.kyodo.example",
+                "items": [
+                  {
+                    "title": "Yen slides as policy outlook shifts (Kyodo)",
+                    "link": "https://news.google.com/rss/articles/Kyodo4",
+                    "publishedAt": "2026-10-15T09:28:00Z",
+                    "side": "before"
+                  }
+                ]
+              },
+              {
+                "name": "Financial Times",
+                "url": "https://www.financialtimes.example",
+                "items": [
+                  {
+                    "title": "Yen slides as policy outlook shifts (Financial Times)",
+                    "link": "https://news.google.com/rss/articles/FinancialTimes5",
+                    "publishedAt": "2026-10-15T10:35:00Z",
+                    "side": "before"
+                  },
+                  {
+                    "title": "Yen slides as policy outlook shifts, a second look (Financial Times)",
+                    "link": "https://news.google.com/rss/articles/FinancialTimes5b",
+                    "publishedAt": "2026-10-15T11:30:00Z",
+                    "side": "before"
+                  }
+                ]
+              },
+              {
+                "name": "Mainichi",
+                "url": "https://www.mainichi.example",
+                "items": [
+                  {
+                    "title": "Yen slides as policy outlook shifts (Mainichi)",
+                    "link": "https://news.google.com/rss/articles/Mainichi6",
+                    "publishedAt": "2026-10-15T11:42:00Z",
+                    "side": "before"
+                  }
+                ]
+              },
+              {
+                "name": "Nikkei Asia",
+                "url": "https://www.nikkeiasia.example",
+                "items": [
+                  {
+                    "title": "Yen slides as policy outlook shifts (Nikkei Asia)",
+                    "link": "https://news.google.com/rss/articles/NikkeiAsia7",
+                    "publishedAt": "2026-10-15T12:49:00Z",
+                    "side": "before"
+                  }
+                ]
+              },
+              {
+                "name": "Japan Today",
+                "url": "https://www.japantoday.example",
+                "items": [
+                  {
+                    "title": "Yen slides as policy outlook shifts (Japan Today)",
+                    "link": "https://news.google.com/rss/articles/JapanToday8",
+                    "publishedAt": "2026-10-15T13:56:00Z",
+                    "side": "before"
+                  }
+                ]
+              },
+              {
+                "name": "MarketWatch",
+                "url": "https://www.marketwatch.example",
+                "items": [
+                  {
+                    "title": "Yen slides as policy outlook shifts (MarketWatch)",
+                    "link": "https://news.google.com/rss/articles/MarketWatch9",
+                    "publishedAt": "2026-10-15T21:03:00Z",
+                    "side": "after"
+                  }
+                ]
+              },
+              {
+                "name": "Reuters Japan",
+                "url": "https://www.reutersjapan.example",
+                "items": [
+                  {
+                    "title": "Yen slides as policy outlook shifts (Reuters Japan)",
+                    "link": "https://news.google.com/rss/articles/ReutersJapan10",
+                    "publishedAt": "2026-10-15T22:10:00Z",
+                    "side": "after"
+                  },
+                  {
+                    "title": "Yen slides as policy outlook shifts, a second look (Reuters Japan)",
+                    "link": "https://news.google.com/rss/articles/ReutersJapan10b",
+                    "publishedAt": "2026-10-15T23:30:00Z",
+                    "side": "after"
+                  }
+                ]
+              },
+              {
+                "name": "Jiji",
+                "url": "https://www.jiji.example",
+                "items": [
+                  {
+                    "title": "Yen slides as policy outlook shifts (Jiji)",
+                    "link": "https://news.google.com/rss/articles/Jiji11",
+                    "publishedAt": "2026-10-15T23:17:00Z",
+                    "side": "after"
+                  }
+                ]
+              },
+              {
+                "name": "The Asahi Shimbun",
+                "url": "https://www.theasahishimbun.example",
+                "items": [
+                  {
+                    "title": "Yen slides as policy outlook shifts (The Asahi Shimbun)",
+                    "link": "https://news.google.com/rss/articles/TheAsahiShimbun12",
+                    "publishedAt": "2026-10-15T21:24:00Z",
+                    "side": "after"
+                  }
+                ]
+              },
+              {
+                "name": "Barron's",
+                "url": "https://www.barrons.example",
+                "items": [
+                  {
+                    "title": "Yen slides as policy outlook shifts (Barron's)",
+                    "link": "https://news.google.com/rss/articles/Barrons13",
+                    "publishedAt": "2026-10-15T22:31:00Z",
+                    "side": "after"
+                  }
+                ]
+              }
+            ],
+            "total": 71,
+            "excluded": 14,
+            "nonEnglish": 0
+          },
+          "sectorNews": {
+            "status": "ok",
+            "attempts": 2,
+            "fetchedAt": "2026-10-16T21:20:00Z",
+            "query": "MUFG OR \"Japanese banks\"",
+            "outlets": [
+              {
+                "name": "Nikkei",
+                "url": "https://www.nikkei.example",
+                "items": [
+                  {
+                    "title": "Japanese lenders fall on rate bets (Nikkei)",
+                    "link": "https://news.google.com/rss/articles/Nikkei0",
+                    "publishedAt": "2026-10-15T05:00:00Z",
+                    "side": "before"
+                  },
+                  {
+                    "title": "Japanese lenders fall on rate bets, a second look (Nikkei)",
+                    "link": "https://news.google.com/rss/articles/Nikkei0b",
+                    "publishedAt": "2026-10-15T06:30:00Z",
+                    "side": "before"
+                  }
+                ]
+              },
+              {
+                "name": "Reuters",
+                "url": "https://www.reuters.example",
+                "items": [
+                  {
+                    "title": "Japanese lenders fall on rate bets (Reuters)",
+                    "link": "https://news.google.com/rss/articles/Reuters1",
+                    "publishedAt": "2026-10-15T06:07:00Z",
+                    "side": "before"
+                  }
+                ]
+              },
+              {
+                "name": "Bloomberg",
+                "url": "https://www.bloomberg.example",
+                "items": [
+                  {
+                    "title": "Japanese lenders fall on rate bets (Bloomberg)",
+                    "link": "https://news.google.com/rss/articles/Bloomberg2",
+                    "publishedAt": "2026-10-15T07:14:00Z",
+                    "side": "before"
+                  }
+                ]
+              },
+              {
+                "name": "Japan Times",
+                "url": "https://www.japantimes.example",
+                "items": [
+                  {
+                    "title": "Japanese lenders fall on rate bets (Japan Times)",
+                    "link": "https://news.google.com/rss/articles/JapanTimes3",
+                    "publishedAt": "2026-10-15T08:21:00Z",
+                    "side": "before"
+                  }
+                ]
+              },
+              {
+                "name": "Kyodo",
+                "url": "https://www.kyodo.example",
+                "items": [
+                  {
+                    "title": "Japanese lenders fall on rate bets (Kyodo)",
+                    "link": "https://news.google.com/rss/articles/Kyodo4",
+                    "publishedAt": "2026-10-15T22:28:00Z",
+                    "side": "after"
+                  }
+                ]
+              },
+              {
+                "name": "Mainichi",
+                "url": "https://www.mainichi.example",
+                "items": [
+                  {
+                    "title": "Japanese lenders fall on rate bets (Mainichi)",
+                    "link": "https://news.google.com/rss/articles/Mainichi5",
+                    "publishedAt": "2026-10-15T23:35:00Z",
+                    "side": "after"
+                  },
+                  {
+                    "title": "Japanese lenders fall on rate bets, a second look (Mainichi)",
+                    "link": "https://news.google.com/rss/articles/Mainichi5b",
+                    "publishedAt": "2026-10-15T24:30:00Z",
+                    "side": "after"
+                  }
+                ]
+              }
+            ],
+            "total": 44,
+            "excluded": 9,
+            "nonEnglish": 0
+          },
+          "filings": {
+            "status": "empty",
+            "attempts": 2,
+            "fetchedAt": "2026-10-16T21:20:00Z",
+            "query": "CIK 0000067088, form 6-K",
+            "absent": {
+              "reason": "no 6-K was filed in the window"
+            },
+            "categorised": false
+          }
+        }
+      },
+      "caveats": [],
+      "thin": null
+    },
+    {
+      "id": "korea-2026-10-02",
+      "symbol": "KB",
+      "name": "KB Financial Group",
+      "sessionDate": "2026-10-02",
+      "closedAt": "2026-10-02T20:00:00Z",
+      "sessionsAgo": 9,
+      "country": {
+        "slug": "korea",
+        "name": "South Korea",
+        "atlas": true
+      },
+      "theme": null,
+      "price": {
+        "close": 108.8,
+        "prevClose": 104.9,
+        "change": 3.9,
+        "changePercent": 3.72
+      },
+      "trigger": {
+        "symbolReturn": 0.0371,
+        "benchmark": "IXG",
+        "benchmarkReturn": 0.0021,
+        "benchmarkReason": null,
+        "residual": 0.035,
+        "sigma": 0.0129,
+        "z": 2.7,
+        "threshold": 2.5,
+        "window": 60
+      },
+      "band": {
+        "dates": [
+          "2026-07-13T00:00:00.000Z",
+          "2026-07-14T00:00:00.000Z",
+          "2026-07-15T00:00:00.000Z",
+          "2026-07-16T00:00:00.000Z",
+          "2026-07-17T00:00:00.000Z",
+          "2026-07-20T00:00:00.000Z",
+          "2026-07-21T00:00:00.000Z",
+          "2026-07-22T00:00:00.000Z",
+          "2026-07-23T00:00:00.000Z",
+          "2026-07-24T00:00:00.000Z",
+          "2026-07-27T00:00:00.000Z",
+          "2026-07-28T00:00:00.000Z",
+          "2026-07-29T00:00:00.000Z",
+          "2026-07-30T00:00:00.000Z",
+          "2026-07-31T00:00:00.000Z",
+          "2026-08-03T00:00:00.000Z",
+          "2026-08-04T00:00:00.000Z",
+          "2026-08-05T00:00:00.000Z",
+          "2026-08-06T00:00:00.000Z",
+          "2026-08-07T00:00:00.000Z",
+          "2026-08-10T00:00:00.000Z",
+          "2026-08-11T00:00:00.000Z",
+          "2026-08-12T00:00:00.000Z",
+          "2026-08-13T00:00:00.000Z",
+          "2026-08-14T00:00:00.000Z",
+          "2026-08-17T00:00:00.000Z",
+          "2026-08-18T00:00:00.000Z",
+          "2026-08-19T00:00:00.000Z",
+          "2026-08-20T00:00:00.000Z",
+          "2026-08-21T00:00:00.000Z",
+          "2026-08-24T00:00:00.000Z",
+          "2026-08-25T00:00:00.000Z",
+          "2026-08-26T00:00:00.000Z",
+          "2026-08-27T00:00:00.000Z",
+          "2026-08-28T00:00:00.000Z",
+          "2026-08-31T00:00:00.000Z",
+          "2026-09-01T00:00:00.000Z",
+          "2026-09-02T00:00:00.000Z",
+          "2026-09-03T00:00:00.000Z",
+          "2026-09-04T00:00:00.000Z",
+          "2026-09-07T00:00:00.000Z",
+          "2026-09-08T00:00:00.000Z",
+          "2026-09-09T00:00:00.000Z",
+          "2026-09-10T00:00:00.000Z",
+          "2026-09-11T00:00:00.000Z",
+          "2026-09-14T00:00:00.000Z",
+          "2026-09-15T00:00:00.000Z",
+          "2026-09-16T00:00:00.000Z",
+          "2026-09-17T00:00:00.000Z",
+          "2026-09-18T00:00:00.000Z",
+          "2026-09-21T00:00:00.000Z",
+          "2026-09-22T00:00:00.000Z",
+          "2026-09-23T00:00:00.000Z",
+          "2026-09-24T00:00:00.000Z",
+          "2026-09-25T00:00:00.000Z",
+          "2026-09-28T00:00:00.000Z",
+          "2026-09-29T00:00:00.000Z",
+          "2026-09-30T00:00:00.000Z",
+          "2026-10-01T00:00:00.000Z",
+          "2026-10-02T00:00:00.000Z"
+        ],
+        "close": [
+          99.49,
+          99.04,
+          99.8,
+          99.76,
+          98.86,
+          98.01,
+          98.65,
+          99.23,
+          99.63,
+          100.32,
+          100.88,
+          101.49,
+          100.69,
+          101.34,
+          100.39,
+          100.93,
+          100.08,
+          100.37,
+          101.28,
+          100.58,
+          101.04,
+          101.89,
+          101.17,
+          101.83,
+          102.02,
+          103.01,
+          102.33,
+          102.3,
+          101.83,
+          102.27,
+          101.8,
+          101.67,
+          101.8,
+          102.24,
+          102.72,
+          103.59,
+          103.5,
+          102.99,
+          103.49,
+          104.09,
+          103.76,
+          104.08,
+          104.93,
+          104.01,
+          103.73,
+          103,
+          103.67,
+          104.2,
+          104.92,
+          104.52,
+          104.25,
+          103.36,
+          102.35,
+          102.65,
+          102.61,
+          102.93,
+          103.25,
+          103.66,
+          104.9,
+          108.8
+        ],
+        "lower": [
+          96.078,
+          96.102,
+          96.15,
+          96.567,
+          96.181,
+          95.333,
+          95.105,
+          95.702,
+          96.188,
+          96.692,
+          97.308,
+          97.872,
+          97.896,
+          97.705,
+          97.691,
+          97.368,
+          97.334,
+          96.969,
+          97.497,
+          97.733,
+          97.52,
+          98.124,
+          98.315,
+          98.17,
+          98.624,
+          99.126,
+          99.415,
+          99.02,
+          98.812,
+          98.721,
+          98.784,
+          98.464,
+          98.443,
+          98.694,
+          99.134,
+          99.757,
+          100.211,
+          99.96,
+          99.868,
+          100.391,
+          100.6,
+          100.544,
+          101.062,
+          101.177,
+          100.546,
+          100.09,
+          99.949,
+          100.538,
+          101.129,
+          101.375,
+          101.04,
+          100.534,
+          99.622,
+          99.168,
+          99.322,
+          99.432,
+          99.736,
+          100.252,
+          100.534,
+          101.667
+        ],
+        "upper": [
+          102.495,
+          102.519,
+          102.538,
+          103.004,
+          102.615,
+          101.709,
+          101.427,
+          102.065,
+          102.589,
+          103.119,
+          103.779,
+          104.378,
+          104.442,
+          104.199,
+          104.227,
+          103.843,
+          103.844,
+          103.425,
+          103.971,
+          104.266,
+          104.008,
+          104.641,
+          104.887,
+          104.696,
+          105.192,
+          105.706,
+          106.059,
+          105.62,
+          105.411,
+          105.289,
+          105.38,
+          105.03,
+          105.001,
+          105.26,
+          105.728,
+          106.383,
+          106.893,
+          106.636,
+          106.511,
+          107.066,
+          107.314,
+          107.237,
+          107.775,
+          107.945,
+          107.255,
+          106.781,
+          106.593,
+          107.225,
+          107.85,
+          108.142,
+          107.782,
+          107.258,
+          106.288,
+          105.77,
+          105.943,
+          106.05,
+          106.375,
+          106.912,
+          107.22,
+          108.433
+        ]
+      },
+      "split": {
+        "status": "ok",
+        "label": "stock-led",
+        "currency": "KRW",
+        "source": "daily",
+        "fixDate": "2026-10-02",
+        "ratePrevious": 1390,
+        "rateCurrent": 1387,
+        "residual": 0.035,
+        "currencyPart": {
+          "value": 0.002,
+          "sigma": 0.0066,
+          "z": 0.3
+        },
+        "stockPart": {
+          "value": 0.033,
+          "sigma": 0.0127,
+          "z": 2.6
+        },
+        "threshold": 2,
+        "window": 60,
+        "windowStart": "2026-07-10"
+      },
+      "coverage": {
+        "stage": "followUp",
+        "complete": true,
+        "routing": "stock-led",
+        "window": {
+          "from": "2026-10-01",
+          "to": "2026-10-04"
+        },
+        "closedAt": "2026-10-02T20:00:00Z",
+        "sources": {
+          "sectorNews": {
+            "status": "ok",
+            "attempts": 2,
+            "fetchedAt": "2026-10-16T21:20:00Z",
+            "query": "\"KB Financial\" OR \"Korean banks\"",
+            "outlets": [
+              {
+                "name": "Yonhap",
+                "url": "https://www.yonhap.example",
+                "items": [
+                  {
+                    "title": "Korean banks rally on dividend hopes (Yonhap)",
+                    "link": "https://news.google.com/rss/articles/Yonhap0",
+                    "publishedAt": "2026-10-02T05:00:00Z",
+                    "side": "before"
+                  },
+                  {
+                    "title": "Korean banks rally on dividend hopes, a second look (Yonhap)",
+                    "link": "https://news.google.com/rss/articles/Yonhap0b",
+                    "publishedAt": "2026-10-02T06:30:00Z",
+                    "side": "before"
+                  }
+                ]
+              },
+              {
+                "name": "Korea Herald",
+                "url": "https://www.koreaherald.example",
+                "items": [
+                  {
+                    "title": "Korean banks rally on dividend hopes (Korea Herald)",
+                    "link": "https://news.google.com/rss/articles/KoreaHerald1",
+                    "publishedAt": "2026-10-02T06:07:00Z",
+                    "side": "before"
+                  }
+                ]
+              },
+              {
+                "name": "JoongAng Daily",
+                "url": "https://www.joongangdaily.example",
+                "items": [
+                  {
+                    "title": "Korean banks rally on dividend hopes (JoongAng Daily)",
+                    "link": "https://news.google.com/rss/articles/JoongAngDaily2",
+                    "publishedAt": "2026-10-02T07:14:00Z",
+                    "side": "before"
+                  }
+                ]
+              },
+              {
+                "name": "Reuters",
+                "url": "https://www.reuters.example",
+                "items": [
+                  {
+                    "title": "Korean banks rally on dividend hopes (Reuters)",
+                    "link": "https://news.google.com/rss/articles/Reuters3",
+                    "publishedAt": "2026-10-02T08:21:00Z",
+                    "side": "before"
+                  }
+                ]
+              },
+              {
+                "name": "Bloomberg",
+                "url": "https://www.bloomberg.example",
+                "items": [
+                  {
+                    "title": "Korean banks rally on dividend hopes (Bloomberg)",
+                    "link": "https://news.google.com/rss/articles/Bloomberg4",
+                    "publishedAt": "2026-10-02T09:28:00Z",
+                    "side": "before"
+                  }
+                ]
+              },
+              {
+                "name": "Investing.com",
+                "url": "https://www.investingcom.example",
+                "items": [
+                  {
+                    "title": "Korean banks rally on dividend hopes (Investing.com)",
+                    "link": "https://news.google.com/rss/articles/Investingcom5",
+                    "publishedAt": "2026-10-02T10:35:00Z",
+                    "side": "before"
+                  },
+                  {
+                    "title": "Korean banks rally on dividend hopes, a second look (Investing.com)",
+                    "link": "https://news.google.com/rss/articles/Investingcom5b",
+                    "publishedAt": "2026-10-02T11:30:00Z",
+                    "side": "before"
+                  }
+                ]
+              },
+              {
+                "name": "Nikkei Asia",
+                "url": "https://www.nikkeiasia.example",
+                "items": [
+                  {
+                    "title": "Korean banks rally on dividend hopes (Nikkei Asia)",
+                    "link": "https://news.google.com/rss/articles/NikkeiAsia6",
+                    "publishedAt": "2026-10-02T11:42:00Z",
+                    "side": "before"
+                  }
+                ]
+              },
+              {
+                "name": "Chosun Ilbo",
+                "url": "https://www.chosunilbo.example",
+                "items": [
+                  {
+                    "title": "Korean banks rally on dividend hopes (Chosun Ilbo)",
+                    "link": "https://news.google.com/rss/articles/ChosunIlbo7",
+                    "publishedAt": "2026-10-02T22:49:00Z",
+                    "side": "after"
+                  }
+                ]
+              },
+              {
+                "name": "Maeil Business",
+                "url": "https://www.maeilbusiness.example",
+                "items": [
+                  {
+                    "title": "Korean banks rally on dividend hopes (Maeil Business)",
+                    "link": "https://news.google.com/rss/articles/MaeilBusiness8",
+                    "publishedAt": "2026-10-02T23:56:00Z",
+                    "side": "after"
+                  }
+                ]
+              },
+              {
+                "name": "Korea Times",
+                "url": "https://www.koreatimes.example",
+                "items": [
+                  {
+                    "title": "Korean banks rally on dividend hopes (Korea Times)",
+                    "link": "https://news.google.com/rss/articles/KoreaTimes9",
+                    "publishedAt": "2026-10-02T21:03:00Z",
+                    "side": "after"
+                  }
+                ]
+              },
+              {
+                "name": "BusinessKorea",
+                "url": "https://www.businesskorea.example",
+                "items": [
+                  {
+                    "title": "Korean banks rally on dividend hopes (BusinessKorea)",
+                    "link": "https://news.google.com/rss/articles/BusinessKorea10",
+                    "publishedAt": "2026-10-02T22:10:00Z",
+                    "side": "after"
+                  },
+                  {
+                    "title": "Korean banks rally on dividend hopes, a second look (BusinessKorea)",
+                    "link": "https://news.google.com/rss/articles/BusinessKorea10b",
+                    "publishedAt": "2026-10-02T23:30:00Z",
+                    "side": "after"
+                  }
+                ]
+              }
+            ],
+            "total": 28,
+            "excluded": 4,
+            "nonEnglish": 0
+          },
+          "filings": {
+            "status": "empty",
+            "attempts": 2,
+            "fetchedAt": "2026-10-16T21:20:00Z",
+            "query": "CIK 0001445930, form 6-K",
+            "absent": {
+              "reason": "no 6-K was filed in the window"
+            },
+            "categorised": false
+          }
+        }
+      },
+      "caveats": [
+        "thin_listing"
+      ],
+      "thin": {
+        "usdM": 25,
+        "asOf": "2026-10-09",
+        "label": "thin listing"
+      }
+    },
+    {
+      "id": "brazil-2026-09-18",
+      "symbol": "ITUB",
+      "name": "Itaú Unibanco",
+      "sessionDate": "2026-09-18",
+      "closedAt": "2026-09-18T20:00:00Z",
+      "sessionsAgo": 19,
+      "country": {
+        "slug": "brazil",
+        "name": "Brazil",
+        "atlas": true
+      },
+      "theme": null,
+      "price": {
+        "close": 9.02,
+        "prevClose": 9.34,
+        "change": -0.32,
+        "changePercent": -3.43
+      },
+      "trigger": {
+        "symbolReturn": -0.0342,
+        "benchmark": "IXG",
+        "benchmarkReturn": 0.001,
+        "benchmarkReason": null,
+        "residual": -0.0352,
+        "sigma": 0.0135,
+        "z": -2.6,
+        "threshold": 2.5,
+        "window": 60
+      },
+      "band": {
+        "dates": [
+          "2026-06-29T00:00:00.000Z",
+          "2026-06-30T00:00:00.000Z",
+          "2026-07-01T00:00:00.000Z",
+          "2026-07-02T00:00:00.000Z",
+          "2026-07-03T00:00:00.000Z",
+          "2026-07-06T00:00:00.000Z",
+          "2026-07-07T00:00:00.000Z",
+          "2026-07-08T00:00:00.000Z",
+          "2026-07-09T00:00:00.000Z",
+          "2026-07-10T00:00:00.000Z",
+          "2026-07-13T00:00:00.000Z",
+          "2026-07-14T00:00:00.000Z",
+          "2026-07-15T00:00:00.000Z",
+          "2026-07-16T00:00:00.000Z",
+          "2026-07-17T00:00:00.000Z",
+          "2026-07-20T00:00:00.000Z",
+          "2026-07-21T00:00:00.000Z",
+          "2026-07-22T00:00:00.000Z",
+          "2026-07-23T00:00:00.000Z",
+          "2026-07-24T00:00:00.000Z",
+          "2026-07-27T00:00:00.000Z",
+          "2026-07-28T00:00:00.000Z",
+          "2026-07-29T00:00:00.000Z",
+          "2026-07-30T00:00:00.000Z",
+          "2026-07-31T00:00:00.000Z",
+          "2026-08-03T00:00:00.000Z",
+          "2026-08-04T00:00:00.000Z",
+          "2026-08-05T00:00:00.000Z",
+          "2026-08-06T00:00:00.000Z",
+          "2026-08-07T00:00:00.000Z",
+          "2026-08-10T00:00:00.000Z",
+          "2026-08-11T00:00:00.000Z",
+          "2026-08-12T00:00:00.000Z",
+          "2026-08-13T00:00:00.000Z",
+          "2026-08-14T00:00:00.000Z",
+          "2026-08-17T00:00:00.000Z",
+          "2026-08-18T00:00:00.000Z",
+          "2026-08-19T00:00:00.000Z",
+          "2026-08-20T00:00:00.000Z",
+          "2026-08-21T00:00:00.000Z",
+          "2026-08-24T00:00:00.000Z",
+          "2026-08-25T00:00:00.000Z",
+          "2026-08-26T00:00:00.000Z",
+          "2026-08-27T00:00:00.000Z",
+          "2026-08-28T00:00:00.000Z",
+          "2026-08-31T00:00:00.000Z",
+          "2026-09-01T00:00:00.000Z",
+          "2026-09-02T00:00:00.000Z",
+          "2026-09-03T00:00:00.000Z",
+          "2026-09-04T00:00:00.000Z",
+          "2026-09-07T00:00:00.000Z",
+          "2026-09-08T00:00:00.000Z",
+          "2026-09-09T00:00:00.000Z",
+          "2026-09-10T00:00:00.000Z",
+          "2026-09-11T00:00:00.000Z",
+          "2026-09-14T00:00:00.000Z",
+          "2026-09-15T00:00:00.000Z",
+          "2026-09-16T00:00:00.000Z",
+          "2026-09-17T00:00:00.000Z",
+          "2026-09-18T00:00:00.000Z"
+        ],
+        "close": [
+          9.95,
+          9.9,
+          9.89,
+          9.96,
+          9.94,
+          9.9,
+          9.91,
+          9.99,
+          9.95,
+          9.94,
+          10,
+          9.96,
+          10.03,
+          9.99,
+          10,
+          10.08,
+          10.13,
+          10.19,
+          10.14,
+          10.22,
+          10.19,
+          10.11,
+          10.11,
+          10.14,
+          10.22,
+          10.29,
+          10.34,
+          10.43,
+          10.36,
+          10.36,
+          10.41,
+          10.34,
+          10.27,
+          10.24,
+          10.16,
+          10.08,
+          10.15,
+          10.11,
+          10.14,
+          10.12,
+          10.1,
+          10.08,
+          10,
+          9.93,
+          9.83,
+          9.76,
+          9.7,
+          9.78,
+          9.71,
+          9.65,
+          9.65,
+          9.66,
+          9.67,
+          9.62,
+          9.56,
+          9.5,
+          9.46,
+          9.48,
+          9.34,
+          9.02
+        ],
+        "lower": [
+          9.594,
+          9.596,
+          9.559,
+          9.587,
+          9.614,
+          9.588,
+          9.571,
+          9.605,
+          9.636,
+          9.612,
+          9.626,
+          9.649,
+          9.652,
+          9.675,
+          9.656,
+          9.694,
+          9.761,
+          9.814,
+          9.825,
+          9.831,
+          9.861,
+          9.815,
+          9.77,
+          9.778,
+          9.829,
+          9.903,
+          9.964,
+          10.026,
+          10.051,
+          10.011,
+          10.03,
+          10.029,
+          9.963,
+          9.914,
+          9.862,
+          9.783,
+          9.77,
+          9.791,
+          9.779,
+          9.79,
+          9.77,
+          9.755,
+          9.704,
+          9.637,
+          9.556,
+          9.47,
+          9.407,
+          9.405,
+          9.42,
+          9.359,
+          9.323,
+          9.327,
+          9.339,
+          9.324,
+          9.272,
+          9.213,
+          9.162,
+          9.111,
+          9.131,
+          9.045
+        ],
+        "upper": [
+          10.266,
+          10.268,
+          10.227,
+          10.255,
+          10.286,
+          10.259,
+          10.24,
+          10.274,
+          10.311,
+          10.284,
+          10.297,
+          10.324,
+          10.324,
+          10.352,
+          10.33,
+          10.369,
+          10.441,
+          10.497,
+          10.512,
+          10.515,
+          10.551,
+          10.503,
+          10.453,
+          10.46,
+          10.514,
+          10.593,
+          10.659,
+          10.724,
+          10.755,
+          10.71,
+          10.729,
+          10.731,
+          10.661,
+          10.607,
+          10.553,
+          10.468,
+          10.451,
+          10.476,
+          10.461,
+          10.474,
+          10.453,
+          10.436,
+          10.385,
+          10.312,
+          10.226,
+          10.133,
+          10.066,
+          10.06,
+          10.081,
+          10.015,
+          9.975,
+          9.978,
+          9.991,
+          9.976,
+          9.922,
+          9.858,
+          9.803,
+          9.75,
+          9.771,
+          9.676
+        ]
+      },
+      "split": {
+        "status": "ok",
+        "label": "currency-led",
+        "currency": "BRL",
+        "source": "daily",
+        "fixDate": "2026-09-18",
+        "ratePrevious": 5.42,
+        "rateCurrent": 5.58,
+        "residual": -0.0352,
+        "currencyPart": {
+          "value": -0.0295,
+          "sigma": 0.0098,
+          "z": -3
+        },
+        "stockPart": {
+          "value": -0.0057,
+          "sigma": 0.0121,
+          "z": -0.5
+        },
+        "threshold": 2,
+        "window": 60,
+        "windowStart": "2026-06-30"
+      },
+      "coverage": {
+        "stage": "followUp",
+        "complete": true,
+        "routing": "currency-led",
+        "window": {
+          "from": "2026-09-17",
+          "to": "2026-09-20"
+        },
+        "closedAt": "2026-09-18T20:00:00Z",
+        "sources": {
+          "centralBank": {
+            "status": "ok",
+            "attempts": 2,
+            "fetchedAt": "2026-10-16T21:20:00Z",
+            "query": "https://www.bcb.gov.br/api/feed/sitebcb/sitefeeds/noticias",
+            "items": [
+              {
+                "title": "BC divulga nota sobre o mercado de câmbio",
+                "link": "https://www.bcb.gov.br/detalhenoticia/example",
+                "publishedAt": "2026-09-18T14:00:00Z",
+                "side": "before",
+                "language": "pt"
+              }
+            ]
+          },
+          "economyNews": {
+            "status": "ok",
+            "attempts": 2,
+            "fetchedAt": "2026-10-16T21:20:00Z",
+            "query": "Brazil (economy OR \"central bank\" OR \"Brazilian real\")",
+            "outlets": [
+              {
+                "name": "Reuters",
+                "url": "https://www.reuters.example",
+                "items": [
+                  {
+                    "title": "Real weakens on fiscal worries (Reuters)",
+                    "link": "https://news.google.com/rss/articles/Reuters0",
+                    "publishedAt": "2026-09-18T05:00:00Z",
+                    "side": "before"
+                  },
+                  {
+                    "title": "Real weakens on fiscal worries, a second look (Reuters)",
+                    "link": "https://news.google.com/rss/articles/Reuters0b",
+                    "publishedAt": "2026-09-18T06:30:00Z",
+                    "side": "before"
+                  }
+                ]
+              },
+              {
+                "name": "Bloomberg",
+                "url": "https://www.bloomberg.example",
+                "items": [
+                  {
+                    "title": "Real weakens on fiscal worries (Bloomberg)",
+                    "link": "https://news.google.com/rss/articles/Bloomberg1",
+                    "publishedAt": "2026-09-18T06:07:00Z",
+                    "side": "before"
+                  }
+                ]
+              },
+              {
+                "name": "Americas Quarterly",
+                "url": "https://www.americasquarterly.example",
+                "items": [
+                  {
+                    "title": "Real weakens on fiscal worries (Americas Quarterly)",
+                    "link": "https://news.google.com/rss/articles/AmericasQuarterly2",
+                    "publishedAt": "2026-09-18T07:14:00Z",
+                    "side": "before"
+                  }
+                ]
+              },
+              {
+                "name": "Brazil Reports",
+                "url": "https://www.brazilreports.example",
+                "items": [
+                  {
+                    "title": "Real weakens on fiscal worries (Brazil Reports)",
+                    "link": "https://news.google.com/rss/articles/BrazilReports3",
+                    "publishedAt": "2026-09-18T21:21:00Z",
+                    "side": "after"
+                  }
+                ]
+              },
+              {
+                "name": "Valor International",
+                "url": "https://www.valorinternational.example",
+                "items": [
+                  {
+                    "title": "Real weakens on fiscal worries (Valor International)",
+                    "link": "https://news.google.com/rss/articles/ValorInternational4",
+                    "publishedAt": "2026-09-18T22:28:00Z",
+                    "side": "after"
+                  }
+                ]
+              }
+            ],
+            "total": 27,
+            "excluded": 3,
+            "nonEnglish": 1
+          }
+        }
+      },
+      "caveats": [],
+      "thin": null
+    },
+    {
+      "id": "cat-2026-09-10",
+      "symbol": "CAT",
+      "name": "Caterpillar",
+      "sessionDate": "2026-09-10",
+      "closedAt": "2026-09-10T20:00:00Z",
+      "sessionsAgo": 25,
+      "country": null,
+      "theme": "Industrial cycle",
+      "price": {
+        "close": 618.3,
+        "prevClose": 671.85,
+        "change": -53.55,
+        "changePercent": -7.97
+      },
+      "trigger": {
+        "symbolReturn": -0.0797,
+        "benchmark": "EXI",
+        "benchmarkReturn": -0.0054,
+        "benchmarkReason": null,
+        "residual": -0.0743,
+        "sigma": 0.0158,
+        "z": -4.7,
+        "threshold": 2.5,
+        "window": 60
+      },
+      "band": {
+        "dates": [
+          "2026-06-19T00:00:00.000Z",
+          "2026-06-22T00:00:00.000Z",
+          "2026-06-23T00:00:00.000Z",
+          "2026-06-24T00:00:00.000Z",
+          "2026-06-25T00:00:00.000Z",
+          "2026-06-26T00:00:00.000Z",
+          "2026-06-29T00:00:00.000Z",
+          "2026-06-30T00:00:00.000Z",
+          "2026-07-01T00:00:00.000Z",
+          "2026-07-02T00:00:00.000Z",
+          "2026-07-03T00:00:00.000Z",
+          "2026-07-06T00:00:00.000Z",
+          "2026-07-07T00:00:00.000Z",
+          "2026-07-08T00:00:00.000Z",
+          "2026-07-09T00:00:00.000Z",
+          "2026-07-10T00:00:00.000Z",
+          "2026-07-13T00:00:00.000Z",
+          "2026-07-14T00:00:00.000Z",
+          "2026-07-15T00:00:00.000Z",
+          "2026-07-16T00:00:00.000Z",
+          "2026-07-17T00:00:00.000Z",
+          "2026-07-20T00:00:00.000Z",
+          "2026-07-21T00:00:00.000Z",
+          "2026-07-22T00:00:00.000Z",
+          "2026-07-23T00:00:00.000Z",
+          "2026-07-24T00:00:00.000Z",
+          "2026-07-27T00:00:00.000Z",
+          "2026-07-28T00:00:00.000Z",
+          "2026-07-29T00:00:00.000Z",
+          "2026-07-30T00:00:00.000Z",
+          "2026-07-31T00:00:00.000Z",
+          "2026-08-03T00:00:00.000Z",
+          "2026-08-04T00:00:00.000Z",
+          "2026-08-05T00:00:00.000Z",
+          "2026-08-06T00:00:00.000Z",
+          "2026-08-07T00:00:00.000Z",
+          "2026-08-10T00:00:00.000Z",
+          "2026-08-11T00:00:00.000Z",
+          "2026-08-12T00:00:00.000Z",
+          "2026-08-13T00:00:00.000Z",
+          "2026-08-14T00:00:00.000Z",
+          "2026-08-17T00:00:00.000Z",
+          "2026-08-18T00:00:00.000Z",
+          "2026-08-19T00:00:00.000Z",
+          "2026-08-20T00:00:00.000Z",
+          "2026-08-21T00:00:00.000Z",
+          "2026-08-24T00:00:00.000Z",
+          "2026-08-25T00:00:00.000Z",
+          "2026-08-26T00:00:00.000Z",
+          "2026-08-27T00:00:00.000Z",
+          "2026-08-28T00:00:00.000Z",
+          "2026-08-31T00:00:00.000Z",
+          "2026-09-01T00:00:00.000Z",
+          "2026-09-02T00:00:00.000Z",
+          "2026-09-03T00:00:00.000Z",
+          "2026-09-04T00:00:00.000Z",
+          "2026-09-07T00:00:00.000Z",
+          "2026-09-08T00:00:00.000Z",
+          "2026-09-09T00:00:00.000Z",
+          "2026-09-10T00:00:00.000Z"
+        ],
+        "close": [
+          696.54,
+          693.33,
+          699.53,
+          696.68,
+          699.59,
+          699.88,
+          697.21,
+          703.5,
+          709,
+          703.47,
+          707.14,
+          712.36,
+          713.72,
+          717.51,
+          711.09,
+          704.31,
+          703.56,
+          710.32,
+          710.62,
+          712.94,
+          719.11,
+          716.32,
+          721.92,
+          720.51,
+          715.87,
+          718.81,
+          716.71,
+          714.75,
+          708.84,
+          705.94,
+          701.67,
+          706.55,
+          710.17,
+          703.9,
+          703.55,
+          699.7,
+          696.89,
+          694.66,
+          694.78,
+          687.99,
+          687.38,
+          683.65,
+          679.78,
+          677.13,
+          679.23,
+          674.14,
+          674.98,
+          669.28,
+          667.95,
+          662.57,
+          663.9,
+          670.43,
+          665.34,
+          669.88,
+          675.5,
+          678.27,
+          683.51,
+          685.56,
+          671.85,
+          618.3
+        ],
+        "lower": [
+          667.651,
+          667.742,
+          668.421,
+          670.76,
+          670.324,
+          672.074,
+          671.167,
+          672.184,
+          677.914,
+          678.78,
+          677.15,
+          681.297,
+          684.767,
+          687.042,
+          686.603,
+          680.288,
+          676.188,
+          678.474,
+          682.386,
+          683.477,
+          687.247,
+          689.59,
+          690.263,
+          692.84,
+          690.193,
+          688.768,
+          689.577,
+          687.618,
+          684.154,
+          679.68,
+          676.348,
+          675.905,
+          680.092,
+          679.608,
+          675.959,
+          674.219,
+          670.936,
+          668.473,
+          667.267,
+          664.622,
+          660.568,
+          658.738,
+          655.099,
+          651.867,
+          651.224,
+          650.364,
+          647.85,
+          646.037,
+          642.31,
+          639.416,
+          636.931,
+          640.288,
+          641.91,
+          640.875,
+          645.668,
+          649.926,
+          653.574,
+          655.537,
+          658.383,
+          647.315
+        ],
+        "upper": [
+          722.678,
+          722.769,
+          723.194,
+          726.023,
+          725.361,
+          727.342,
+          726.458,
+          727.264,
+          733.49,
+          734.791,
+          732.724,
+          737.161,
+          741.044,
+          743.426,
+          743.287,
+          736.464,
+          731.829,
+          734.055,
+          738.501,
+          739.616,
+          743.569,
+          746.4,
+          746.853,
+          749.872,
+          747.114,
+          745.322,
+          746.363,
+          744.238,
+          740.619,
+          735.679,
+          732.117,
+          731.337,
+          735.909,
+          735.711,
+          731.567,
+          729.799,
+          726.212,
+          723.527,
+          722.145,
+          719.509,
+          714.92,
+          713.041,
+          709.107,
+          705.569,
+          704.718,
+          704.023,
+          701.107,
+          699.361,
+          695.183,
+          692.184,
+          689.274,
+          692.736,
+          694.874,
+          693.437,
+          698.588,
+          703.291,
+          707.157,
+          709.534,
+          712.543,
+          700.391
+        ]
+      },
+      "split": {
+        "status": "none",
+        "reason": "no_home_currency"
+      },
+      "coverage": {
+        "stage": "followUp",
+        "complete": true,
+        "routing": "global",
+        "window": {
+          "from": "2026-09-09",
+          "to": "2026-09-12"
+        },
+        "closedAt": "2026-09-10T20:00:00Z",
+        "sources": {
+          "filings": {
+            "status": "ok",
+            "attempts": 2,
+            "fetchedAt": "2026-10-16T21:20:00Z",
+            "query": "CIK 0000018230, form 8-K",
+            "categorised": true,
+            "items": [
+              {
+                "title": "FORM 8-K",
+                "link": "https://www.sec.gov/Archives/edgar/data/18230/000110465926116198/example_8k.htm",
+                "publishedAt": "2026-09-10T23:31:00Z",
+                "side": "after",
+                "form": "8-K",
+                "itemCodes": [
+                  {
+                    "code": "5.02",
+                    "title": "Departure of Directors or Certain Officers; Election of Directors; Appointment of Certain Officers"
+                  },
+                  {
+                    "code": "9.01",
+                    "title": "Financial Statements and Exhibits"
+                  }
+                ]
+              }
+            ]
+          },
+          "topicNews": {
+            "status": "ok",
+            "attempts": 2,
+            "fetchedAt": "2026-10-16T21:20:00Z",
+            "query": "\"mining equipment\" OR \"industrial stocks\" OR \"manufacturing PMI\"",
+            "outlets": [
+              {
+                "name": "TradingView",
+                "url": "https://www.tradingview.example",
+                "items": [
+                  {
+                    "title": "Industrial stocks slide (TradingView)",
+                    "link": "https://news.google.com/rss/articles/TradingView0",
+                    "publishedAt": "2026-09-10T05:00:00Z",
+                    "side": "before"
+                  },
+                  {
+                    "title": "Industrial stocks slide, a second look (TradingView)",
+                    "link": "https://news.google.com/rss/articles/TradingView0b",
+                    "publishedAt": "2026-09-10T06:30:00Z",
+                    "side": "before"
+                  }
+                ]
+              },
+              {
+                "name": "Yahoo Finance",
+                "url": "https://www.yahoofinance.example",
+                "items": [
+                  {
+                    "title": "Industrial stocks slide (Yahoo Finance)",
+                    "link": "https://news.google.com/rss/articles/YahooFinance1",
+                    "publishedAt": "2026-09-10T06:07:00Z",
+                    "side": "before"
+                  }
+                ]
+              },
+              {
+                "name": "Global Mining Review",
+                "url": "https://www.globalminingreview.example",
+                "items": [
+                  {
+                    "title": "Industrial stocks slide (Global Mining Review)",
+                    "link": "https://news.google.com/rss/articles/GlobalMiningReview2",
+                    "publishedAt": "2026-09-10T07:14:00Z",
+                    "side": "before"
+                  }
+                ]
+              },
+              {
+                "name": "Reuters",
+                "url": "https://www.reuters.example",
+                "items": [
+                  {
+                    "title": "Industrial stocks slide (Reuters)",
+                    "link": "https://news.google.com/rss/articles/Reuters3",
+                    "publishedAt": "2026-09-10T08:21:00Z",
+                    "side": "before"
+                  }
+                ]
+              },
+              {
+                "name": "Barron's",
+                "url": "https://www.barrons.example",
+                "items": [
+                  {
+                    "title": "Industrial stocks slide (Barron's)",
+                    "link": "https://news.google.com/rss/articles/Barrons4",
+                    "publishedAt": "2026-09-10T22:28:00Z",
+                    "side": "after"
+                  }
+                ]
+              },
+              {
+                "name": "Industry Week",
+                "url": "https://www.industryweek.example",
+                "items": [
+                  {
+                    "title": "Industrial stocks slide (Industry Week)",
+                    "link": "https://news.google.com/rss/articles/IndustryWeek5",
+                    "publishedAt": "2026-09-10T23:35:00Z",
+                    "side": "after"
+                  },
+                  {
+                    "title": "Industrial stocks slide, a second look (Industry Week)",
+                    "link": "https://news.google.com/rss/articles/IndustryWeek5b",
+                    "publishedAt": "2026-09-10T24:30:00Z",
+                    "side": "after"
+                  }
+                ]
+              }
+            ],
+            "total": 53,
+            "excluded": 28,
+            "nonEnglish": 0
+          }
+        }
+      },
+      "caveats": [
+        "self_weight"
+      ],
+      "thin": null
+    },
+    {
+      "id": "colombia-2026-08-27",
+      "symbol": "CIB",
+      "name": "Grupo Cibest",
+      "sessionDate": "2026-08-27",
+      "closedAt": "2026-08-27T20:00:00Z",
+      "sessionsAgo": 33,
+      "country": {
+        "slug": "colombia",
+        "name": "Colombia",
+        "atlas": false
+      },
+      "theme": null,
+      "price": {
+        "close": 6.13,
+        "prevClose": 5.86,
+        "change": 0.27,
+        "changePercent": 4.61
+      },
+      "trigger": {
+        "symbolReturn": 0.0461,
+        "benchmark": "IXG",
+        "benchmarkReturn": 0.0012,
+        "benchmarkReason": null,
+        "residual": 0.0449,
+        "sigma": 0.0118,
+        "z": 3.8,
+        "threshold": 2.5,
+        "window": 60
+      },
+      "band": {
+        "dates": [
+          "2026-06-05T00:00:00.000Z",
+          "2026-06-08T00:00:00.000Z",
+          "2026-06-09T00:00:00.000Z",
+          "2026-06-10T00:00:00.000Z",
+          "2026-06-11T00:00:00.000Z",
+          "2026-06-12T00:00:00.000Z",
+          "2026-06-15T00:00:00.000Z",
+          "2026-06-16T00:00:00.000Z",
+          "2026-06-17T00:00:00.000Z",
+          "2026-06-18T00:00:00.000Z",
+          "2026-06-19T00:00:00.000Z",
+          "2026-06-22T00:00:00.000Z",
+          "2026-06-23T00:00:00.000Z",
+          "2026-06-24T00:00:00.000Z",
+          "2026-06-25T00:00:00.000Z",
+          "2026-06-26T00:00:00.000Z",
+          "2026-06-29T00:00:00.000Z",
+          "2026-06-30T00:00:00.000Z",
+          "2026-07-01T00:00:00.000Z",
+          "2026-07-02T00:00:00.000Z",
+          "2026-07-03T00:00:00.000Z",
+          "2026-07-06T00:00:00.000Z",
+          "2026-07-07T00:00:00.000Z",
+          "2026-07-08T00:00:00.000Z",
+          "2026-07-09T00:00:00.000Z",
+          "2026-07-10T00:00:00.000Z",
+          "2026-07-13T00:00:00.000Z",
+          "2026-07-14T00:00:00.000Z",
+          "2026-07-15T00:00:00.000Z",
+          "2026-07-16T00:00:00.000Z",
+          "2026-07-17T00:00:00.000Z",
+          "2026-07-20T00:00:00.000Z",
+          "2026-07-21T00:00:00.000Z",
+          "2026-07-22T00:00:00.000Z",
+          "2026-07-23T00:00:00.000Z",
+          "2026-07-24T00:00:00.000Z",
+          "2026-07-27T00:00:00.000Z",
+          "2026-07-28T00:00:00.000Z",
+          "2026-07-29T00:00:00.000Z",
+          "2026-07-30T00:00:00.000Z",
+          "2026-07-31T00:00:00.000Z",
+          "2026-08-03T00:00:00.000Z",
+          "2026-08-04T00:00:00.000Z",
+          "2026-08-05T00:00:00.000Z",
+          "2026-08-06T00:00:00.000Z",
+          "2026-08-07T00:00:00.000Z",
+          "2026-08-10T00:00:00.000Z",
+          "2026-08-11T00:00:00.000Z",
+          "2026-08-12T00:00:00.000Z",
+          "2026-08-13T00:00:00.000Z",
+          "2026-08-14T00:00:00.000Z",
+          "2026-08-17T00:00:00.000Z",
+          "2026-08-18T00:00:00.000Z",
+          "2026-08-19T00:00:00.000Z",
+          "2026-08-20T00:00:00.000Z",
+          "2026-08-21T00:00:00.000Z",
+          "2026-08-24T00:00:00.000Z",
+          "2026-08-25T00:00:00.000Z",
+          "2026-08-26T00:00:00.000Z",
+          "2026-08-27T00:00:00.000Z"
+        ],
+        "close": [
+          5.97,
+          5.94,
+          5.94,
+          5.96,
+          5.91,
+          5.94,
+          5.89,
+          5.83,
+          5.83,
+          5.86,
+          5.89,
+          5.87,
+          5.86,
+          5.82,
+          5.83,
+          5.79,
+          5.75,
+          5.71,
+          5.74,
+          5.73,
+          5.74,
+          5.74,
+          5.71,
+          5.68,
+          5.67,
+          5.68,
+          5.73,
+          5.76,
+          5.82,
+          5.77,
+          5.79,
+          5.8,
+          5.78,
+          5.81,
+          5.85,
+          5.83,
+          5.86,
+          5.85,
+          5.83,
+          5.85,
+          5.85,
+          5.79,
+          5.78,
+          5.77,
+          5.75,
+          5.7,
+          5.75,
+          5.72,
+          5.74,
+          5.8,
+          5.82,
+          5.82,
+          5.84,
+          5.83,
+          5.85,
+          5.81,
+          5.81,
+          5.87,
+          5.86,
+          6.13
+        ],
+        "lower": [
+          5.782,
+          5.783,
+          5.764,
+          5.774,
+          5.762,
+          5.747,
+          5.743,
+          5.694,
+          5.657,
+          5.669,
+          5.699,
+          5.712,
+          5.689,
+          5.675,
+          5.651,
+          5.642,
+          5.602,
+          5.564,
+          5.556,
+          5.567,
+          5.563,
+          5.571,
+          5.56,
+          5.527,
+          5.511,
+          5.506,
+          5.533,
+          5.575,
+          5.613,
+          5.629,
+          5.607,
+          5.622,
+          5.622,
+          5.62,
+          5.655,
+          5.672,
+          5.668,
+          5.682,
+          5.672,
+          5.664,
+          5.678,
+          5.655,
+          5.613,
+          5.606,
+          5.59,
+          5.563,
+          5.551,
+          5.568,
+          5.559,
+          5.593,
+          5.639,
+          5.646,
+          5.656,
+          5.665,
+          5.665,
+          5.665,
+          5.639,
+          5.64,
+          5.713,
+          5.709
+        ],
+        "upper": [
+          6.135,
+          6.135,
+          6.114,
+          6.125,
+          6.114,
+          6.096,
+          6.094,
+          6.042,
+          6.001,
+          6.013,
+          6.045,
+          6.059,
+          6.036,
+          6.02,
+          5.995,
+          5.986,
+          5.944,
+          5.903,
+          5.892,
+          5.906,
+          5.901,
+          5.909,
+          5.898,
+          5.864,
+          5.846,
+          5.84,
+          5.868,
+          5.913,
+          5.953,
+          5.972,
+          5.948,
+          5.963,
+          5.964,
+          5.961,
+          5.998,
+          6.017,
+          6.012,
+          6.027,
+          6.017,
+          6.008,
+          6.023,
+          6,
+          5.955,
+          5.947,
+          5.931,
+          5.902,
+          5.888,
+          5.908,
+          5.897,
+          5.932,
+          5.981,
+          5.989,
+          6,
+          6.009,
+          6.008,
+          6.01,
+          5.982,
+          5.983,
+          6.059,
+          6.055
+        ]
+      },
+      "split": {
+        "status": "none",
+        "reason": "no_ecb_currency"
+      },
+      "coverage": {
+        "stage": "followUp",
+        "complete": true,
+        "routing": "none",
+        "window": {
+          "from": "2026-08-26",
+          "to": "2026-08-29"
+        },
+        "closedAt": "2026-08-27T20:00:00Z",
+        "sources": {
+          "centralBank": {
+            "status": "error",
+            "attempts": 3,
+            "fetchedAt": "2026-10-16T21:20:00Z",
+            "error": "centralbank: HTTP 403",
+            "query": "https://www.banrep.gov.co/rss.xml"
+          },
+          "economyNews": {
+            "status": "ok",
+            "attempts": 2,
+            "fetchedAt": "2026-10-16T21:20:00Z",
+            "query": "Colombia (economy OR \"central bank\" OR \"Colombian peso\")",
+            "outlets": [
+              {
+                "name": "Reuters",
+                "url": "https://www.reuters.example",
+                "items": [
+                  {
+                    "title": "Colombian assets rise (Reuters)",
+                    "link": "https://news.google.com/rss/articles/Reuters0",
+                    "publishedAt": "2026-08-27T05:00:00Z",
+                    "side": "before"
+                  },
+                  {
+                    "title": "Colombian assets rise, a second look (Reuters)",
+                    "link": "https://news.google.com/rss/articles/Reuters0b",
+                    "publishedAt": "2026-08-27T06:30:00Z",
+                    "side": "before"
+                  }
+                ]
+              },
+              {
+                "name": "Bloomberg",
+                "url": "https://www.bloomberg.example",
+                "items": [
+                  {
+                    "title": "Colombian assets rise (Bloomberg)",
+                    "link": "https://news.google.com/rss/articles/Bloomberg1",
+                    "publishedAt": "2026-08-27T06:07:00Z",
+                    "side": "before"
+                  }
+                ]
+              },
+              {
+                "name": "Colombia One",
+                "url": "https://www.colombiaone.example",
+                "items": [
+                  {
+                    "title": "Colombian assets rise (Colombia One)",
+                    "link": "https://news.google.com/rss/articles/ColombiaOne2",
+                    "publishedAt": "2026-08-27T23:14:00Z",
+                    "side": "after"
+                  }
+                ]
+              }
+            ],
+            "total": 26,
+            "excluded": 2,
+            "nonEnglish": 0
+          },
+          "filings": {
+            "status": "empty",
+            "attempts": 2,
+            "fetchedAt": "2026-10-16T21:20:00Z",
+            "query": "CIK 0002058897, form 6-K",
+            "absent": {
+              "reason": "no 6-K was filed in the window"
+            },
+            "categorised": false
+          },
+          "sectorNews": {
+            "status": "empty",
+            "attempts": 2,
+            "fetchedAt": "2026-10-16T21:20:00Z",
+            "query": "Bancolombia OR \"Colombian banks\"",
+            "absent": {
+              "reason": "the query returned no headlines in the window"
+            }
+          }
+        }
+      },
+      "caveats": [],
+      "thin": null
+    },
+    {
+      "id": "canada-2026-08-05",
+      "symbol": "RY",
+      "name": "Royal Bank of Canada",
+      "sessionDate": "2026-08-05",
+      "closedAt": "2026-08-05T20:00:00Z",
+      "sessionsAgo": 48,
+      "country": {
+        "slug": "canada",
+        "name": "Canada",
+        "atlas": true
+      },
+      "theme": null,
+      "price": {
+        "close": 187.44,
+        "prevClose": 183.52,
+        "change": 3.92,
+        "changePercent": 2.14
+      },
+      "trigger": {
+        "symbolReturn": 0.0214,
+        "benchmark": "IXG",
+        "benchmarkReturn": 0.0006,
+        "benchmarkReason": null,
+        "residual": 0.0208,
+        "sigma": 0.0071,
+        "z": 2.9,
+        "threshold": 2.5,
+        "window": 60
+      },
+      "band": {
+        "dates": [
+          "2026-05-14T00:00:00.000Z",
+          "2026-05-15T00:00:00.000Z",
+          "2026-05-18T00:00:00.000Z",
+          "2026-05-19T00:00:00.000Z",
+          "2026-05-20T00:00:00.000Z",
+          "2026-05-21T00:00:00.000Z",
+          "2026-05-22T00:00:00.000Z",
+          "2026-05-25T00:00:00.000Z",
+          "2026-05-26T00:00:00.000Z",
+          "2026-05-27T00:00:00.000Z",
+          "2026-05-28T00:00:00.000Z",
+          "2026-05-29T00:00:00.000Z",
+          "2026-06-01T00:00:00.000Z",
+          "2026-06-02T00:00:00.000Z",
+          "2026-06-03T00:00:00.000Z",
+          "2026-06-04T00:00:00.000Z",
+          "2026-06-05T00:00:00.000Z",
+          "2026-06-08T00:00:00.000Z",
+          "2026-06-09T00:00:00.000Z",
+          "2026-06-10T00:00:00.000Z",
+          "2026-06-11T00:00:00.000Z",
+          "2026-06-12T00:00:00.000Z",
+          "2026-06-15T00:00:00.000Z",
+          "2026-06-16T00:00:00.000Z",
+          "2026-06-17T00:00:00.000Z",
+          "2026-06-18T00:00:00.000Z",
+          "2026-06-19T00:00:00.000Z",
+          "2026-06-22T00:00:00.000Z",
+          "2026-06-23T00:00:00.000Z",
+          "2026-06-24T00:00:00.000Z",
+          "2026-06-25T00:00:00.000Z",
+          "2026-06-26T00:00:00.000Z",
+          "2026-06-29T00:00:00.000Z",
+          "2026-06-30T00:00:00.000Z",
+          "2026-07-01T00:00:00.000Z",
+          "2026-07-02T00:00:00.000Z",
+          "2026-07-03T00:00:00.000Z",
+          "2026-07-06T00:00:00.000Z",
+          "2026-07-07T00:00:00.000Z",
+          "2026-07-08T00:00:00.000Z",
+          "2026-07-09T00:00:00.000Z",
+          "2026-07-10T00:00:00.000Z",
+          "2026-07-13T00:00:00.000Z",
+          "2026-07-14T00:00:00.000Z",
+          "2026-07-15T00:00:00.000Z",
+          "2026-07-16T00:00:00.000Z",
+          "2026-07-17T00:00:00.000Z",
+          "2026-07-20T00:00:00.000Z",
+          "2026-07-21T00:00:00.000Z",
+          "2026-07-22T00:00:00.000Z",
+          "2026-07-23T00:00:00.000Z",
+          "2026-07-24T00:00:00.000Z",
+          "2026-07-27T00:00:00.000Z",
+          "2026-07-28T00:00:00.000Z",
+          "2026-07-29T00:00:00.000Z",
+          "2026-07-30T00:00:00.000Z",
+          "2026-07-31T00:00:00.000Z",
+          "2026-08-03T00:00:00.000Z",
+          "2026-08-04T00:00:00.000Z",
+          "2026-08-05T00:00:00.000Z"
+        ],
+        "close": [
+          189.09,
+          188.21,
+          186.36,
+          184.91,
+          184.43,
+          186.17,
+          187.26,
+          185.78,
+          184.23,
+          183.77,
+          184.66,
+          186.27,
+          184.73,
+          185.48,
+          183.91,
+          183.09,
+          184.25,
+          183.57,
+          182.06,
+          180.87,
+          179.56,
+          180.23,
+          180.72,
+          182.46,
+          183.41,
+          183.13,
+          183.28,
+          182.32,
+          183.79,
+          185.17,
+          183.78,
+          182.9,
+          184.55,
+          184.17,
+          183.13,
+          183.23,
+          181.93,
+          181.65,
+          180.83,
+          179.87,
+          180.12,
+          181.21,
+          181.31,
+          181.49,
+          183.09,
+          181.65,
+          180.91,
+          180.55,
+          182.19,
+          183.6,
+          184.81,
+          186.32,
+          185.31,
+          183.6,
+          183.08,
+          184,
+          182.6,
+          182.79,
+          183.52,
+          187.44
+        ],
+        "lower": [
+          185.373,
+          185.378,
+          184.132,
+          182.472,
+          181.437,
+          181.851,
+          183.301,
+          183.346,
+          181.863,
+          180.773,
+          180.865,
+          182.025,
+          182.348,
+          181.754,
+          181.559,
+          180.318,
+          180.303,
+          180.707,
+          179.71,
+          178.351,
+          177.134,
+          176.643,
+          177.227,
+          178.206,
+          179.602,
+          180.044,
+          179.937,
+          179.644,
+          179.672,
+          181.081,
+          181.328,
+          180.165,
+          180.311,
+          181.125,
+          180.485,
+          179.919,
+          179.455,
+          178.591,
+          178.097,
+          177.237,
+          176.778,
+          177.356,
+          178.034,
+          178.163,
+          178.91,
+          179.262,
+          178.13,
+          177.555,
+          178,
+          179.521,
+          180.828,
+          182.133,
+          182.61,
+          181.335,
+          180.135,
+          180.197,
+          180.175,
+          179.712,
+          179.112,
+          179.625
+        ],
+        "upper": [
+          192.086,
+          192.091,
+          190.813,
+          189.088,
+          188.001,
+          188.398,
+          189.91,
+          189.994,
+          188.458,
+          187.313,
+          187.389,
+          188.581,
+          188.96,
+          188.312,
+          188.144,
+          186.846,
+          186.803,
+          187.248,
+          186.227,
+          184.814,
+          183.555,
+          183.018,
+          183.625,
+          184.622,
+          186.079,
+          186.555,
+          186.438,
+          186.151,
+          186.145,
+          187.605,
+          187.901,
+          186.69,
+          186.804,
+          187.676,
+          187.023,
+          186.42,
+          185.96,
+          185.049,
+          184.546,
+          183.656,
+          183.164,
+          183.751,
+          184.467,
+          184.6,
+          185.353,
+          185.762,
+          184.579,
+          183.977,
+          184.41,
+          185.989,
+          187.346,
+          188.693,
+          189.224,
+          187.913,
+          186.653,
+          186.696,
+          186.707,
+          186.194,
+          185.601,
+          186.14
+        ]
+      },
+      "split": null,
+      "coverage": null,
+      "caveats": [],
+      "thin": null
+    }
+  ],
+  "truncated": false,
+  "latestSession": "2026-10-15"
+}

@@ -3,8 +3,9 @@
  * #94, #104). Pure, so the rules are testable without a browser.
  *
  * Three states, and only three:
- * - **tripped** — a sensor moved further than it normally does. Built here, but
- *   it cannot occur until Phase 15 switches the trigger on.
+ * - **tripped** — the last close tripped something: a sensor moved further than it
+ *   normally does, and the ticker's newest event is from its newest session. It
+ *   clears itself after the next close that trips nothing (Phase 15 step 7).
  * - **quiet** — nothing has. A hollow ring, never an absent mark: absence is
  *   indistinguishable from a styling bug.
  * - **unreachable** — the feed cannot be vouched for. A dot that looked the same

@@ -5,18 +5,22 @@ import type { z } from "zod";
 import {
   atlasResponseSchema,
   candlesResponseSchema,
+  eventsResponseSchema,
   indicatorSeriesResponseSchema,
   marketStateSchema,
   sensorsResponseSchema,
   symbolSnapshotSchema,
   symbolsResponseSchema,
+  tapeResponseSchema,
   type AtlasResponse,
   type CandlesResponse,
+  type EventsResponse,
   type IndicatorSeriesResponse,
   type MarketStateResponse,
   type Sensor,
   type Symbol,
   type SymbolSnapshot,
+  type TapeResponse,
 } from "@/lib/market-schemas";
 
 export const TICKER_API_URL = process.env.TICKER_API_URL ?? "http://localhost:8080";
@@ -128,4 +132,18 @@ export function getSensors(opts?: { revalidateSeconds?: number }): Promise<Senso
  */
 export function getAtlasCities(opts?: { revalidateSeconds?: number }): Promise<AtlasResponse | null> {
   return get("/atlas/cities", atlasResponseSchema, opts?.revalidateSeconds);
+}
+
+/**
+ * The ledger (§8, Phase 15 step 7): every event the trigger recorded, newest first.
+ * It changes only when a close trips something, so it is cached for as long as the
+ * page that shows it.
+ */
+export function getEvents(opts?: { revalidateSeconds?: number }): Promise<EventsResponse | null> {
+  return get("/market/events", eventsResponseSchema, opts?.revalidateSeconds);
+}
+
+/** The Prices table's sparkline and "σ · last close" columns (§8, Phase 15 step 7). */
+export function getTape(opts?: { revalidateSeconds?: number }): Promise<TapeResponse | null> {
+  return get("/market/tape", tapeResponseSchema, opts?.revalidateSeconds);
 }

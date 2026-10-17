@@ -12,7 +12,8 @@
     "test:contract": "vitest run --config vitest.contract.config.mts",
     "test:prod": "playwright test --config playwright.prod.config.ts",
     "lhci": "lhci autorun",
-    "build:atlas-map": "node scripts/build-atlas-map.mjs"
+    "build:atlas-map": "node scripts/build-atlas-map.mjs",
+    "test:fixture": "playwright test --config playwright.fixture.config.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

@@ -3,11 +3,13 @@ import { describe, expect, it } from "vitest";
 import {
   getAtlasCities,
   getCandles,
+  getEvents,
   getIndicatorSeries,
   getMarketState,
   getSensors,
   getSymbolSnapshot,
   getSymbols,
+  getTape,
 } from "@/lib/ticker-client";
 import { SECTORS } from "@/lib/sectors";
 
@@ -86,6 +88,30 @@ describe("ticker API contract", () => {
     const state = await getMarketState();
     expect(state).not.toBeNull();
     expect(state?.feed).toBe("live");
+    expect(typeof state?.tripped).toBe("boolean");
+  });
+
+  // Phase 15 step 7. CI's ticker has an empty database, so the ledger is empty there; the
+  // populated shapes are the fixtures' (lib/ledger.test.ts parses them with the same schema).
+  it("GET /market/events matches eventsResponseSchema, an empty ledger being a list and not null", async () => {
+    const res = await getEvents();
+    expect(res).not.toBeNull();
+    expect(Array.isArray(res?.events)).toBe(true);
+    expect(typeof res?.truncated).toBe("boolean");
+  });
+
+  it("GET /market/tape matches tapeResponseSchema: the eighteen sensors, each with its closes and a z or a reason", async () => {
+    const res = await getTape();
+    expect(res).not.toBeNull();
+    expect(res?.sensors).toHaveLength(18);
+    for (const s of res!.sensors) {
+      expect(s.z !== null || typeof s.reason === "string", s.symbol).toBe(true);
+    }
+  });
+
+  it("GET /market/movers is gone: a top-gainers endpoint is an invitation to the widget the redesign removed", async () => {
+    const res = await fetch(`${process.env.TICKER_API_URL ?? "http://localhost:8080"}/market/movers`);
+    expect(res.status).toBe(404);
   });
 
   it("an unknown symbol is a 404, so the page shows notFound() instead of a zero-price page", async () => {

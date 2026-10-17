@@ -1,9 +1,10 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
-// Phase 14 steps 3-4: /market is Prices, What moved and why, Industries, each with
-// a lede. Until Phase 15 switches the trigger on, What moved and why is empty and
-// says why. It is a statement, not a result, so it carries no counter.
+// Phase 14 steps 3-5 and Phase 15 step 7: /market is Prices, What moved and why, Industries, each
+// with a lede. Against the simulator the database holds no events, so the ledger is its empty
+// state: a statement that the trigger is watching, not a counter. The populated ledger is
+// covered against a fixture ticker (e2e-fixture/).
 
 test.describe("at 1440px", () => {
   test.use({ viewport: { width: 1440, height: 900 } });
@@ -18,13 +19,14 @@ test.describe("at 1440px", () => {
     await expect(page.getByText("Ten worldwide industry baskets, priced once a day at the close.")).toBeVisible();
   });
 
-  test("What moved, and why is empty and says the trigger is not switched on yet", async ({ page }) => {
+  test("What moved, and why is empty and says the trigger is on and watching", async ({ page }) => {
     await page.goto("/market");
-    const empty = page.getByTestId("what-moved-empty");
+    const empty = page.getByTestId("ledger-empty");
     await expect(empty).toBeVisible();
-    await expect(empty.getByRole("heading", { level: 3 })).toHaveText("Nothing has tripped, because nothing can yet.");
-    await expect(empty).toContainText("not switched on until the next release");
-    await expect(empty).toContainText("2.5σ");
+    await expect(empty.getByRole("heading", { level: 3 })).toHaveText("Nothing has tripped yet.");
+    await expect(empty).toContainText("The trigger is on and watching");
+    await expect(empty).toContainText("sixty daily moves");
+    await expect(page.getByTestId("ledger-line")).toContainText("Nothing has tripped yet.");
   });
 
   test("carries no counter or progress bar: the history exists, so there is nothing to count", async ({ page }) => {
@@ -36,7 +38,7 @@ test.describe("at 1440px", () => {
 
   test("has no WCAG 2.1 AA violations", async ({ page }) => {
     await page.goto("/market");
-    await expect(page.getByTestId("what-moved-empty")).toBeVisible();
+    await expect(page.getByTestId("ledger-empty")).toBeVisible();
     const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();
     expect(results.violations, JSON.stringify(results.violations, null, 2)).toEqual([]);
   });
@@ -47,7 +49,7 @@ test.describe("at 390px", () => {
 
   test("has no WCAG 2.1 AA violations, and the empty state does not overflow the screen", async ({ page }) => {
     await page.goto("/market");
-    const empty = page.getByTestId("what-moved-empty");
+    const empty = page.getByTestId("ledger-empty");
     await expect(empty).toBeVisible();
     const box = await empty.boundingBox();
     expect(box!.x + box!.width).toBeLessThanOrEqual(390);

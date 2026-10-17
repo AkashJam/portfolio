@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 /**
  * The line under the page's intro (portfolio.md §15 Phase 14 step 7): the state
  * in a word and the facts that go with it. Closed says when it opens and the last
- * session; it carries no trip clause until Phase 15 can fire one. It is the
+ * session. What the last close tripped is the ledger's own line (LedgerHead). It is the
  * module steps 8 and 9 share, so the symbol page and the home band say the same
  * thing in the same words.
  */
