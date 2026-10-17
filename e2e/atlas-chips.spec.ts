@@ -29,7 +29,7 @@ test("chip 3 sets both axes, draws y = x and names who is below", async ({
   await expect(page.getByLabel("Horizontal")).toHaveValue("prices");
   await expect(page.getByLabel("Vertical")).toHaveValue("shares");
   await expect(page.getByText("kept pace with prices")).toHaveCount(1);
-  await expect(reading(page)).toContainText("Istanbul against Tokyo");
+  await expect(reading(page)).toContainText("Ankara against Tokyo");
   await expect(reading(page)).toContainText("Both sit above the line.");
   await expect(reading(page)).toContainText("Below the line:");
 });
@@ -46,7 +46,7 @@ test("each chip names its two countries and sets its axes", async ({
       "Milan against New York",
     ],
     [/savings and housing/, "shares", "housing", "Mumbai against Milan"],
-    [/savings outrun prices/, "prices", "shares", "Istanbul against Tokyo"],
+    [/savings outrun prices/, "prices", "shares", "Ankara against Tokyo"],
     [
       /live longer/,
       "everydaySpendingEur",
@@ -57,7 +57,7 @@ test("each chip names its two countries and sets its axes", async ({
       /currency done to savings/,
       "shares",
       "currency",
-      "Tokyo against Istanbul",
+      "Tokyo against Ankara",
     ],
   ];
   for (const [name, x, y, title] of cases) {

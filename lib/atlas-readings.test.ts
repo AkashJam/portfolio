@@ -91,7 +91,7 @@ const ROWS: AtlasRow[] = [
   }),
   row({
     slug: "turkiye",
-    city: "Istanbul",
+    city: "Ankara",
     country: "Türkiye",
     shares: ch(1725),
     housing: ch(125),
@@ -175,7 +175,7 @@ describe("the five chips", () => {
 
   it("3 · prices × shares: both above the line, the flip, and who is below", () => {
     const r = read("prices-shares");
-    expect(r.title).toBe("Istanbul against Tokyo");
+    expect(r.title).toBe("Ankara against Tokyo");
     expect(r.sentence).toContain("Both sit above the line.");
     expect(r.sentence).toContain("Türkiye's index is up +38%");
     expect(r.sentence).toContain("Japan's up +157%");
@@ -197,7 +197,7 @@ describe("the five chips", () => {
 
   it("5 · shares × currency: what a euro holder kept, with the flip", () => {
     const r = read("shares-currency");
-    expect(r.title).toBe("Tokyo against Istanbul");
+    expect(r.title).toBe("Tokyo against Ankara");
     expect(r.sentence).toContain("+137% in Japan");
     expect(r.sentence).toContain(
       "in Türkiye, so the larger local rise became the smaller one in euro",
