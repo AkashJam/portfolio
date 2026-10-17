@@ -10,7 +10,7 @@ import { expect, test } from "@playwright/test";
 // tick here. That table's handling of a quote is covered by market-prices.spec.ts
 // with a scripted stream; the real feed is the gate's one-time production check.
 test("a live SIM: tick updates the symbol page's price without a reload", async ({ page }) => {
-  await page.goto("/market/SIM:NOVA");
+  await page.goto("/market/SIM:NOVA/price");
 
   const priceCell = page.getByTestId("live-price");
   await expect(priceCell).toBeVisible();

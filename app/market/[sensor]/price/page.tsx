@@ -12,7 +12,7 @@ import {
   getSymbolSnapshot,
 } from "@/lib/ticker-client";
 import { pageMetadata } from "@/lib/metadata";
-import { findSensor, isSimulated, sensorTitle } from "@/lib/sensor-title";
+import { findSensor, isSimulated, sensorHref, sensorPriceHref, sensorTitle } from "@/lib/sensor-title";
 
 const DEFAULT_INTERVAL = "1h";
 // A sensor has daily bars from the sweep from the first day, but intraday bars only
@@ -20,34 +20,36 @@ const DEFAULT_INTERVAL = "1h";
 // that opens on an empty 1h chart opens on the daily one instead.
 const FALLBACK_INTERVAL = "1d";
 
+// `/market/japan/price` and `/market/MUFG/price` are one page (Phase 16 step 2): the
+// segment is a country slug or a symbol, and the canonical is the slug form, the one
+// the site links to. A simulator symbol (dev and CI only) keeps its raw form.
 export async function generateMetadata({
   params,
-}: PageProps<"/market/[symbol]">): Promise<Metadata> {
-  const symbol = decodeURIComponent((await params).symbol);
-  const sensor = findSensor(await getSensors({ revalidateSeconds: 3600 }), symbol);
-  const heading = sensor ? sensorTitle(sensor).heading : symbol;
-  // Canonical keeps the raw symbol, the form PricesTable and the palette link
-  // to, not a `%3A`-encoded variant.
+}: PageProps<"/market/[sensor]/price">): Promise<Metadata> {
+  const name = decodeURIComponent((await params).sensor);
+  const sensor = findSensor(await getSensors({ revalidateSeconds: 3600 }), name);
+  const heading = sensor ? sensorTitle(sensor).heading : name;
   return pageMetadata({
-    path: `/market/${symbol}`,
+    path: sensor ? sensorPriceHref(sensor) : `/market/${name}/price`,
     title: `${heading} — Market — Akash James`,
     description: sensor
       ? `${sensorTitle(sensor).sub}: price, candlesticks and indicators, dated.`
-      : `${symbol}: price, candlesticks and indicators, streamed from the Ticker backend.`,
+      : `${name}: price, candlesticks and indicators, streamed from the Ticker backend.`,
   });
 }
 
-export default async function SymbolPage({ params }: PageProps<"/market/[symbol]">) {
-  const { symbol: rawSymbol } = await params;
-  const symbol = decodeURIComponent(rawSymbol);
+export default async function SymbolPage({ params }: PageProps<"/market/[sensor]/price">) {
+  const { sensor: rawName } = await params;
+  const name = decodeURIComponent(rawName);
   const renderedAt = new Date().toISOString();
 
   const sensors = await getSensors({ revalidateSeconds: 3600 });
-  const sensor = findSensor(sensors, symbol);
+  const sensor = findSensor(sensors, name);
   // The eighteen sensors, and the simulator's symbols where the ticker has them
   // (dev and CI only: the production ticker has none, so they are a 404 there).
   // Everything else, the industry baskets included, has no page.
-  if (!sensor && !isSimulated(symbol)) notFound();
+  if (!sensor && !isSimulated(name)) notFound();
+  const symbol = sensor ? sensor.symbol : name;
 
   const [snapshot, intraday, intradayIndicators, marketState] = await Promise.all([
     getSymbolSnapshot(symbol),
@@ -70,6 +72,7 @@ export default async function SymbolPage({ params }: PageProps<"/market/[symbol]
       <LiveSnapshot
         symbol={symbol}
         sensor={sensor ? sensorTitle(sensor) : null}
+        recordHref={sensor ? sensorHref(sensor) : null}
         initialSnapshot={snapshot}
         initialState={initialState}
         renderedAt={renderedAt}

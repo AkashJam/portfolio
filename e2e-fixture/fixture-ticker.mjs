@@ -6,6 +6,10 @@
 //
 //   node e2e-fixture/fixture-ticker.mjs --port 4010 --mode tripped|quiet|empty
 //
+// It also answers GET /market/sensors/{japan|MUFG} (Phase 16 step 2): Japan's record,
+// built from the same events, with an invented series. Every other sensor's record
+// is the real ticker's, which has no events, so NVDA is the zero-event page.
+//
 // Modes: tripped serves the fixture as is; quiet ages every entry by eleven
 // sessions and says nothing tripped; empty serves no entries.
 import { readFileSync } from "node:fs";
@@ -33,6 +37,40 @@ function ledger() {
   return events;
 }
 
+// Japan's record: weekday closes from 1 July to the last close, MUFG against IXG, and
+// the ledger's own Japan events without their bands. The trigger's go-live is set to the
+// last close, so the cadence line has one judged session to count.
+function japanRecord() {
+  const dates = [];
+  for (let d = new Date("2026-07-01T00:00:00Z"); d <= new Date("2026-10-15T00:00:00Z"); d = new Date(d.getTime() + 86_400_000)) {
+    if (d.getUTCDay() !== 0 && d.getUTCDay() !== 6) dates.push(d.toISOString().slice(0, 10));
+  }
+  const close = dates.map((_, i) => Math.round((20 + i * 0.02 + Math.sin(i / 5) * 0.8) * 100) / 100);
+  const benchmarkClose = dates.map((_, i) => Math.round((126 + i * 0.05 + Math.cos(i / 7) * 1.5) * 100) / 100);
+  const mine = ledger().events.filter((e) => e.symbol === "MUFG").map((e) => {
+      const rest = { ...e };
+      delete rest.band;
+      return rest;
+    });
+  return {
+    symbol: "MUFG",
+    name: "Mitsubishi UFJ",
+    country: { slug: "japan", name: "Japan", atlas: true },
+    theme: null,
+    benchmark: "IXG",
+    benchmarkReason: null,
+    thin: null,
+    baseSession: dates[0],
+    series: { dates, close, benchmarkClose },
+    sessionsObserved: dates.length,
+    latestSession: dates[dates.length - 1],
+    judgedFrom: "2026-10-15",
+    sessionsJudged: 1,
+    eventCount: mine.length,
+    events: mine,
+  };
+}
+
 function send(res, status, body) {
   res.writeHead(status, { "content-type": "application/json; charset=utf-8" });
   res.end(JSON.stringify(body));
@@ -55,6 +93,7 @@ http
   .createServer((req, res) => {
     const path = (req.url ?? "").split("?")[0];
     if (req.method === "GET" && path === "/market/events") return send(res, 200, ledger());
+    if (req.method === "GET" && /^\/market\/sensors\/(japan|mufg)$/i.test(path)) return send(res, 200, japanRecord());
     if (req.method === "GET" && path === "/market/tape") return send(res, 200, tape);
     if (req.method === "GET" && path === "/market/state") {
       // The real feed and session, with the trip this fixture says there is.

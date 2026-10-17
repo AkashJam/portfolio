@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { Sensor } from "@/lib/market-schemas";
-import { findSensor, isSimulated, sensorTitle } from "@/lib/sensor-title";
+import { findSensor, isSimulated, sensorHref, sensorPriceHref, sensorTitle } from "@/lib/sensor-title";
 
 const base: Sensor = {
   symbol: "MUFG",
@@ -10,6 +10,7 @@ const base: Sensor = {
   country: "Japan",
   theme: null,
   region: "Asia-Pacific",
+  slug: "japan",
   liquidity: null,
   note: null,
   liquidityUsdM: null,
@@ -40,8 +41,11 @@ describe("sensorTitle", () => {
 });
 
 describe("findSensor", () => {
-  it("finds by symbol and answers null for anything else", () => {
+  it("finds by symbol or slug, in any case, and answers null for anything else", () => {
     expect(findSensor([base], "MUFG")).toBe(base);
+    expect(findSensor([base], "mufg")).toBe(base);
+    expect(findSensor([base], "japan")).toBe(base);
+    expect(findSensor([base], "Japan")).toBe(base);
     expect(findSensor([base], "IXN")).toBeNull();
     expect(findSensor(null, "MUFG")).toBeNull();
   });
@@ -51,5 +55,19 @@ describe("isSimulated", () => {
   it("is the SIM: prefix", () => {
     expect(isSimulated("SIM:NOVA")).toBe(true);
     expect(isSimulated("MUFG")).toBe(false);
+  });
+});
+
+describe("sensorHref", () => {
+  const nvda: Sensor = { ...base, symbol: "NVDA", group: "global", country: null, slug: null, theme: "Semiconductors" };
+
+  it("links a country sensor by its slug and a global one by its symbol", () => {
+    expect(sensorHref(base)).toBe("/market/japan");
+    expect(sensorHref(nvda)).toBe("/market/NVDA");
+  });
+
+  it("puts the price page beneath the record", () => {
+    expect(sensorPriceHref(base)).toBe("/market/japan/price");
+    expect(sensorPriceHref(nvda)).toBe("/market/NVDA/price");
   });
 });

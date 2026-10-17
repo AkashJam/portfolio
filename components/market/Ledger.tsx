@@ -11,6 +11,8 @@ import {
   contextLine,
   entryHeading,
   entryVia,
+  recordHref,
+  recordLinkText,
   sessionShort,
   sigmaLabel,
   signedChange,
@@ -102,12 +104,17 @@ function LeadEntry({ event }: { event: LedgerEvent }) {
         <h3 className="text-2xl font-semibold tracking-tight text-text">{entryHeading(event)}</h3>
         <span className={FAINT}>{entryVia(event)}</span>
       </div>
-      <Body event={event} />
+      <Body event={event} recordLink />
     </article>
   );
 }
 
-function RowEntry({ event }: { event: LedgerEvent }) {
+/**
+ * One event as a row that expands in place, addressable by its fragment. The ledger
+ * uses it for every entry after the newest; a sensor's record page uses it for all of
+ * its events (Phase 16 step 2), without the link back to itself.
+ */
+export function RowEntry({ event, recordLink = true }: { event: LedgerEvent; recordLink?: boolean }) {
   const dir = breakoutDirection(event);
   const pct = event.price ? event.price.changePercent : null;
   return (
@@ -130,13 +137,13 @@ function RowEntry({ event }: { event: LedgerEvent }) {
         </span>
       </summary>
       <div className="border-t border-hairline px-5 pb-[22px] pt-1 sm:px-[26px]">
-        <Body event={event} compact />
+        <Body event={event} compact recordLink={recordLink} />
       </div>
     </details>
   );
 }
 
-function Body({ event, compact = false }: { event: LedgerEvent; compact?: boolean }) {
+function Body({ event, compact = false, recordLink }: { event: LedgerEvent; compact?: boolean; recordLink: boolean }) {
   const dir = breakoutDirection(event);
   const { price, band } = event;
   return (
@@ -163,6 +170,18 @@ function Body({ event, compact = false }: { event: LedgerEvent; compact?: boolea
       <Caveats event={event} />
       <SplitBlock event={event} />
       <CoverageBlock event={event} />
+      {recordLink && (
+        <p className="mt-5 text-[13.5px]">
+          <Link
+            href={recordHref(event)}
+            data-testid="record-link"
+            className="text-brand-hover underline underline-offset-2 hover:text-brand-hover/80 focus-visible:outline-2 focus-visible:outline-brand"
+          >
+            {recordLinkText(event)} →
+          </Link>{" "}
+          <span className={FAINT}>every time it has tripped, against its sector</span>
+        </p>
+      )}
       {event.country?.atlas && (
         <p className="mt-5 text-[13.5px]">
           <Link

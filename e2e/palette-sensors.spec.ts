@@ -40,7 +40,7 @@ test.describe("palette Sensors group", () => {
     await openPalette(page);
     const group = page.getByRole("group", { name: "Sensors" });
     await expect(group.getByRole("option", { name: /MUFG/ })).toContainText("Japan · Mitsubishi UFJ");
-    await expect(group.getByRole("option", { name: /MUFG/ })).toContainText("/market/MUFG");
+    await expect(group.getByRole("option", { name: /MUFG/ })).toContainText("/market/japan");
     await expect(group.getByRole("option", { name: /NVDA/ })).toContainText("Semiconductors");
   });
 
@@ -50,7 +50,7 @@ test.describe("palette Sensors group", () => {
     await page.getByPlaceholder("Search pages, sensors, actions…").fill("japan");
     await expect(page.getByRole("option", { name: /MUFG/ })).toBeVisible();
     await page.keyboard.press("Enter");
-    await expect(page).toHaveURL(/\/market\/MUFG$/);
+    await expect(page).toHaveURL(/\/market\/japan$/);
   });
 
   test("has no WCAG 2.1 AA violations with the Sensors group showing", async ({ page }) => {

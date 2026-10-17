@@ -12,7 +12,7 @@ import { expect, test } from "@playwright/test";
 const SURFACES = [
   { path: "/", name: "home hero" },
   { path: "/market", name: "market board" },
-  { path: "/market/SIM:NOVA", name: "symbol page" },
+  { path: "/market/SIM:NOVA/price", name: "symbol page" },
 ];
 
 for (const { path, name } of SURFACES) {

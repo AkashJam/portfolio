@@ -1,7 +1,7 @@
 import type { Sensor } from "@/lib/market-schemas";
 
 /**
- * How `/market/[symbol]` names a sensor (portfolio.md §15 Phase 14 step 8): the
+ * How `/market/[sensor]` and its price page name a sensor (portfolio.md §15 Phase 14 step 8): the
  * place first and the symbol after, the way the Prices table and the ⌘K palette
  * already do. Pure, so the wording is testable without a browser.
  */
@@ -24,8 +24,20 @@ export function sensorTitle(sensor: Sensor): SensorTitle {
   };
 }
 
-export function findSensor(sensors: Sensor[] | null, symbol: string): Sensor | null {
-  return sensors?.find((s) => s.symbol === symbol) ?? null;
+/** A sensor by symbol or country slug, in any case: `MUFG`, `mufg` and `japan` are one sensor. */
+export function findSensor(sensors: Sensor[] | null, name: string): Sensor | null {
+  const n = name.toLowerCase();
+  return sensors?.find((s) => s.symbol.toLowerCase() === n || s.slug?.toLowerCase() === n) ?? null;
+}
+
+/** The sensor's record page: the country's slug, or a global name's symbol (Phase 16 step 2). */
+export function sensorHref(sensor: Sensor): string {
+  return `/market/${sensor.slug ?? sensor.symbol}`;
+}
+
+/** The candlestick page, which sits beneath the record. */
+export function sensorPriceHref(sensor: Sensor): string {
+  return `${sensorHref(sensor)}/price`;
 }
 
 /** The simulator's symbols: served on a page in dev and CI, where the ticker has them, and nowhere else. */

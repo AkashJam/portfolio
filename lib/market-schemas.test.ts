@@ -112,13 +112,14 @@ describe("sensorsResponseSchema", () => {
     country: "Japan",
     theme: null,
     region: "asia-pacific",
+    slug: "japan",
     liquidity: null,
     note: null,
     liquidityUsdM: null,
     liquidityAsOf: null,
     order: 13,
   };
-  const global = { ...country, symbol: "NVDA", name: "NVIDIA", group: "global", country: null, theme: "Semiconductors", region: null, order: 14 };
+  const global = { ...country, symbol: "NVDA", name: "NVIDIA", group: "global", country: null, theme: "Semiconductors", region: null, slug: null, order: 14 };
 
   it("accepts a country sensor and a global one", () => {
     expect(sensorsResponseSchema.safeParse([country, global]).success).toBe(true);

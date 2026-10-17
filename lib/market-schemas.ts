@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 // Hand-derived from portfolio.md §8 (the Ticker API contract) — only the
-// shapes actually consumed by /market and /market/[symbol] (§18). There is no
+// shapes actually consumed by /market, /market/[sensor] and its price page (§18). There is no
 // Movers schema: GET /market/movers is deleted (Phase 15 step 7), because "what
 // moved most?" is the question the threshold exists not to ask.
 
@@ -74,6 +74,9 @@ export const sensorSchema = z.object({
   country: z.string().nullable(),
   theme: z.string().nullable(),
   region: z.string().nullable(),
+  // The country's address (`japan`), which the site's links to the sensor's page
+  // use; null for a global sensor, addressed by its symbol.
+  slug: z.string().nullable(),
   liquidity: z.string().nullable(),
   // "telecom", "was Bancolombia": what the table must say beside the company.
   note: z.string().nullable(),
@@ -227,6 +230,36 @@ export const eventsResponseSchema = z.object({
   latestSession: z.string().nullable(),
 });
 export type EventsResponse = z.infer<typeof eventsResponseSchema>;
+
+// GET /market/sensors/{symbol} (§8, Phase 16 step 1): one sensor's accumulated
+// record. Its events are the ledger's without the band (the record draws the
+// longer series instead), so they parse into the same LedgerEvent with a null band
+// and the ledger's row component renders both. `series` holds the closes as
+// stored; the page divides by the close on baseSession to draw both lines at 100.
+export const sensorRecordSchema = z.object({
+  symbol: z.string(), // canonical, whichever form the request used
+  name: z.string(),
+  country: z.object({ slug: z.string(), name: z.string(), atlas: z.boolean() }).nullable(),
+  theme: z.string().nullable(),
+  benchmark: z.string().nullable(),
+  benchmarkReason: z.string().nullable(),
+  thin: z.object({ usdM: z.number(), asOf: z.string(), label: z.string() }).nullable(),
+  baseSession: z.string().nullable(),
+  series: z.object({
+    dates: z.array(z.string()),
+    close: z.array(z.number()),
+    benchmarkClose: z.array(z.number()).nullable(),
+  }),
+  sessionsObserved: z.number(),
+  latestSession: z.string().nullable(),
+  // The first session the trigger tested and how many of the series fall on or after it:
+  // the denominator of any rate of events (the bars start earlier, seeded).
+  judgedFrom: z.string(),
+  sessionsJudged: z.number(),
+  eventCount: z.number(),
+  events: z.array(ledgerEventSchema.omit({ band: true }).transform((e) => ({ ...e, band: null }))),
+});
+export type SensorRecord = z.infer<typeof sensorRecordSchema>;
 
 // GET /market/tape (§8, Phase 15 step 7): the Prices table's two history columns.
 // z is the trigger's own residual z on the last close, or null with the reason the

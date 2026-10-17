@@ -2,7 +2,7 @@ import type { IndicatorSeriesResponse } from "@/lib/market-schemas";
 import { RSI_HEIGHT, RSI_WIDTH, rsiPath, rsiY } from "@/lib/rsi-path";
 
 /**
- * RSI(14) panel (portfolio.md §18 `/market/[symbol]`) — SSR-only from the
+ * RSI(14) panel (portfolio.md §18 `/market/[sensor]/price`) — SSR-only from the
  * ticker API's `series=true` indicators response. Deliberately not
  * SSE-live: a correct live update means recomputing RSI over a sliding
  * window, which would mean either polling this endpoint or duplicating

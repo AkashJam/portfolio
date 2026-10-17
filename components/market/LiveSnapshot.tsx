@@ -17,7 +17,7 @@ import type { SymbolSnapshot } from "@/lib/market-schemas";
 import type { SensorTitle } from "@/lib/sensor-title";
 
 /**
- * `/market/[symbol]`'s live header. Seeds from the SSR snapshot, then merges live
+ * The price page's (`/market/[sensor]/price`) live header. Seeds from the SSR snapshot, then merges live
  * via a single-symbol subscribeToStream, the same seed-then-merge shape
  * PricesTable uses per row.
  *
@@ -25,17 +25,20 @@ import type { SensorTitle } from "@/lib/sensor-title";
  * (Phase 14 steps 7 and 8): extended-hours quotes are not applied, the ink goes to
  * muted with no up or down colour, and the as-of line says how old the price is
  * and when the market opens. A sensor is named by its place and symbol, with a
- * breadcrumb back to /market; a simulator symbol (dev and CI only) has no place.
+ * breadcrumb (Market / Japan / Price) back to the record and /market; a simulator symbol (dev and CI only) has no place.
  */
 export function LiveSnapshot({
   symbol,
   sensor,
+  recordHref,
   initialSnapshot,
   initialState,
   renderedAt,
 }: {
   symbol: string;
   sensor: SensorTitle | null;
+  /** The sensor's record page, which the breadcrumb's place links to; null for a simulator symbol. */
+  recordHref: string | null;
   initialSnapshot: SymbolSnapshot;
   initialState: MarketState;
   renderedAt: string;
@@ -95,7 +98,15 @@ export function LiveSnapshot({
             Market
           </Link>
           <span aria-hidden="true"> / </span>
-          <span aria-current="page">{sensor.heading}</span>
+          {recordHref ? (
+            <Link href={recordHref} className="hover:text-read focus-visible:outline-2 focus-visible:outline-brand">
+              {sensor.place}
+            </Link>
+          ) : (
+            <span>{sensor.place}</span>
+          )}
+          <span aria-hidden="true"> / </span>
+          <span aria-current="page">Price</span>
         </nav>
       )}
       <div className="flex items-start justify-between gap-4">

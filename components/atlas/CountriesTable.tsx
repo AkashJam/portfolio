@@ -390,7 +390,7 @@ export function CountriesTable({ rows }: { rows: AtlasRow[] }) {
                         <>
                           market sensor{" "}
                           <Link
-                            href={`/market/${r.sensor}`}
+                            href={`/market/${r.slug}`}
                             className="font-mono underline-offset-4 hover:text-brand-hover hover:underline"
                           >
                             {r.sensor}

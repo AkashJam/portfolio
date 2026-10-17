@@ -83,6 +83,16 @@ export function entryHeading(event: LedgerEvent): string {
   return event.country?.name ?? event.theme ?? event.name;
 }
 
+/** The sensor's record page: its country's slug, or a global name's symbol (Phase 16 step 2). */
+export function recordHref(event: LedgerEvent): string {
+  return `/market/${event.country?.slug ?? event.symbol}`;
+}
+
+/** `Japan's full record` or `NVDA's full record`. */
+export function recordLinkText(event: LedgerEvent): string {
+  return `${event.country?.name ?? event.symbol}'s full record`;
+}
+
 /** `as seen through MUFG · Mitsubishi UFJ · 6 Oct, at the close`. */
 export function entryVia(event: LedgerEvent): string {
   const through = event.country ? "as seen through" : "through";

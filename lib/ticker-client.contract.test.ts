@@ -6,6 +6,7 @@ import {
   getEvents,
   getIndicatorSeries,
   getMarketState,
+  getSensorRecord,
   getSensors,
   getSymbolSnapshot,
   getSymbols,
@@ -98,6 +99,22 @@ describe("ticker API contract", () => {
     expect(res).not.toBeNull();
     expect(Array.isArray(res?.events)).toBe(true);
     expect(typeof res?.truncated).toBe("boolean");
+  });
+
+  // Phase 16 step 1. The record's events are the ledger's without a band; CI's ledger is empty, so
+  // the shape is checked on the series, and on the country and symbol forms being one body.
+  it("GET /market/sensors/{symbol} matches sensorRecordSchema, and a country slug and its symbol are one record", async () => {
+    const bySymbol = await getSensorRecord("MUFG");
+    const bySlug = await getSensorRecord("japan");
+    expect(bySymbol).not.toBeNull();
+    expect(bySlug).toEqual(bySymbol);
+    expect(bySymbol?.symbol).toBe("MUFG");
+    expect(bySymbol?.benchmark).toBe("IXG");
+    expect(bySymbol?.series.benchmarkClose).toHaveLength(bySymbol!.series.dates.length);
+    expect(bySymbol?.series.close).toHaveLength(bySymbol!.series.dates.length);
+    expect(bySymbol?.baseSession).toBe(bySymbol?.series.dates[0]);
+    expect((await getSensorRecord("AAPL"))?.series.benchmarkClose).toBeNull();
+    expect(await getSensorRecord("IXG")).toBeNull();
   });
 
   it("GET /market/tape matches tapeResponseSchema: the eighteen sensors, each with its closes and a z or a reason", async () => {

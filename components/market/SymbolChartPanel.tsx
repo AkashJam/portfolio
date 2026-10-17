@@ -16,7 +16,7 @@ interface CandlesApiResponse {
 
 /**
  * Owns the interval switcher + chart/indicator state for
- * `/market/[symbol]` (mockups/v3). The chart freezes with the header
+ * `/market/[sensor]/price` (mockups/v3). The chart freezes with the header
  * while the regular session is closed (Phase 14 step 8). Seeded with the page's SSR-fetched data
  * for the default interval so switching is the only client round-trip.
  */

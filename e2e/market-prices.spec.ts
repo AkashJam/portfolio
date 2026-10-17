@@ -57,8 +57,9 @@ test.describe("at 1440px", () => {
 
   test("each row links to its sensor's own page", async ({ page }) => {
     await page.goto("/market");
-    for (const symbol of ["RY", "NVDA"]) {
-      await expect(page.getByTestId(`market-row-${symbol}`).getByRole("link")).toHaveAttribute("href", `/market/${symbol}`);
+    // A country sensor is addressed by its country's slug, a global name by its symbol.
+    for (const [symbol, href] of [["RY", "/market/canada"], ["NVDA", "/market/NVDA"]]) {
+      await expect(page.getByTestId(`market-row-${symbol}`).getByRole("link")).toHaveAttribute("href", href);
     }
   });
 

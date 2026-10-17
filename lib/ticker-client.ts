@@ -8,6 +8,7 @@ import {
   eventsResponseSchema,
   indicatorSeriesResponseSchema,
   marketStateSchema,
+  sensorRecordSchema,
   sensorsResponseSchema,
   symbolSnapshotSchema,
   symbolsResponseSchema,
@@ -18,6 +19,7 @@ import {
   type IndicatorSeriesResponse,
   type MarketStateResponse,
   type Sensor,
+  type SensorRecord,
   type Symbol,
   type SymbolSnapshot,
   type TapeResponse,
@@ -141,6 +143,15 @@ export function getAtlasCities(opts?: { revalidateSeconds?: number }): Promise<A
  */
 export function getEvents(opts?: { revalidateSeconds?: number }): Promise<EventsResponse | null> {
   return get("/market/events", eventsResponseSchema, opts?.revalidateSeconds);
+}
+
+/**
+ * One sensor's accumulated record (§8, Phase 16 step 1). `name` is a symbol in any
+ * case or a country slug; null for a name that is not a sensor (a 404), as for any
+ * failure. It changes when a close trips something or a session ends.
+ */
+export function getSensorRecord(name: string, opts?: { revalidateSeconds?: number }): Promise<SensorRecord | null> {
+  return get(`/market/sensors/${encodeURIComponent(name)}`, sensorRecordSchema, opts?.revalidateSeconds);
 }
 
 /** The Prices table's sparkline and "σ · last close" columns (§8, Phase 15 step 7). */

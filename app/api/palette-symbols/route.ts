@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { getSensors } from "@/lib/ticker-client";
+import { sensorHref } from "@/lib/sensor-title";
 import type { PaletteSymbol } from "@/lib/nav";
 
 // Fetched client-side by CommandPalette on mount, not from app/layout.tsx —
@@ -16,7 +17,7 @@ export async function GET() {
   const sensors = await getSensors({ revalidateSeconds: 300 });
 
   const paletteSymbols: PaletteSymbol[] = (sensors ?? []).map((s) => ({
-    href: `/market/${s.symbol}`,
+    href: sensorHref(s),
     label: s.symbol,
     sublabel: s.country ? `${s.country} · ${s.name}` : (s.theme ?? s.name),
   }));

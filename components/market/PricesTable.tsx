@@ -24,6 +24,7 @@ import {
   thinListing,
   type PriceRow,
 } from "@/lib/prices";
+import { sensorHref } from "@/lib/sensor-title";
 import { subscribeToStream } from "@/lib/sse";
 import { cn } from "@/lib/utils";
 
@@ -208,7 +209,7 @@ function PriceRowView({
           second line wraps instead of widening the column to the whole screen. */}
       <TableCell className={cn("pl-4 pr-2 max-md:w-[12.5rem] max-md:max-w-[12.5rem] max-md:whitespace-normal", PINNED)}>
         <Link
-          href={`/market/${sensor.symbol}`}
+          href={sensorHref(sensor)}
           aria-label={`${place}, ${sensor.symbol}`}
           className={cn(
             "rounded-sm hover:text-brand-hover focus-visible:outline-2 focus-visible:outline-brand",
