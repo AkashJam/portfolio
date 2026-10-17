@@ -99,7 +99,10 @@ test.describe("tripped, at 1440px", () => {
     await expect(korea.getByTestId("caveats")).toContainText("Thin listing · about $25M a day in New York (measured to 2026-10-09)");
     await expect(korea.getByTestId("split")).toContainText("not an economy query");
     await expect(korea).toContainText("→ South Korea in atlas");
+    // South Korea has no verified survey, so no city page: the link lands on its row.
     await expect(korea.getByRole("link", { name: /South Korea in atlas/ })).toHaveAttribute("href", "/atlas#korea");
+    // Japan has one, and the link goes there.
+    await expect(page.getByTestId("ledger-lead").getByRole("link", { name: /Japan in atlas/ })).toHaveAttribute("href", "/atlas/japan");
   });
 
   test("a fragment opens its entry on load, and on a later change", async ({ page }) => {

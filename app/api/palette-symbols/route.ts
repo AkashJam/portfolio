@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { getSensors } from "@/lib/ticker-client";
+import { getAtlasCities, getSensors } from "@/lib/ticker-client";
 import { sensorHref } from "@/lib/sensor-title";
 import type { PaletteSymbol } from "@/lib/nav";
 
@@ -14,7 +14,10 @@ import type { PaletteSymbol } from "@/lib/nav";
 // "Japan · Mitsubishi UFJ", a global one its theme ("Semiconductors"); each
 // links to its own page, never to a ledger anchor (portfolio.md Phase 14).
 export async function GET() {
-  const sensors = await getSensors({ revalidateSeconds: 300 });
+  const [sensors, atlas] = await Promise.all([
+    getSensors({ revalidateSeconds: 300 }),
+    getAtlasCities({ revalidateSeconds: 3600 }),
+  ]);
 
   const paletteSymbols: PaletteSymbol[] = (sensors ?? []).map((s) => ({
     href: sensorHref(s),
@@ -22,5 +25,10 @@ export async function GET() {
     sublabel: s.country ? `${s.country} · ${s.name}` : (s.theme ?? s.name),
   }));
 
-  return NextResponse.json(paletteSymbols);
+  // Each city page joins the palette as it ships: the ticker says which cities have one.
+  const cities: PaletteSymbol[] = (atlas?.rows ?? [])
+    .filter((r) => r.hasCityPage)
+    .map((r) => ({ href: `/atlas/${r.slug}`, label: r.city, sublabel: r.country, group: "cities" as const }));
+
+  return NextResponse.json([...paletteSymbols, ...cities]);
 }

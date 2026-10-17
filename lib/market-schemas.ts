@@ -200,7 +200,7 @@ export const ledgerEventSchema = z.object({
   sessionsAgo: z.number(),
   // Every country sensor carries one (Colombia and Peru too, with atlas false);
   // a global name has none and a theme instead.
-  country: z.object({ slug: z.string(), name: z.string(), atlas: z.boolean() }).nullable(),
+  country: z.object({ slug: z.string(), name: z.string(), atlas: z.boolean(), cityPage: z.boolean() }).nullable(),
   theme: z.string().nullable(),
   price: z
     .object({ close: z.number(), prevClose: z.number(), change: z.number(), changePercent: z.number() })
@@ -239,7 +239,7 @@ export type EventsResponse = z.infer<typeof eventsResponseSchema>;
 export const sensorRecordSchema = z.object({
   symbol: z.string(), // canonical, whichever form the request used
   name: z.string(),
-  country: z.object({ slug: z.string(), name: z.string(), atlas: z.boolean() }).nullable(),
+  country: z.object({ slug: z.string(), name: z.string(), atlas: z.boolean(), cityPage: z.boolean() }).nullable(),
   theme: z.string().nullable(),
   benchmark: z.string().nullable(),
   benchmarkReason: z.string().nullable(),
@@ -344,6 +344,112 @@ export const atlasResponseSchema = z.object({
   rows: z.array(atlasRowSchema),
 });
 export type AtlasResponse = z.infer<typeof atlasResponseSchema>;
+
+// GET /atlas/cities/{city} (§8, Phase 16 step 3): one city's page. Every derived
+// figure carries its legs and the date of each, so the page prints one without
+// computing it. A series is null, with a reason, where it cannot be served.
+export const housingTagSchema = z.enum([
+  "private_rent",
+  "welfare_ceiling",
+  "imputed_rent",
+  "imputed_rent_excluded",
+  "averaged_all_residents",
+  "derived_rent",
+  "survey_component",
+  "included_not_separate",
+  "not_in_survey",
+]);
+export type HousingTag = z.infer<typeof housingTagSchema>;
+
+export const cityPartSchema = z.object({
+  label: z.string(),
+  amount: z.number(),
+  share: z.number(),
+  derived: z.string().optional(),
+  hatched: z.boolean().optional(),
+  includesHousing: z.boolean().optional(),
+});
+export type CityPart = z.infer<typeof cityPartSchema>;
+
+const seriesSchema = z.object({ start: z.string(), step: z.number(), values: z.array(z.number()) });
+export type LongSeries = z.infer<typeof seriesSchema>;
+
+export const cityChartSchema = z.object({
+  series: seriesSchema.nullable(),
+  source: z.string(),
+  asOf: z.string(),
+  derived: z.string().optional(),
+  reason: z.string().optional(),
+  behind: z.number(), // months this series ends before the newest country's
+});
+export type CityChart = z.infer<typeof cityChartSchema>;
+
+const cpiLegSchema = z.object({ year: z.number(), index: z.number() });
+
+export const cityResponseSchema = z.object({
+  generatedAt: z.string(),
+  slug: z.string(),
+  city: z.string(),
+  country: z.string(),
+  code: z.string(),
+  sensor: z.string().nullable(),
+  region: z.string(),
+  verified: z.boolean(),
+  survey: z.object({
+    instrument: z.string(),
+    publisher: z.string(),
+    headline: z.object({
+      value: z.number(),
+      currency: z.string(),
+      year: z.number(),
+      label: z.string(),
+      method: z.string(),
+      derived: z.string().optional(),
+    }),
+    secondLines: z.array(z.object({ label: z.string(), value: z.number(), eur: z.number().nullable() })),
+    housing: z.object({ tag: housingTagSchema, note: z.string() }),
+    parts: z.array(cityPartSchema).nullable(),
+    splitNote: z.string().nullable(),
+    sources: z.array(z.object({ label: z.string(), url: z.string(), detail: z.string(), retrieved: z.string() })),
+    nextRelease: z.string().nullable(),
+    openItems: z.array(z.string()),
+  }),
+  cost: z.object({
+    carried: z.object({
+      value: z.number().nullable(),
+      year: z.number(),
+      from: cpiLegSchema.nullable(),
+      to: cpiLegSchema.nullable(),
+      factor: z.number().nullable(),
+      source: z.string(),
+      reason: z.string().optional(),
+    }),
+    eur: z.object({
+      value: z.number().nullable(),
+      rate: z.number().nullable(),
+      year: z.number(),
+      source: z.string(),
+      reason: z.string().optional(),
+      basis: z.enum(["survey", "carried"]),
+    }),
+  }),
+  charts: z.object({ shares: cityChartSchema, currency: cityChartSchema, housing: cityChartSchema }),
+  macro: z.object({
+    everydaySpendingEur: sourcedSchema,
+    gniPpp: sourcedSchema,
+    unemployment: sourcedSchema,
+    lifeExpectancy: sourcedSchema,
+    inflation: sourcedSchema,
+  }),
+  composition: z.object({
+    agriculture: sourcedSchema,
+    industry: sourcedSchema,
+    services: sourcedSchema,
+    manufacturing: sourcedSchema,
+    residual: sourcedSchema,
+  }),
+});
+export type CityResponse = z.infer<typeof cityResponseSchema>;
 
 // SSE payloads (§8 `GET /stream`) — parsed client-side in lib/sse.ts, not
 // through lib/ticker-client.ts.

@@ -185,12 +185,12 @@ function Body({ event, compact = false, recordLink }: { event: LedgerEvent; comp
       {event.country?.atlas && (
         <p className="mt-5 text-[13.5px]">
           <Link
-            href={`/atlas#${event.country.slug}`}
+            href={event.country.cityPage ? `/atlas/${event.country.slug}` : `/atlas#${event.country.slug}`}
             className="text-brand-hover underline underline-offset-2 hover:text-brand-hover/80 focus-visible:outline-2 focus-visible:outline-brand"
           >
             → {event.country.name} in atlas
           </Link>{" "}
-          <span className={FAINT}>its row in the comparison</span>
+          <span className={FAINT}>{event.country.cityPage ? "its survey, series and sources" : "its row in the comparison"}</span>
         </p>
       )}
     </>

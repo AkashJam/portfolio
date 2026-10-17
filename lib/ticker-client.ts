@@ -4,6 +4,7 @@ import type { z } from "zod";
 
 import {
   atlasResponseSchema,
+  cityResponseSchema,
   candlesResponseSchema,
   eventsResponseSchema,
   indicatorSeriesResponseSchema,
@@ -14,6 +15,7 @@ import {
   symbolsResponseSchema,
   tapeResponseSchema,
   type AtlasResponse,
+  type CityResponse,
   type CandlesResponse,
   type EventsResponse,
   type IndicatorSeriesResponse,
@@ -134,6 +136,16 @@ export function getSensors(opts?: { revalidateSeconds?: number }): Promise<Senso
  */
 export function getAtlasCities(opts?: { revalidateSeconds?: number }): Promise<AtlasResponse | null> {
   return get("/atlas/cities", atlasResponseSchema, opts?.revalidateSeconds);
+}
+
+/**
+ * One city's page (§8, Phase 16 step 3): the survey with its derived legs, the long
+ * charts, the macro series and the composition. Null for a slug that is not an
+ * Atlas country with a survey (a 404), as for any failure. Cacheable for as long
+ * as /atlas is: the data refreshes daily to yearly.
+ */
+export function getAtlasCity(slug: string, opts?: { revalidateSeconds?: number }): Promise<CityResponse | null> {
+  return get(`/atlas/cities/${encodeURIComponent(slug)}`, cityResponseSchema, opts?.revalidateSeconds);
 }
 
 /**

@@ -55,7 +55,7 @@ function japanRecord() {
   return {
     symbol: "MUFG",
     name: "Mitsubishi UFJ",
-    country: { slug: "japan", name: "Japan", atlas: true },
+    country: { slug: "japan", name: "Japan", atlas: true, cityPage: true },
     theme: null,
     benchmark: "IXG",
     benchmarkReason: null,

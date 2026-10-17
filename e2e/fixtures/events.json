@@ -10,7 +10,8 @@
       "country": {
         "slug": "japan",
         "name": "Japan",
-        "atlas": true
+        "atlas": true,
+        "cityPage": true
       },
       "theme": null,
       "price": {
@@ -645,7 +646,8 @@
       "country": {
         "slug": "korea",
         "name": "South Korea",
-        "atlas": true
+        "atlas": true,
+        "cityPage": false
       },
       "theme": null,
       "price": {
@@ -1140,7 +1142,8 @@
       "country": {
         "slug": "brazil",
         "name": "Brazil",
-        "atlas": true
+        "atlas": true,
+        "cityPage": true
       },
       "theme": null,
       "price": {
@@ -1968,7 +1971,8 @@
       "country": {
         "slug": "colombia",
         "name": "Colombia",
-        "atlas": false
+        "atlas": false,
+        "cityPage": false
       },
       "theme": null,
       "price": {
@@ -2346,7 +2350,8 @@
       "country": {
         "slug": "canada",
         "name": "Canada",
-        "atlas": true
+        "atlas": true,
+        "cityPage": true
       },
       "theme": null,
       "price": {

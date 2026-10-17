@@ -14,6 +14,8 @@ const PAGES = [
   "/market/japan",
   "/market/NVDA",
   "/market/japan/price",
+  "/atlas/japan",
+  "/atlas/italy",
   "/atlas",
   "/projects",
   "/projects/market-ticker",

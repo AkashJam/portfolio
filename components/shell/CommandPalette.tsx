@@ -71,11 +71,22 @@ export function CommandPalette({
             </CommandItem>
           ))}
         </CommandGroup>
-        {symbols.length > 0 && (
+        {symbols.some((s) => s.group !== "cities") && (
           <CommandGroup heading="Sensors">
-            {symbols.map((s) => (
+            {symbols.filter((s) => s.group !== "cities").map((s) => (
               <CommandItem key={s.href} value={`${s.label} ${s.sublabel}`} onSelect={() => go(s.href)}>
                 <span className="font-mono">{s.label}</span>
+                <span className="text-text-muted">{s.sublabel}</span>
+                <CommandShortcut className="font-mono tracking-normal">{s.href}</CommandShortcut>
+              </CommandItem>
+            ))}
+          </CommandGroup>
+        )}
+        {symbols.some((s) => s.group === "cities") && (
+          <CommandGroup heading="Cities">
+            {symbols.filter((s) => s.group === "cities").map((s) => (
+              <CommandItem key={s.href} value={`${s.label} ${s.sublabel}`} onSelect={() => go(s.href)}>
+                <span>{s.label}</span>
                 <span className="text-text-muted">{s.sublabel}</span>
                 <CommandShortcut className="font-mono tracking-normal">{s.href}</CommandShortcut>
               </CommandItem>

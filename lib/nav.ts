@@ -53,4 +53,6 @@ export interface PaletteSymbol {
   href: string;
   label: string;
   sublabel: string;
+  /** Which ⌘K group the entry sits in; sensors unless it says otherwise. */
+  group?: "sensors" | "cities";
 }
