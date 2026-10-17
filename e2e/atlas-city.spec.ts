@@ -60,6 +60,50 @@ test.describe("at 1440px", () => {
     await expect(page.getByTestId("chart-shares")).toBeVisible();
   });
 
+  test("affordability: the ratio with both legs, their years and the gap", async ({ page }) => {
+    await page.goto("/atlas/japan");
+    const block = page.getByTestId("affordability");
+    await expect(block).toContainText("Derived on this page");
+    await expect(page.getByTestId("afford-ratio")).toHaveText("56.1%");
+    await expect(block).toContainText("The cost of living is 56.1% of what a typical person in Japan spends.");
+    await expect(page.getByTestId("afford-cost")).toContainText("€774.48 a month, the survey's own figure in 2026 prices, converted at the ECB's 2025 average");
+    await expect(page.getByTestId("afford-spending")).toContainText("€1,381 a month per person · World Bank");
+    await expect(page.getByTestId("afford-spending")).toContainText("2024");
+    await expect(page.getByTestId("afford-gap")).toContainText("The legs are 2 years apart");
+    // A 3.2% inflation does not make a two-year gap worth a caveat.
+    await expect(page.getByTestId("afford-caveat")).toHaveCount(0);
+    // It sits between the chain and the basket, and never on the comparison page.
+    const order = await page.locator("#cost, #afford, [data-testid=basket]").evaluateAll((els) => els.map((e) => e.id || e.getAttribute("data-testid")));
+    expect(order).toEqual(["cost", "afford", "basket"]);
+  });
+
+  test("affordability: a carried figure shares a year with the spending", async ({ page }) => {
+    await page.goto("/atlas/france");
+    await expect(page.getByTestId("afford-gap")).toHaveText(/^Both legs are in \d{4}\.$/);
+    await expect(page.getByTestId("afford-cost")).toContainText("the survey's figure carried to");
+  });
+
+  test("affordability: a fast-moving price level is called out, and the ratio is said to be overstated", async ({ page }) => {
+    await page.goto("/atlas/turkiye");
+    const caveat = page.getByTestId("afford-caveat");
+    await expect(caveat).toContainText("Türkiye's prices rose");
+    await expect(caveat).toContainText("overstated");
+  });
+
+  test("affordability: an average-consumption survey is worded as average against average", async ({ page }) => {
+    await page.goto("/atlas/china");
+    await expect(page.getByTestId("affordability")).toHaveAttribute("data-measure", "average");
+    await expect(page.getByTestId("affordability")).toContainText("The average spend here is");
+    await expect(page.getByTestId("afford-cost")).toContainText("Average spend, Shanghai");
+    await expect(page.getByTestId("afford-spending")).toContainText("National average spend, China");
+  });
+
+  test("the comparison page carries no ratio", async ({ page }) => {
+    await page.goto("/atlas");
+    await expect(page.getByTestId("affordability")).toHaveCount(0);
+    await expect(page.getByText(/affordability/i)).toHaveCount(0);
+  });
+
   test("the three charts are in the server HTML, the first two logarithmic and house prices linear", async ({ request }) => {
     const html = await (await request.get("/atlas/japan")).text();
     expect(html).toContain('data-scale="log"');

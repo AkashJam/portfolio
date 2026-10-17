@@ -386,6 +386,22 @@ export type CityChart = z.infer<typeof cityChartSchema>;
 
 const cpiLegSchema = z.object({ year: z.number(), index: z.number() });
 
+// The cost of living as a share of everyday spending (Phase 16 step 5): a city page
+// figure, derived from two sources of different dates, so it carries both legs, the
+// years between them and a caveat where fast-moving prices make that gap matter.
+export const affordabilitySchema = z.object({
+  ratio: z.number().nullable(), // percent
+  measure: z.enum(["floor", "average"]),
+  cost: z.object({ eur: z.number().nullable(), priceYear: z.number(), basis: z.enum(["survey", "carried"]), rateYear: z.number() }),
+  spending: sourcedSchema,
+  gapYears: z.number(),
+  direction: z.enum(["same", "cost-newer", "spending-newer"]).or(z.literal("")),
+  inflation: sourcedSchema,
+  caveat: z.string().optional(),
+  reason: z.string().optional(),
+});
+export type Affordability = z.infer<typeof affordabilitySchema>;
+
 export const cityResponseSchema = z.object({
   generatedAt: z.string(),
   slug: z.string(),
@@ -433,6 +449,7 @@ export const cityResponseSchema = z.object({
       basis: z.enum(["survey", "carried"]),
     }),
   }),
+  affordability: affordabilitySchema,
   charts: z.object({ shares: cityChartSchema, currency: cityChartSchema, housing: cityChartSchema }),
   macro: z.object({
     everydaySpendingEur: sourcedSchema,

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
+import { Affordability } from "@/components/atlas/city/Affordability";
 import { BasketBar } from "@/components/atlas/city/BasketBar";
 import { CostChain } from "@/components/atlas/city/CostChain";
 import { Economy } from "@/components/atlas/city/Economy";
@@ -67,6 +68,7 @@ export default async function CityPage({ params }: PageProps<"/atlas/[city]">) {
       </header>
 
       <CostChain city={city} />
+      <Affordability city={city} />
       <BasketBar city={city} />
 
       <section aria-labelledby="charts" className="space-y-10">

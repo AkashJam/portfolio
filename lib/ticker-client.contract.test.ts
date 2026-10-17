@@ -130,6 +130,11 @@ describe("ticker API contract", () => {
     expect(tokyo?.cost.carried.reason).toBeTruthy();
     expect(tokyo?.cost.eur.rate).toBeGreaterThan(0);
     expect(tokyo?.charts.currency.series?.start).toBe("1999-01");
+    // Phase 16 step 5: the ratio names both legs and the years between them.
+    expect(tokyo?.affordability.ratio).toBeGreaterThan(0);
+    expect(tokyo?.affordability.gapYears).toBeTypeOf("number");
+    expect(tokyo?.affordability.spending.asOf).toBeTruthy();
+    expect((await getAtlasCity("china"))?.affordability.measure).toBe("average");
     const dijon = await getAtlasCity("france");
     expect(dijon?.city).toBe("Dijon");
     expect(dijon?.cost.carried.value).toBeGreaterThan(1571);
