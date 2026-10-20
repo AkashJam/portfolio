@@ -1,12 +1,10 @@
 import * as Sentry from "@sentry/nextjs";
 
+// Node only: nothing runs on the edge runtime (no middleware, no
+// `runtime = "edge"`), so there is no edge config (phase17.md step 4).
 export async function register() {
   if (process.env.NEXT_RUNTIME === "nodejs") {
     await import("./sentry.server.config");
-  }
-
-  if (process.env.NEXT_RUNTIME === "edge") {
-    await import("./sentry.edge.config");
   }
 }
 
