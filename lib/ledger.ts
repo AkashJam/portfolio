@@ -223,6 +223,38 @@ export function sourcesOf(event: LedgerEvent): { key: string; source: CoverageSo
   return SOURCE_ORDER.filter((k) => sources[k] !== undefined).map((key) => ({ key, source: sources[key] }));
 }
 
+// --- the ex-dividend caveat (bearing.md #112) ---
+
+/** `$1.249`, or `1.249 CAD` for another currency, with no trailing zeros past the cents. */
+function perShare(amount: number, currency: string | undefined): string {
+  const n = String(Number(amount.toFixed(3)));
+  const text = n.includes(".") && n.split(".")[1].length < 2 ? `${n}0` : n;
+  return !currency || currency === "USD" ? `$${text}` : `${text} ${currency}`;
+}
+
+/**
+ * The caveat line for the dividend source, or null when there is nothing to say.
+ * On an ex-date the raw close falls by about the dividend, so a trip that session
+ * can be partly that, and z is not corrected for it. An empty answer prints
+ * nothing (no ex-date is the ordinary case); a failed lookup says it is unknown,
+ * so a missing caveat is never mistaken for a negative one.
+ */
+export function dividendLine(event: LedgerEvent): string | null {
+  const s = event.coverage?.sources.dividend;
+  if (!s) return null;
+  if (s.status === "ok" && s.dividend) {
+    const prev = event.price?.prevClose;
+    const share = prev && prev > 0 ? `, about ${((s.dividend.amount / prev) * 100).toFixed(1)}% of the previous close` : "";
+    return `Ex-dividend session · ${perShare(s.dividend.amount, s.dividend.currency)} a share went ex on ${sessionShort(s.dividend.date)}${share}. The close falls by about the dividend on its ex-date, so part of this move can be the dividend; the figure above is not corrected for it.`;
+  }
+  if (s.status === "error") {
+    return s.attempts >= 3
+      ? "Whether this was an ex-dividend session could not be checked, so a dividend may be part of this move."
+      : "Whether this was an ex-dividend session has not been checked yet; it is tried again after the next close.";
+  }
+  return null;
+}
+
 // --- the head of the ledger ---
 
 export type HeadKind = "tripped" | "quiet" | "empty";

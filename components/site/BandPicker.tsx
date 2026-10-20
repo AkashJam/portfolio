@@ -54,7 +54,9 @@ export function BandPicker({
         <ChevronDown className="size-3" aria-hidden="true" />
       </Popover.Trigger>
       <Popover.Portal>
-        <Popover.Positioner side="bottom" align="start" sideOffset={6}>
+        {/* The sticky header is 57px. Without top padding the list flips upward on a
+            short viewport and its first rows (the Countries label, Canada) sit under it. */}
+        <Popover.Positioner side="bottom" align="start" sideOffset={6} collisionPadding={{ top: 64, right: 8, bottom: 8, left: 8 }}>
           <Popover.Popup className="max-h-(--available-height) w-[min(440px,calc(100vw-2rem))] overflow-y-auto rounded-[10px] border border-hairline bg-panel p-1.5 font-mono text-xs shadow-lg">
             <div role="listbox" aria-label="Chart symbol">
               {GROUPS.map(({ group, title }) => (

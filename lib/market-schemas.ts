@@ -160,6 +160,8 @@ export const coverageSourceSchema = z.object({
   undated: z.number().optional(),
   items: z.array(coverageItemSchema).optional(),
   categorised: z.boolean().optional(),
+  // The dividend source only (bearing.md #112): set when the session was an ex-date.
+  dividend: z.object({ date: z.string(), amount: z.number(), currency: z.string().optional() }).optional(),
 });
 export type CoverageSource = z.infer<typeof coverageSourceSchema>;
 

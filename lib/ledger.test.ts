@@ -6,6 +6,7 @@ import {
   breakoutDirection,
   chipsFor,
   contextLine,
+  dividendLine,
   entryHeading,
   entryVia,
   etClock,
@@ -172,5 +173,47 @@ describe("the head of the ledger", () => {
 
   it("is empty with no events", () => {
     expect(headLine([]).kind).toBe("empty");
+  });
+});
+
+describe("the ex-dividend caveat", () => {
+  const korea = byId("korea-2026-10-02");
+  const withDividend = (dividend: object, status = "ok", attempts = 2): LedgerEvent => ({
+    ...korea,
+    coverage: korea.coverage && {
+      ...korea.coverage,
+      sources: { ...korea.coverage.sources, dividend: { status, attempts, fetchedAt: "2026-10-03T21:00:00Z", ...dividend } as never },
+    },
+  });
+
+  it("names the amount, the date and the share of the previous close, and says the figure is not corrected", () => {
+    const line = dividendLine(korea);
+    expect(line).toMatch(/^Ex-dividend session · \$0\.55 a share went ex on 2 Oct, about \d+\.\d% of the previous close\./);
+    expect(line).toContain("the figure above is not corrected for it");
+  });
+
+  it("prints the amount in its own currency when it is not dollars, and keeps two decimals", () => {
+    expect(dividendLine(withDividend({ dividend: { date: "2026-10-02", amount: 1.2, currency: "CAD" } }))).toContain("1.20 CAD a share");
+    expect(dividendLine(withDividend({ dividend: { date: "2026-10-02", amount: 1.249, currency: "USD" } }))).toContain("$1.249 a share");
+  });
+
+  it("leaves out the share when there is no previous close", () => {
+    const e = { ...withDividend({ dividend: { date: "2026-10-02", amount: 0.5 } }), price: null };
+    expect(dividendLine(e)).toMatch(/\$0\.50 a share went ex on 2 Oct\. The close falls/);
+  });
+
+  it("says nothing for an empty answer, which is the ordinary session", () => {
+    expect(dividendLine(byId("japan-2026-10-15"))).toBeNull();
+    expect(dividendLine(byId("canada-2026-08-05"))).toBeNull(); // no coverage yet
+    expect(dividendLine(byId("cat-2026-09-10"))).toBeNull(); // no dividend source recorded
+  });
+
+  it("says a failed lookup is unknown, and whether it will be tried again", () => {
+    expect(dividendLine(byId("brazil-2026-09-18"))).toContain("has not been checked yet");
+    expect(dividendLine(byId("colombia-2026-08-27"))).toContain("could not be checked");
+  });
+
+  it("is not a news source: the page lists the explanations and leaves the dividend out", () => {
+    expect(sourcesOf(korea).map((x) => x.key)).toEqual(["sectorNews", "filings"]);
   });
 });

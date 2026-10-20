@@ -9,6 +9,7 @@ import {
   bandCaption,
   breakoutDirection,
   contextLine,
+  dividendLine,
   entryHeading,
   entryVia,
   recordHref,
@@ -216,6 +217,8 @@ function Caveats({ event }: { event: LedgerEvent }) {
       text: `A large holding of its own benchmark (${event.trigger.benchmark ?? "its sector fund"}), so the sector it is measured against partly contains it.`,
     });
   }
+  const dividend = dividendLine(event);
+  if (dividend) lines.push({ key: "dividend", text: dividend });
   if (event.trigger.benchmark === null && event.trigger.benchmarkReason) {
     lines.push({ key: "nobench", text: `No sector benchmark: ${event.trigger.benchmarkReason}.` });
   }

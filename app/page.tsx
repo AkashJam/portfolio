@@ -32,9 +32,11 @@ export const metadata: Metadata = pageMetadata({
 // poll takes over from there.
 const HERO_REVALIDATE_SECONDS = 300;
 // The band opens on one fixed sensor and nothing re-ranks it (bearing.md #75, #92):
-// the most-traded country sensor, so its line visibly moves in US hours where a
-// thin listing would sit flat. If it is missing the first sensor stands in.
-const HERO_DEFAULT_SYMBOL = "RY";
+// NVDA, the most-traded sensor, so its line visibly moves in US hours. It replaced
+// RY on 2026-10-20: on the real feed RY made no trade in 90 seconds at 09:45 ET
+// while NVDA trades several times a second (phase14.md finding 3, phase15.md). RY
+// stays in the picker. If the default is missing the first sensor stands in.
+const HERO_DEFAULT_SYMBOL = "NVDA";
 
 const isDev = process.env.NODE_ENV !== "production";
 

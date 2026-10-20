@@ -26,11 +26,11 @@ const picker = (page: Page) => page.getByTestId("band-picker");
 test.describe("at 1440px", () => {
   test.use({ viewport: { width: 1440, height: 900 } });
 
-  test("opens on RY, with a LIVE pill, and carries no simulator symbol", async ({ page }) => {
+  test("opens on NVDA, with a LIVE pill, and carries no simulator symbol", async ({ page }) => {
     await page.goto("/");
     await expect(band(page)).toHaveAttribute("data-session", "open");
-    await expect(picker(page)).toContainText("Canada");
-    await expect(picker(page)).toContainText("RY");
+    await expect(picker(page)).toContainText("Semiconductors");
+    await expect(picker(page)).toContainText("NVDA");
     await expect(page.getByText("LIVE", { exact: true })).toBeVisible();
     const text = (await page.locator("main").innerText()).toLowerCase();
     expect(text).not.toContain("sim:");
@@ -54,16 +54,27 @@ test.describe("at 1440px", () => {
     expect(symbols.slice(-5)).toEqual(["NVDA", "AAPL", "XOM", "JPM", "CAT"]);
   });
 
+  test("the open list clears the sticky header, so its first row can be reached", async ({ page }) => {
+    // On a short viewport the band sits low and the list flips upward; without
+    // collision padding its first rows (the Countries label, Canada) sat under the header.
+    await page.goto("/");
+    await picker(page).click();
+    const listbox = page.getByRole("listbox", { name: "Chart symbol" });
+    const header = await page.locator("header").first().boundingBox();
+    const first = await listbox.getByRole("option").first().boundingBox();
+    expect(first!.y).toBeGreaterThanOrEqual(header!.y + header!.height);
+  });
+
   test("picking another sensor changes the symbol and the line, and nothing re-ranks", async ({ page }) => {
     await page.goto("/");
     await picker(page).click();
-    await page.getByRole("option", { name: /NVDA/ }).click();
-    await expect(picker(page)).toContainText("NVDA");
-    await expect(picker(page)).toContainText("Semiconductors");
-    await expect(page.getByTestId("band-chart-open")).toHaveAttribute("aria-label", "Live price series, NVDA");
+    await page.getByRole("option", { name: /\bRY\b/ }).click();
+    await expect(picker(page)).toContainText("RY");
+    await expect(picker(page)).toContainText("Canada");
+    await expect(page.getByTestId("band-chart-open")).toHaveAttribute("aria-label", "Live price series, RY");
     // A reload goes back to the fixed default.
     await page.reload();
-    await expect(picker(page)).toContainText("RY");
+    await expect(picker(page)).toContainText("NVDA");
   });
 
   test("closed: a CLOSED pill, the state line, the last session's line in muted ink", async ({ page }) => {
@@ -75,7 +86,7 @@ test.describe("at 1440px", () => {
     await expect(line).toContainText("Closed.");
     await expect(line).toContainText("Opens in 4h 12m");
     await expect(page.getByTestId("band-chart-closed")).toBeVisible();
-    await expect(page.getByTestId("band-chart-closed").getByRole("img")).toHaveAttribute("aria-label", "RY, last session, closed");
+    await expect(page.getByTestId("band-chart-closed").getByRole("img")).toHaveAttribute("aria-label", "NVDA, last session, closed");
     await expect(page.getByText("CLOSE", { exact: true })).toBeVisible();
     // The quote loses its market colour and says which close it is.
     await expect(quote(page)).toContainText(/close$/);
@@ -89,7 +100,7 @@ test.describe("at 1440px", () => {
       await route.fulfill({
         status: 200,
         contentType: "text/event-stream",
-        body: `event: quote\ndata: ${JSON.stringify({ symbol: "RY", price: 999.5, volume: 1, time: new Date().toISOString() })}\n\n`,
+        body: `event: quote\ndata: ${JSON.stringify({ symbol: "NVDA", price: 999.5, volume: 1, time: new Date().toISOString() })}\n\n`,
       });
     });
     await page.goto("/");
@@ -149,7 +160,7 @@ test.describe("at 390px", () => {
     await stubClosed(page, 65 * HOUR + 30 * 60_000);
     await page.goto("/");
     await expect(band(page)).toHaveAttribute("data-session", "closed");
-    await expect(picker(page)).toContainText("RY");
+    await expect(picker(page)).toContainText("NVDA");
     await expect(page.getByTestId("market-state-line")).toContainText("Opens in 2d 17h");
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
     const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();

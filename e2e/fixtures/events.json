@@ -630,6 +630,15 @@
               "reason": "no 6-K was filed in the window"
             },
             "categorised": false
+          },
+          "dividend": {
+            "status": "empty",
+            "attempts": 2,
+            "fetchedAt": "2026-10-16T21:20:00Z",
+            "query": "Yahoo chart, dividend events",
+            "absent": {
+              "reason": "no ex-dividend date on this session"
+            }
           }
         }
       },
@@ -1120,6 +1129,17 @@
               "reason": "no 6-K was filed in the window"
             },
             "categorised": false
+          },
+          "dividend": {
+            "status": "ok",
+            "attempts": 2,
+            "fetchedAt": "2026-10-16T21:20:00Z",
+            "query": "Yahoo chart, dividend events",
+            "dividend": {
+              "date": "2026-10-02",
+              "amount": 0.55,
+              "currency": "USD"
+            }
           }
         }
       },
@@ -1537,6 +1557,13 @@
             "total": 27,
             "excluded": 3,
             "nonEnglish": 1
+          },
+          "dividend": {
+            "status": "error",
+            "attempts": 1,
+            "fetchedAt": "2026-10-16T21:20:00Z",
+            "error": "dividend: ITUB: yahoo returned HTTP 429",
+            "query": "Yahoo chart, dividend events"
           }
         }
       },
@@ -2334,6 +2361,13 @@
             "absent": {
               "reason": "the query returned no headlines in the window"
             }
+          },
+          "dividend": {
+            "status": "error",
+            "attempts": 3,
+            "fetchedAt": "2026-10-16T21:20:00Z",
+            "error": "dividend: CIB: yahoo returned HTTP 429",
+            "query": "Yahoo chart, dividend events"
           }
         }
       },

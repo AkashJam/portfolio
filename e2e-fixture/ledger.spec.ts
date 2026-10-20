@@ -105,6 +105,28 @@ test.describe("tripped, at 1440px", () => {
     await expect(page.getByTestId("ledger-lead").getByRole("link", { name: /Japan in atlas/ })).toHaveAttribute("href", "/atlas/japan");
   });
 
+  test("an ex-dividend session is named, an ordinary one says nothing, and a failed lookup says it is unknown", async ({ page }) => {
+    await page.goto("/market");
+    // Korea went ex on its session: the date, the amount and what it does to the figure.
+    const korea = page.locator("#korea-2026-10-02");
+    await korea.locator(":scope > summary").click();
+    const named = korea.locator('[data-caveat="dividend"]');
+    await expect(named).toContainText("Ex-dividend session · $0.55 a share went ex on 2 Oct");
+    await expect(named).toContainText("of the previous close");
+    await expect(named).toContainText("the figure above is not corrected for it");
+    // Japan's lookup answered "none": no line, which is the ordinary case.
+    await expect(page.getByTestId("ledger-lead").locator('[data-caveat="dividend"]')).toHaveCount(0);
+    // Brazil's failed once and will be tried again; Colombia's was tried three times.
+    const brazil = page.locator("#brazil-2026-09-18");
+    await brazil.locator(":scope > summary").click();
+    await expect(brazil.locator('[data-caveat="dividend"]')).toContainText("has not been checked yet");
+    const colombia = page.locator("#colombia-2026-08-27");
+    await colombia.locator(":scope > summary").click();
+    await expect(colombia.locator('[data-caveat="dividend"]')).toContainText("could not be checked, so a dividend may be part of this move");
+    // The dividend source is a caveat, not a news block.
+    await expect(korea.getByTestId("source-dividend")).toHaveCount(0);
+  });
+
   test("a fragment opens its entry on load, and on a later change", async ({ page }) => {
     await page.goto("/market#cat-2026-09-10");
     await expect(page.locator("#cat-2026-09-10")).toHaveJSProperty("open", true);
