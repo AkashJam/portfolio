@@ -7,27 +7,7 @@ import {
   indicatorSeriesResponseSchema,
   sensorsResponseSchema,
   symbolSnapshotSchema,
-  symbolsResponseSchema,
 } from "@/lib/market-schemas";
-
-describe("symbolsResponseSchema", () => {
-  it("accepts a well-formed §8 response", () => {
-    const result = symbolsResponseSchema.safeParse([
-      { symbol: "SIM:NOVA", name: "Nova (simulated)", type: "stock", exchange: "SIM", regime: "steady" },
-    ]);
-    expect(result.success).toBe(true);
-  });
-
-  it("rejects a missing field", () => {
-    const result = symbolsResponseSchema.safeParse([{ symbol: "SIM:NOVA", type: "stock" }]);
-    expect(result.success).toBe(false);
-  });
-
-  it("rejects a non-array payload", () => {
-    const result = symbolsResponseSchema.safeParse({ symbol: "SIM:NOVA" });
-    expect(result.success).toBe(false);
-  });
-});
 
 describe("symbolSnapshotSchema", () => {
   it("rejects a numeric field sent as a string (a real regression class — §15's earlier PascalCase-JSON bug)", () => {

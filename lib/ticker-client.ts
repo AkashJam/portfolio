@@ -12,7 +12,6 @@ import {
   sensorRecordSchema,
   sensorsResponseSchema,
   symbolSnapshotSchema,
-  symbolsResponseSchema,
   tapeResponseSchema,
   type AtlasResponse,
   type CityResponse,
@@ -22,7 +21,6 @@ import {
   type MarketStateResponse,
   type Sensor,
   type SensorRecord,
-  type Symbol,
   type SymbolSnapshot,
   type TapeResponse,
 } from "@/lib/market-schemas";
@@ -65,10 +63,6 @@ async function get<Schema extends z.ZodType>(
     console.error(`ticker-client: ${path} failed`, error);
     return null;
   }
-}
-
-export function getSymbols(opts?: { revalidateSeconds?: number }): Promise<Symbol[] | null> {
-  return get("/symbols", symbolsResponseSchema, opts?.revalidateSeconds);
 }
 
 export function getSymbolSnapshot(

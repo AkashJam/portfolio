@@ -4,7 +4,7 @@ import { expect, test, type Page } from "@playwright/test";
 // Phase 14 step 2: the ⌘K palette's Sensors group replaces the old Symbols group.
 // Its eighteen entries come from the ticker's GET /sensors, in the ticker's fixed
 // order, labelled by country and company or by theme, with the route on the right.
-// Needs the ticker; /sensors does not depend on which symbols are tracked, so it
+// Needs the ticker; /sensors is a fixed list that does not depend on the source, so it
 // answers the same against the simulator in dev and CI as against the real feed.
 
 // ⌘K before React has attached its listener does nothing: press again rather

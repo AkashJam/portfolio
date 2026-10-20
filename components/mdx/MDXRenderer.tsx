@@ -1,5 +1,3 @@
-"use client";
-
 import { MDXContent } from "@content-collections/mdx/react";
 
 import { ArchFlow } from "@/components/mdx/ArchFlow";
@@ -12,11 +10,16 @@ import type { LatencyStats } from "@/lib/latency";
 const components = { ArchFlow, Callout, DeeperLinks, LatencyTrace, pre: Pre };
 
 /**
- * Renders a Content Collections document's compiled `mdx` string. Client-only — `useMDXComponent`'s runtime eval can't run server-side.
+ * Renders a Content Collections document's compiled `mdx` string, on the
+ * server. `@content-collections/mdx/react` resolves to its server build under
+ * the react-server condition, so the browser gets HTML: no MDX runtime, no
+ * second copy of the content as a prop, and no `'unsafe-eval'` in the CSP
+ * (phase17.md step 4, decision 9). `Pre` is the one interactive component and
+ * is its own client island.
  *
- * `latencyStats` is how measured data reaches `<LatencyTrace>`: this is a
- * client component, so the MDX component can't query Prometheus itself.
- * The page (a server component) fetches it and it's bound in here.
+ * `latencyStats` is how measured data reaches `<LatencyTrace>`: the page
+ * fetches it and it's bound in here, which keeps `LatencyTrace` a plain
+ * presentational component.
  */
 export function MDXRenderer({ code, latencyStats }: { code: string; latencyStats?: LatencyStats }) {
   const bound = latencyStats

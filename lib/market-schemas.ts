@@ -5,16 +5,6 @@ import { z } from "zod";
 // Movers schema: GET /market/movers is deleted (Phase 15 step 7), because "what
 // moved most?" is the question the threshold exists not to ask.
 
-export const symbolSchema = z.object({
-  symbol: z.string(),
-  name: z.string(),
-  type: z.string(),
-  exchange: z.string(),
-  regime: z.string(),
-});
-export type Symbol = z.infer<typeof symbolSchema>;
-export const symbolsResponseSchema = z.array(symbolSchema);
-
 export const symbolSnapshotSchema = z.object({
   symbol: z.string(),
   name: z.string(),

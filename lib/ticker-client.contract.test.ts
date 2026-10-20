@@ -10,7 +10,6 @@ import {
   getSensorRecord,
   getSensors,
   getSymbolSnapshot,
-  getSymbols,
   getTape,
 } from "@/lib/ticker-client";
 import { SECTORS } from "@/lib/sectors";
@@ -24,13 +23,6 @@ import { SECTORS } from "@/lib/sectors";
  * as part of `npm run test` (see vitest.contract.config.mts).
  */
 describe("ticker API contract", () => {
-  it("GET /symbols matches symbolsResponseSchema and returns the 4 SIM: symbols", async () => {
-    const symbols = await getSymbols();
-    expect(symbols).not.toBeNull();
-    expect(symbols?.length).toBeGreaterThanOrEqual(4);
-    expect(symbols?.every((s) => s.symbol.startsWith("SIM:"))).toBe(true);
-  });
-
   it("GET /symbols/{symbol} matches symbolSnapshotSchema, dated by asOf with no simulated flag (ADR-006)", async () => {
     const snapshot = await getSymbolSnapshot("SIM:NOVA");
     expect(snapshot).not.toBeNull();

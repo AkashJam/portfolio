@@ -6,18 +6,20 @@ import { withSentryConfig } from "@sentry/nextjs/config";
 // nonce only while rendering a request, so a nonce CSP would make every page
 // dynamic and undo §3's SSG/ISR choices (/ stays static, Phase 6). That leaves
 // 'unsafe-inline' for Next's inline bootstrap scripts, and for the inline
-// styles Recharts and Lightweight Charts set. 'unsafe-eval' is for MDX:
-// MDXRenderer builds each post and case study on the client with
-// @content-collections/mdx's MDXContent, which uses new Function(); without
-// it those pages fail to hydrate. With 'unsafe-inline' already allowed it adds
-// little, and it can go if MDX moves to the server. Everything else is
-// same-origin: fonts are self-hosted and Sentry goes through
-// /monitoring-tunnel. JSON-LD is a data block, which script-src does not
-// govern. No upgrade-insecure-requests: HSTS covers production, and it would
-// upgrade http://localhost in dev and CI.
+// styles Recharts and Lightweight Charts set. No 'unsafe-eval' in production:
+// MDX renders on the server (MDXRenderer, phase17.md step 4, decision 9), so
+// nothing in the browser calls new Function(). Development keeps it, because
+// React's development build uses eval() for its debugging features.
+// Everything else is same-origin: fonts are self-hosted and Sentry goes
+// through /monitoring-tunnel. JSON-LD is a data block, which script-src does
+// not govern. No upgrade-insecure-requests: HSTS covers production, and it
+// would upgrade http://localhost in dev and CI.
+const scriptSrc =
+  process.env.NODE_ENV === "development" ? "'self' 'unsafe-inline' 'unsafe-eval'" : "'self' 'unsafe-inline'";
+
 const contentSecurityPolicy = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+  `script-src ${scriptSrc}`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' blob: data:",
   "font-src 'self'",
