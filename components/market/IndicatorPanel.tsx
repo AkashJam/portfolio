@@ -1,5 +1,5 @@
 import type { IndicatorSeriesResponse } from "@/lib/market-schemas";
-import { RSI_HEIGHT, RSI_WIDTH, rsiPath, rsiY } from "@/lib/rsi-path";
+import { RSI_HEIGHT, RSI_MIN_BARS, RSI_WIDTH, rsiPath, rsiY } from "@/lib/rsi-path";
 
 /**
  * RSI(14) panel (portfolio.md §18 `/market/[sensor]/price`) — SSR-only from the
@@ -17,10 +17,18 @@ import { RSI_HEIGHT, RSI_WIDTH, rsiPath, rsiY } from "@/lib/rsi-path";
  * client directive: this is a server component. `vector-effect` keeps the strokes
  * the same width however far the box is stretched.
  */
-export function IndicatorPanel({ indicators }: { indicators: IndicatorSeriesResponse | null }) {
+export function IndicatorPanel({ indicators, bars }: { indicators: IndicatorSeriesResponse | null; bars?: number }) {
   const points = indicators?.series.rsi;
   if (!points?.length) {
-    return <p className="text-sm text-text-muted">RSI unavailable — not enough candle history yet.</p>;
+    // Say which it is: a view with too few bars (a name's first week of 1h data), or enough
+    // bars and no answer from the ticker (phase18.md step 4, M18).
+    const message =
+      bars === undefined
+        ? "RSI unavailable — not enough candle history yet."
+        : bars < RSI_MIN_BARS
+          ? `RSI(14) needs ${RSI_MIN_BARS} bars; this view has ${bars}.`
+          : "RSI unavailable right now.";
+    return <p className="text-sm text-text-muted">{message}</p>;
   }
 
   const guide = { stroke: "var(--color-text-faint)", strokeDasharray: "3 3", vectorEffect: "non-scaling-stroke" } as const;

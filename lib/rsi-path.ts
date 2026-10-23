@@ -6,6 +6,10 @@
  * `ResponsiveContainer` to get.
  */
 export const RSI_WIDTH = 900;
+
+/** Bars the ticker needs before RSI(14) has a first value: the period plus one
+ * (`indicators.RSISeries`). Keep in step with the ticker's `RSIPeriod`. */
+export const RSI_MIN_BARS = 15;
 export const RSI_HEIGHT = 160;
 
 /** The y of an RSI value in the box: 0 at the bottom, 100 at the top. */

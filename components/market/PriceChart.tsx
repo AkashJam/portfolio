@@ -99,6 +99,12 @@ export function PriceChart({
         color: tokens.up,
         priceFormat: { type: "volume" },
         priceScaleId: "",
+        // The volume sits under the candles on its own hidden scale. Its last
+        // value would otherwise be drawn on the price axis in the last bar's
+        // colour, where a thin name's "800" shares read as a price (phase18.md
+        // step 4, M18).
+        lastValueVisible: false,
+        priceLineVisible: false,
       });
       volumeSeries.priceScale().applyOptions({ scaleMargins: { top: 0.8, bottom: 0 } });
       volumeSeriesRef.current = volumeSeries;
@@ -120,6 +126,10 @@ export function PriceChart({
       });
       emaSeries.setData(emaPoints.map((p) => ({ time: toUTCTimestamp(p.time), value: p.value })));
     }
+
+    // A short history (a name's first week of 1h bars) otherwise keeps the
+    // default bar spacing and bunches against the right edge.
+    chart.timeScale().fitContent();
 
     return () => {
       chart.remove();

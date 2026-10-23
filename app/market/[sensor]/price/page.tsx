@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { LiveSnapshot } from "@/components/market/LiveSnapshot";
 import { SymbolChartPanel } from "@/components/market/SymbolChartPanel";
 import { seedFromResponse } from "@/lib/market-session";
+import { RSI_MIN_BARS } from "@/lib/rsi-path";
 import {
   getCandles,
   getIndicatorSeries,
@@ -17,7 +18,8 @@ import { findSensor, isSimulated, sensorHref, sensorPriceHref, sensorTitle } fro
 const DEFAULT_INTERVAL = "1h";
 // A sensor has daily bars from the sweep from the first day, but intraday bars only
 // once its trades have streamed (and none overnight in the first session), so a page
-// that opens on an empty 1h chart opens on the daily one instead.
+// that opens on a 1h chart too short for RSI (none at all, or fewer bars than RSI(14)
+// needs) opens on the daily one instead. A reader who picks 1h still gets 1h.
 const FALLBACK_INTERVAL = "1d";
 
 // `/market/japan/price` and `/market/MUFG/price` are one page (Phase 16 step 2): the
@@ -59,7 +61,7 @@ export default async function SymbolPage({ params }: PageProps<"/market/[sensor]
   ]);
   if (!snapshot) notFound();
 
-  const useDaily = !intraday?.candles.length;
+  const useDaily = (intraday?.candles.length ?? 0) < RSI_MIN_BARS;
   const interval = useDaily ? FALLBACK_INTERVAL : DEFAULT_INTERVAL;
   const [candles, indicators] = useDaily
     ? await Promise.all([getCandles(symbol, interval), getIndicatorSeries(symbol, ["ema", "rsi"], interval)])

@@ -68,7 +68,7 @@ export function SymbolChartPanel({
       <div className={loading ? "opacity-60 transition-opacity" : "transition-opacity"}>
         <PriceChart symbol={symbol} interval={selectedInterval} initialCandles={candles} initialIndicators={indicators} frozen={frozen} />
       </div>
-      <IndicatorPanel indicators={indicators} />
+      <IndicatorPanel indicators={indicators} bars={candles.length} />
     </div>
   );
 }

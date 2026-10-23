@@ -43,6 +43,19 @@ test.describe("at 1440px", () => {
     await expect(page.getByText("global sensor")).toBeVisible();
   });
 
+  // Phase 18 step 4, M19: the header's quote and the chart's candles are one subscription,
+  // so the page holds one stream to the proxy where it held two.
+  test("the page holds one stream, shared by the quote and the chart", async ({ page }) => {
+    const streams: string[] = [];
+    page.on("request", (req) => {
+      if (new URL(req.url()).pathname === "/api/stream") streams.push(req.url());
+    });
+    await page.goto("/market/MUFG/price");
+    await expect(page.getByTestId("price-chart")).toBeVisible();
+    await page.waitForTimeout(1500); // both effects have run and any second stream has opened
+    expect(streams).toHaveLength(1);
+  });
+
   test("a real symbol that is not a sensor has no page", async ({ page }) => {
     const res = await page.goto("/market/IXN/price");
     expect(res?.status()).toBe(404);

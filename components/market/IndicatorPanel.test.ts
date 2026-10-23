@@ -26,4 +26,16 @@ describe("IndicatorPanel", () => {
   it("says so when there is not enough history", () => {
     expect(renderToString(createElement(IndicatorPanel, { indicators: null }))).toContain("RSI unavailable");
   });
+
+  // Phase 18 step 4, M18: the message says what is missing.
+  it("counts the bars a short view has and the bars RSI needs", () => {
+    const html = renderToString(createElement(IndicatorPanel, { indicators: null, bars: 9 }));
+    expect(html).toContain("RSI(14) needs 15 bars; this view has 9.");
+  });
+
+  it("does not blame the history when there are enough bars and no answer", () => {
+    const html = renderToString(createElement(IndicatorPanel, { indicators: null, bars: 37 }));
+    expect(html).toContain("RSI unavailable right now.");
+    expect(html).not.toContain("needs");
+  });
 });
