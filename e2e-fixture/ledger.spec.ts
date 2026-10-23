@@ -194,7 +194,9 @@ test.describe("tripped, at 1440px", () => {
     const mufg = page.getByTestId("market-row-MUFG");
     await expect(mufg).toHaveAttribute("data-tripped", "true");
     await expect(mufg.getByTestId("sigma")).toContainText("−0.8σ");
-    await expect(mufg.getByTestId("sigma").locator("b")).toHaveCSS("color", "rgb(239, 83, 80)"); // --market-down
+    // The tape colours a σ only past the default 2.5σ (lib/tape.ts): it does not carry
+    // each event's threshold. So the tripped row is tinted, and its −0.8σ stays muted.
+    await expect(mufg.getByTestId("sigma").locator("b")).toHaveCSS("color", "rgb(139, 146, 155)"); // --text-muted
     await expect(page.getByTestId("market-row-RY").getByTestId("sigma")).toContainText("−1.0σ");
     await expect(page.getByTestId("market-row-BCH").getByTestId("sigma")).toContainText("+1.4σ");
     await expect(page.getByRole("columnheader", { name: "σ · last close" })).toBeVisible();
