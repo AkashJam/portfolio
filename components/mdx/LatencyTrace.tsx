@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { LATENCY_WINDOW, formatCount, formatMeasure, type LatencyStats } from "@/lib/latency";
+import { LONGEST_WINDOW, NO_READING, formatCount, formatLatency, formatMeasure, windowSuffix, type LatencyStats } from "@/lib/latency";
 
 interface LatencyTraceProps {
   /** Supplied by the page, not the MDX (MDXRenderer binds it): measured by
@@ -12,7 +12,7 @@ interface LatencyTraceProps {
 /** Why the tiles are dashes, when they are — never a number standing in. */
 function placeholderReason(stats: LatencyStats | undefined): string | null {
   if (!stats || stats.status === "unreachable") return "Live telemetry is unreachable right now, so nothing is shown rather than a guess.";
-  if (stats.status === "no-viewers") return `Nobody held a live page open in the last ${LATENCY_WINDOW}, so there were no deliveries to time.`;
+  if (stats.status === "no-viewers") return `Nobody held a live page open in the last ${LONGEST_WINDOW}, so there were no deliveries to time.`;
   return null;
 }
 
@@ -32,14 +32,14 @@ function placeholderReason(stats: LatencyStats | undefined): string | null {
 export function LatencyTrace({ stats, caption }: LatencyTraceProps) {
   const measured = stats && stats.status !== "unreachable" ? stats : null;
   const tiles = [
-    { value: formatMeasure(measured?.p50Ms ?? null), unit: "ms", label: "tick → SSE write · p50" },
-    { value: formatMeasure(measured?.p99Ms ?? null), unit: "ms", label: "tick → SSE write · p99" },
-    { value: formatMeasure(measured?.ticksPerSec ?? null), unit: "ticks/s", label: `ingest · ${LATENCY_WINDOW} avg` },
-    { value: formatCount(measured?.peakClients ?? null), label: `peak live viewers · ${LATENCY_WINDOW}` },
+    { value: formatLatency(measured?.p50 ?? NO_READING), unit: "ms", label: `tick → SSE write · p50${windowSuffix(measured?.p50 ?? NO_READING)}` },
+    { value: formatLatency(measured?.p99 ?? NO_READING), unit: "ms", label: `tick → SSE write · p99${windowSuffix(measured?.p99 ?? NO_READING)}` },
+    { value: formatMeasure(measured?.ticksPerSec.value ?? null), unit: "ticks/s", label: `ingest · avg${windowSuffix(measured?.ticksPerSec ?? NO_READING)}` },
+    { value: formatCount(measured?.peakClients.value ?? null), label: `peak live viewers${windowSuffix(measured?.peakClients ?? NO_READING)}` },
   ];
   const endToEnd =
-    measured?.p50Ms != null && measured.p99Ms != null
-      ? `tick → SSE write · p50 ${formatMeasure(measured.p50Ms)} ms · p99 ${formatMeasure(measured.p99Ms)} ms`
+    measured?.p50.value != null && measured.p99.value != null
+      ? `tick → SSE write · p50 ${formatLatency(measured.p50)} ms · p99 ${formatLatency(measured.p99)} ms · ${measured.p50.window}`
       : "tick → SSE write · not measured right now";
   const reason = placeholderReason(stats);
 
@@ -64,7 +64,7 @@ export function LatencyTrace({ stats, caption }: LatencyTraceProps) {
           viewBox="0 0 900 350"
           preserveAspectRatio="xMidYMid meet"
           role="img"
-          aria-label={`Sequence for one live tick: Sim source to Ingest to Redis to SSE hub to Browser. ${endToEnd}.`}
+          aria-label={`Sequence for one live tick: Finnhub to Ingest to Redis to SSE hub to Browser. ${endToEnd}.`}
           className="block h-auto w-full min-w-130"
         >
           <defs>
@@ -78,7 +78,7 @@ export function LatencyTrace({ stats, caption }: LatencyTraceProps) {
 
           {(
             [
-              [24, "Sim source", 80],
+              [24, "Finnhub", 80],
               [204, "Ingest · Go", 260],
               [384, "Redis", 440],
               [564, "SSE hub", 620],

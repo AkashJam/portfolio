@@ -6,6 +6,13 @@ import { AppShell } from "@/components/shell/AppShell";
 import { SITE_NAME } from "@/lib/metadata";
 import { SITE_URL } from "@/lib/site";
 
+// Pages with nothing of their own to refresh send `s-maxage=86400` (a day), not
+// Next's default of a year for a fully static page (phase18.md step 3, M1).
+// Browsers ignore s-maxage and there is no CDN; the year only mattered to a
+// fetcher's own cache, which kept an old build. A page's own, shorter
+// `revalidate` wins over this one. `expireTime` in next.config.ts is the other half.
+export const revalidate = 86400;
+
 export const metadata: Metadata = {
   title: "Akash James",
   // Required for Next to resolve app/opengraph-image.tsx to the absolute URL

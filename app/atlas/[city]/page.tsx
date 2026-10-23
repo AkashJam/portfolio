@@ -8,12 +8,25 @@ import { CostChain } from "@/components/atlas/city/CostChain";
 import { Economy } from "@/components/atlas/city/Economy";
 import { LongChart } from "@/components/atlas/city/LongChart";
 import { Container } from "@/components/shell/Container";
-import { getAtlasCity } from "@/lib/ticker-client";
+import { getAtlasCities, getAtlasCity } from "@/lib/ticker-client";
+import { cityParams } from "@/lib/static-params";
 import { pageMetadata } from "@/lib/metadata";
 
 // The data refreshes daily to yearly (§8), so an hour is a staleness ceiling, not
 // a freshness mechanism, as on /atlas itself.
 const REVALIDATE_SECONDS = 3600;
+
+// The route's own window, a literal because Next reads it statically: without
+// it the page rendered on every request (`no-store`) although its fetches carry
+// REVALIDATE_SECONDS (phase18.md step 3, M21). Keep the two equal.
+export const revalidate = 3600;
+
+// The cities that have a page, prerendered at build. A build that cannot reach the
+// ticker (CI's) gives none, and each page is then built on its first request and
+// cached for `revalidate`; a slug that is not a city is still a 404.
+export async function generateStaticParams() {
+  return cityParams(await getAtlasCities({ revalidateSeconds: REVALIDATE_SECONDS }));
+}
 
 export async function generateMetadata({ params }: PageProps<"/atlas/[city]">): Promise<Metadata> {
   const slug = decodeURIComponent((await params).city).toLowerCase();

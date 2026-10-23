@@ -39,6 +39,12 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // How long a stale static page may still be served while it regenerates.
+  // Next's default is a year, which is what static pages' `s-maxage` showed;
+  // with the root layout's `revalidate = 86400` this makes it a day
+  // (phase18.md step 3, M1).
+  expireTime: 86400,
+
   async headers() {
     return [{ source: "/(.*)", headers: securityHeaders }];
   },

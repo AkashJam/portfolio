@@ -1,6 +1,17 @@
 import { describe, expect, it } from "vitest";
 
-import { formatCount, formatMeasure, parseInstantValue, toLatencyStats } from "@/lib/latency";
+import {
+  LATENCY_CEILING_SECONDS,
+  NO_READING,
+  formatCount,
+  formatLatency,
+  formatMeasure,
+  latencyQueries,
+  parseInstantValue,
+  quantileReading,
+  toLatencyStats,
+  windowSuffix,
+} from "@/lib/latency";
 
 const vector = (...values: string[]) => ({
   status: "success",
@@ -24,20 +35,69 @@ describe("parseInstantValue", () => {
   });
 });
 
+const reading = (value: number | null, window: "24h" | "7d" | "15d" | null = "24h") => ({ value, window });
+
+describe("quantileReading", () => {
+  it("converts seconds to ms and records its window", () => {
+    expect(quantileReading(0.0047, "7d")).toEqual({ value: 4.7, window: "7d", pastCeiling: false });
+  });
+
+  it("flags a quantile at the last bucket's edge as past it, not as 10,000 ms measured", () => {
+    // histogram_quantile reports a quantile in the +Inf bucket as the last
+    // finite edge, so exactly the ceiling means "more than".
+    expect(quantileReading(LATENCY_CEILING_SECONDS, "24h")).toMatchObject({ value: 10000, pastCeiling: true });
+    expect(quantileReading(9.9, "24h")).toMatchObject({ pastCeiling: false });
+  });
+
+  it("is no reading for no samples", () => {
+    expect(quantileReading(null, "24h")).toEqual(NO_READING);
+  });
+});
+
 describe("toLatencyStats", () => {
-  it("converts seconds to ms and rounds peak viewers", () => {
-    expect(toLatencyStats({ p50: 0.0047, p99: 0.021, throughput: 1.93, peakClients: 3 })).toEqual({
+  it("keeps each reading's window and rounds peak viewers", () => {
+    const stats = toLatencyStats({
+      p50: quantileReading(0.0047, "24h"),
+      p99: quantileReading(0.021, "24h"),
+      throughput: reading(1.93, "7d"),
+      peakClients: reading(2.6, "15d"),
+    });
+    expect(stats).toMatchObject({
       status: "ok",
-      p50Ms: 4.7,
-      p99Ms: 21,
-      ticksPerSec: 1.93,
-      peakClients: 3,
+      p50: { value: 4.7, window: "24h" },
+      p99: { value: 21, window: "24h" },
+      ticksPerSec: { value: 1.93, window: "7d" },
+      peakClients: { value: 3, window: "15d" },
     });
   });
 
-  it("is 'no-viewers' when latency has no samples, still reporting throughput", () => {
-    const stats = toLatencyStats({ p50: null, p99: null, throughput: 1.9, peakClients: 0 });
-    expect(stats).toMatchObject({ status: "no-viewers", p50Ms: null, ticksPerSec: 1.9, peakClients: 0 });
+  it("is 'no-viewers' when latency has no samples in any window, still reporting throughput", () => {
+    const stats = toLatencyStats({ p50: NO_READING, p99: NO_READING, throughput: reading(1.9), peakClients: reading(0, "15d") });
+    expect(stats).toMatchObject({ status: "no-viewers", p50: NO_READING, ticksPerSec: { value: 1.9 }, peakClients: { value: 0 } });
+  });
+});
+
+describe("latencyQueries", () => {
+  it("asks the renamed histogram over the given window", () => {
+    const q = latencyQueries("7d");
+    expect(q.p99).toBe("histogram_quantile(0.99, sum by (le) (rate(ticker_pipeline_fanout_seconds_bucket[7d])))");
+    expect(q.throughput).toContain("[7d:1m]");
+    expect(q.peakClients).toBe("max_over_time(ticker_sse_clients[7d])");
+  });
+});
+
+describe("formatLatency", () => {
+  it("shows a quantile past the last bucket as a bound", () => {
+    expect(formatLatency(quantileReading(LATENCY_CEILING_SECONDS, "24h"))).toBe("> 10,000");
+    expect(formatLatency(quantileReading(0.021, "24h"))).toBe("21");
+    expect(formatLatency(NO_READING)).toBe("—");
+  });
+});
+
+describe("windowSuffix", () => {
+  it("names the window, or nothing", () => {
+    expect(windowSuffix(reading(1, "7d"))).toBe(" · 7d");
+    expect(windowSuffix(NO_READING)).toBe("");
   });
 });
 

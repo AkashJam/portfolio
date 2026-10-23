@@ -8,13 +8,26 @@ import { RecordHead } from "@/components/market/RecordHead";
 import { RecordProvenance } from "@/components/market/RecordProvenance";
 import { Container } from "@/components/shell/Container";
 import { cadence } from "@/lib/record-cadence";
-import { getSensorRecord } from "@/lib/ticker-client";
+import { getSensorRecord, getSensors } from "@/lib/ticker-client";
+import { recordParams } from "@/lib/static-params";
 import { pageMetadata } from "@/lib/metadata";
 
 // A record changes when a close trips something or a session ends, never by the
 // second: the page reads it no more often than the ticker's own memo and is built
 // once in between (portfolio.md §15 Phase 16 step 2).
 const REVALIDATE_SECONDS = 300;
+
+// The route's own window, a literal because Next reads it statically: without
+// it the page rendered on every request (`no-store`) although its fetch carries
+// REVALIDATE_SECONDS (phase18.md step 3, M21). Keep the two equal.
+export const revalidate = 300;
+
+// A record for each of the eighteen, prerendered at build. A build that cannot reach
+// the ticker (CI's) gives none, and each page is then built on its first request and
+// cached for `revalidate`.
+export async function generateStaticParams() {
+  return recordParams(await getSensors({ revalidateSeconds: 3600 }));
+}
 
 /** The page's address: a country's slug, or a global name's symbol. */
 function addressOf(record: { country: { slug: string } | null; symbol: string }): string {

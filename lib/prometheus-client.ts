@@ -1,7 +1,17 @@
 import "server-only";
 import { unstable_rethrow } from "next/navigation";
 
-import { LATENCY_QUERIES, parseInstantValue, toLatencyStats, type LatencyStats } from "@/lib/latency";
+import {
+  LATENCY_WINDOWS,
+  NO_READING,
+  latencyQueries,
+  parseInstantValue,
+  quantileReading,
+  toLatencyStats,
+  type LatencyStats,
+  type LatencyWindow,
+  type Reading,
+} from "@/lib/latency";
 
 /**
  * Server-only reads of Prometheus' own query API over the Docker network
@@ -21,14 +31,47 @@ async function query(promql: string): Promise<number | null> {
   return parseInstantValue(await res.json());
 }
 
+/** The first window whose reading `accept`s, or the last one tried's. */
+async function firstWindow(
+  read: (window: LatencyWindow) => Promise<Reading>,
+  accept: (reading: Reading) => boolean = (r) => r.value !== null,
+): Promise<Reading> {
+  let last: Reading = NO_READING;
+  for (const window of LATENCY_WINDOWS) {
+    last = await read(window);
+    if (accept(last)) return last;
+  }
+  return last;
+}
+
+const reading = (value: number | null, window: LatencyWindow): Reading => (value === null ? NO_READING : { value, window });
+
 export async function getLatencyStats(): Promise<LatencyStats> {
   if (!PROMETHEUS_URL) return { status: "unreachable" };
   try {
-    const [p50, p99, throughput, peakClients] = await Promise.all([
-      query(LATENCY_QUERIES.p50),
-      query(LATENCY_QUERIES.p99),
-      query(LATENCY_QUERIES.throughput),
-      query(LATENCY_QUERIES.peakClients),
+    // Both quantiles come from one window: the first with deliveries to time.
+    let p50: Reading = NO_READING;
+    let p99: Reading = NO_READING;
+    const latency = (async () => {
+      for (const window of LATENCY_WINDOWS) {
+        const q = latencyQueries(window);
+        const [a, b] = await Promise.all([query(q.p50), query(q.p99)]);
+        if (a !== null && b !== null) {
+          p50 = quantileReading(a, window);
+          p99 = quantileReading(b, window);
+          return;
+        }
+      }
+    })();
+    const [throughput, peakClients] = await Promise.all([
+      firstWindow(async (w) => reading(await query(latencyQueries(w).throughput), w)),
+      // Zero peak viewers is a real answer for one window, but not a reason to
+      // stop looking: a quieter day should not hide a busier week.
+      firstWindow(
+        async (w) => reading(await query(latencyQueries(w).peakClients), w),
+        (r) => (r.value ?? 0) > 0,
+      ),
+      latency,
     ]);
     return toLatencyStats({ p50, p99, throughput, peakClients });
   } catch (error) {

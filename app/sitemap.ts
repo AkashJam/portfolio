@@ -2,7 +2,14 @@ import type { MetadataRoute } from "next";
 import { allBlogs, allProjects } from "content-collections";
 
 import { SITE_URL } from "@/lib/site";
-import { getAtlasCities } from "@/lib/ticker-client";
+import { cityParams, recordPaths } from "@/lib/static-params";
+import { getAtlasCities, getSensors } from "@/lib/ticker-client";
+
+// Regenerated hourly at runtime, so a build that could not reach the ticker (the
+// Docker build, CI) does not keep its city-less list: the first request after a
+// deploy gets the build-time copy, the next the regenerated one (phase18.md
+// step 3, M25).
+export const revalidate = 3600;
 
 const isDev = process.env.NODE_ENV !== "production";
 
@@ -33,12 +40,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `${SITE_URL}/projects/${project.slug}`,
     }));
 
-  // A city page is listed once the ticker says it exists; if the ticker is down at
-  // build time the sitemap simply omits them until it is next generated.
-  const atlas = await getAtlasCities({ revalidateSeconds: 3600 });
-  const cityEntries: MetadataRoute.Sitemap = (atlas?.rows ?? [])
-    .filter((r) => r.hasCityPage)
-    .map((r) => ({ url: `${SITE_URL}/atlas/${r.slug}` }));
+  // A city page and a sensor's record are listed once the ticker says they exist; if
+  // it cannot answer, they are omitted until the sitemap is next regenerated. Price
+  // pages stay out: they are live intraday views.
+  const [atlas, sensors] = await Promise.all([
+    getAtlasCities({ revalidateSeconds: 3600 }),
+    getSensors({ revalidateSeconds: 3600 }),
+  ]);
+  const cityEntries: MetadataRoute.Sitemap = cityParams(atlas).map(({ city }) => ({ url: `${SITE_URL}/atlas/${city}` }));
+  const recordEntries: MetadataRoute.Sitemap = recordPaths(sensors).map((path) => ({ url: `${SITE_URL}${path}` }));
 
-  return [...staticEntries, ...blogEntries, ...projectEntries, ...cityEntries];
+  return [...staticEntries, ...blogEntries, ...projectEntries, ...cityEntries, ...recordEntries];
 }

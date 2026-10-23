@@ -225,6 +225,17 @@ test.describe("at 1440px", () => {
     expect(await res.text()).toContain("/atlas</loc>");
   });
 
+  // The sitemap regenerates in the background (ISR), and CI builds without a
+  // ticker, so the first request can be the build-time copy: ask until the
+  // regenerated one arrives (phase18.md step 3, M25).
+  test("the sitemap lists a city page and a sensor's record", async ({ request }) => {
+    await expect
+      .poll(async () => (await (await request.get("/sitemap.xml")).text()).match(/\/atlas\/japan<|\/market\/japan</g)?.length ?? 0, {
+        timeout: 30_000,
+      })
+      .toBe(2);
+  });
+
   test("has no WCAG 2.1 AA violations with the palette open", async ({
     page,
   }) => {
