@@ -102,7 +102,7 @@ one.
 - **The BFF is on the critical path** for every request, and it's stateful about sessions — that
   encrypted cookie — even where it's otherwise a stateless aggregator holding no database.
 - **You depend on the JWKS being reachable and cached,** with a real plan for rotation. An
-  unrecognised `kid` needs to trigger a re-fetch; if it triggers a hard failure instead, a routine
+  unrecognized `kid` needs to trigger a re-fetch; if it triggers a hard failure instead, a routine
   key rotation locks every user out until someone redeploys.
 
 ## The trade, stated plainly

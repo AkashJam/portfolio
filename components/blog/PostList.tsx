@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { cn } from "@/lib/utils";
+import { dayMonthYear } from "@/lib/dates";
 import type { Blog } from "content-collections";
 
 /**
@@ -38,6 +39,7 @@ export function PostList({ posts }: { posts: Blog[] }) {
         <button
           type="button"
           onClick={() => setDomain(null)}
+          aria-pressed={domain === null}
           className={cn(
             "rounded-full border px-3 py-1 text-xs",
             domain === null ? "border-brand bg-brand/10 text-text" : "border-hairline text-text-muted"
@@ -50,6 +52,7 @@ export function PostList({ posts }: { posts: Blog[] }) {
             key={d}
             type="button"
             onClick={() => setDomain(d === domain ? null : d)}
+            aria-pressed={domain === d}
             className={cn(
               "rounded-full border px-3 py-1 text-xs",
               domain === d ? "border-brand bg-brand/10 text-text" : "border-hairline text-text-muted"
@@ -71,11 +74,7 @@ export function PostList({ posts }: { posts: Blog[] }) {
             <span className="text-lg text-text group-hover:text-brand-hover">{post.title}</span>
             <span className="text-sm text-text-muted">{post.summary}</span>
             <span className="mt-1 font-mono text-xs text-text-muted">
-              {new Date(post.date).toLocaleDateString(undefined, {
-                year: "numeric",
-                month: "short",
-                day: "numeric",
-              })}{" "}
+              {dayMonthYear(post.date)}{" "}
               · {post.readingMinutes} min read
               {post.updated && " · Updated"}
             </span>

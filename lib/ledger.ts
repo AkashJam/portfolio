@@ -1,4 +1,5 @@
 import type { CoverageOutlet, CoverageSource, LedgerEvent, Side, Split } from "@/lib/market-schemas";
+import { dayMonth } from "@/lib/dates";
 
 /**
  * The ledger's rules, pure so they are testable without a browser (portfolio.md
@@ -12,7 +13,6 @@ const MINUS = "−";
 // An explicit locale, not the runtime's: the server and the browser would
 // otherwise format the same instant differently and the page would not hydrate.
 const clock = new Intl.DateTimeFormat("en-GB", { timeZone: NY, hour: "2-digit", minute: "2-digit", hour12: false });
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const weekday = new Intl.DateTimeFormat("en-GB", { timeZone: "UTC", weekday: "long" });
 
 /** `HH:mm` in New York, the zone the sensors trade in and the close is read in. */
@@ -22,10 +22,7 @@ export function etClock(iso: string): string {
 
 /** `6 Oct` for a session date (`2026-10-06`), which is a calendar day, not an instant. */
 export function sessionShort(date: string): string {
-  // By hand: ICU spells September "Sept" in some runtimes and "Sep" in others, and the
-  // server and the browser must print the same thing.
-  const [, month, day] = date.split("-").map(Number);
-  return `${day} ${MONTHS[month - 1]}`;
+  return dayMonth(date);
 }
 
 /** `Wednesday` for a session date. */

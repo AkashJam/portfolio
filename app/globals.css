@@ -68,9 +68,6 @@
      reused as a section-divider accent once real pages exist (Days 3-4+) */
   --animate-loading-sweep: loading-sweep 2s ease-in-out infinite;
 
-  /* Days 3-4 — Hero orb / About sphere ambient float loops (§17/§18) */
-  --animate-float: float 9s ease-in-out infinite;
-  --animate-sphere: sphere 12s ease-in-out infinite;
   --color-read: var(--read);
 }
 
@@ -83,27 +80,6 @@
   }
 }
 
-/* mockups/html/{home,errors}.html disagree on float amplitude (hero orb
-   ±26px vs. error-page orb ±20px) — one keyframe, amplitude overridden per
-   usage via --float-distance, instead of duplicating the keyframe. */
-@keyframes float {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(var(--float-distance, -26px));
-  }
-}
-@keyframes sphere {
-  0%,
-  100% {
-    transform: translateY(0) scale(1);
-  }
-  50% {
-    transform: translateY(-30px) scale(1.04);
-  }
-}
 /* Error pages' waveform trace (components/site/ErrorTrace.tsx) — a running
    pulse along the flat/broken line, pathLength="100" normalising the dash
    math so the same timing works on both variants. Invisible by default so

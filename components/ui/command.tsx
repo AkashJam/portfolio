@@ -49,10 +49,6 @@ function CommandDialog({
 }) {
   return (
     <Dialog {...props}>
-      <DialogHeader className="sr-only">
-        <DialogTitle>{title}</DialogTitle>
-        <DialogDescription>{description}</DialogDescription>
-      </DialogHeader>
       <DialogContent
         className={cn(
           "top-11 w-[min(440px,calc(100%-2rem))] translate-y-0 overflow-hidden rounded-xl! p-0 sm:max-w-[440px]",
@@ -60,6 +56,14 @@ function CommandDialog({
         )}
         showCloseButton={showCloseButton}
       >
+        {/* The dialog's name and description, for readers only. Inside the content so they exist
+            only while it is open (outside it, the title was a heading in every page's outline
+            with the palette closed), and a div, not a heading: it labels the dialog, it is not a
+            section of the page (phase18.md step 6, I13). */}
+        <DialogHeader className="sr-only">
+          <DialogTitle render={<div />}>{title}</DialogTitle>
+          <DialogDescription>{description}</DialogDescription>
+        </DialogHeader>
         {/* cmdk's Input/List/Group read their store from this root. Without it
             they dereference an undefined context and take the whole tree down the
             moment the dialog opens. AppShell sits in RootLayout, so that is every

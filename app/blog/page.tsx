@@ -9,7 +9,7 @@ import { pageMetadata } from "@/lib/metadata";
 
 export const metadata: Metadata = pageMetadata({
   path: "/blog",
-  title: "Writing — Akash James",
+  title: "Blog — Akash James",
   description: "Field notes on distributed systems, performance, and the occasional war story.",
 });
 
@@ -25,7 +25,7 @@ export default function BlogPage() {
     <div className="relative overflow-hidden pt-16 pb-16">
       <StarField />
       <Container className="relative z-10">
-        <p className="mb-4 text-xs tracking-[0.2em] text-text-muted uppercase">Writing</p>
+        <p className="mb-4 text-xs tracking-[0.2em] text-text-muted uppercase">Blog</p>
         <h1 className="text-4xl font-light text-text">Notes &amp; engineering</h1>
         <p className="mt-4 max-w-[60ch] text-lg text-text-muted">
           Field notes on distributed systems, performance, and the occasional war story — filter by

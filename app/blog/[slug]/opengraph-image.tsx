@@ -23,7 +23,7 @@ export const contentType = "image/png";
 // Per-post alt text needs this rather than a static `alt` export.
 export function generateImageMetadata({ params }: { params: { slug: string } }) {
   const post = findPost(params.slug);
-  return [{ id: "card", size: OG_SIZE, contentType, alt: post?.title ?? "Writing — Akash James" }];
+  return [{ id: "card", size: OG_SIZE, contentType, alt: post?.title ?? "Blog — Akash James" }];
 }
 
 export default async function Image({ params }: { params: Promise<{ slug: string }> }) {
@@ -32,7 +32,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
   return new ImageResponse(
     (
       <OgCard
-        eyebrow={`Writing · ${post.category} · ${formatOgDate(post.date)} · ${post.readingMinutes} min read`}
+        eyebrow={`Blog · ${post.category} · ${formatOgDate(post.date)} · ${post.readingMinutes} min read`}
         headline={post.title}
         summary={post.summary}
         chips={post.tags.slice(0, MAX_CHIPS)}

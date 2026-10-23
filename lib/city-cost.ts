@@ -1,3 +1,4 @@
+import { dayMonthYear } from "@/lib/dates";
 import type { CityResponse, HousingTag } from "@/lib/market-schemas";
 
 /**
@@ -32,11 +33,7 @@ export interface ChainStep {
   source: string;
 }
 
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-export const dayLabel = (iso: string): string => {
-  const [y, m, d] = iso.split("-").map(Number);
-  return `${d} ${MONTHS[m - 1]} ${y}`;
-};
+export const dayLabel = dayMonthYear;
 
 export function costChain(c: CityResponse): ChainStep[] {
   const { headline } = c.survey;

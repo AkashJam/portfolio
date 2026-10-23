@@ -1,6 +1,8 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 
+import { dayMonthYear } from "@/lib/dates";
+
 /**
  * Shared Open Graph card (phase7.md Step 2) — the one layout
  * behind app/opengraph-image.tsx and the blog-post / case-study cards.
@@ -61,15 +63,8 @@ function headlineSize(text: string): number {
   return 48;
 }
 
-/** "Sep 12, 2026" — UTC, so the build machine's zone can't shift a date. */
-export function formatOgDate(isoDate: string): string {
-  return new Date(`${isoDate}T00:00:00Z`).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    timeZone: "UTC",
-  });
-}
+/** "12 Sep 2026" — the site's one date format (lib/dates.ts), in UTC. */
+export const formatOgDate = dayMonthYear;
 
 export function OgCard({
   eyebrow,

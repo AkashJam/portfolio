@@ -33,9 +33,13 @@ function NavTab({ link, pathname }: { link: NavItem; pathname: string }) {
 export function TopBar({
   onOpenPalette,
   onOpenDrawer,
+  drawerOpen,
+  paletteOpen,
 }: {
   onOpenPalette: () => void;
   onOpenDrawer: () => void;
+  drawerOpen: boolean;
+  paletteOpen: boolean;
 }) {
   const pathname = usePathname();
 
@@ -48,6 +52,7 @@ export function TopBar({
             size="icon"
             className="md:hidden"
             aria-label="Open menu"
+            aria-expanded={drawerOpen}
             onClick={onOpenDrawer}
           >
             <Menu className="size-5" />
@@ -78,6 +83,8 @@ export function TopBar({
             size="sm"
             className="hidden gap-2 text-text-muted md:inline-flex"
             aria-label="Open command palette"
+            aria-haspopup="dialog"
+            aria-expanded={paletteOpen}
             onClick={onOpenPalette}
           >
             <Search className="size-4" />
@@ -90,6 +97,8 @@ export function TopBar({
             size="icon"
             className="md:hidden"
             aria-label="Open command palette"
+            aria-haspopup="dialog"
+            aria-expanded={paletteOpen}
             onClick={onOpenPalette}
           >
             <Search className="size-4.5" />

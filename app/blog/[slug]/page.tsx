@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Container } from "@/components/shell/Container";
 import { MDXRenderer } from "@/components/mdx/MDXRenderer";
 import { TableOfContents } from "@/components/blog/TableOfContents";
+import { dayMonth, dayMonthYear } from "@/lib/dates";
 import { JsonLd, blogPostingLd } from "@/lib/json-ld";
 import { pageMetadata } from "@/lib/metadata";
 
@@ -30,7 +31,7 @@ export async function generateMetadata({
   return post
     ? pageMetadata({
         path: `/blog/${slug}`,
-        title: `${post.title} — Writing — Akash James`,
+        title: `${post.title} — Blog — Akash James`,
         description: post.summary,
         article: { publishedTime: post.date, modifiedTime: post.updated, tags: post.tags },
       })
@@ -51,7 +52,7 @@ export default async function BlogPostPage({ params }: PageProps<"/blog/[slug]">
               the category, which isn't a link, look clickable. */}
           <p className="text-xs text-text-muted">
             <Link href="/blog" className="text-brand-hover underline underline-offset-2">
-              Writing
+              Blog
             </Link>{" "}
             / {post.category}
           </p>
@@ -65,11 +66,7 @@ export default async function BlogPostPage({ params }: PageProps<"/blog/[slug]">
           </h1>
           <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[13px] text-text-muted">
             <span>
-              {new Date(post.date).toLocaleDateString(undefined, {
-                year: "numeric",
-                month: "short",
-                day: "numeric",
-              })}
+              {dayMonthYear(post.date)}
             </span>
             <span>·</span>
             <span>{post.readingMinutes} min read</span>
@@ -77,8 +74,7 @@ export default async function BlogPostPage({ params }: PageProps<"/blog/[slug]">
               <>
                 <span>·</span>
                 <span>
-                  Updated{" "}
-                  {new Date(post.updated).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+                  Updated {dayMonth(post.updated)}
                 </span>
               </>
             )}

@@ -21,7 +21,7 @@ describe("OG_TOKENS", () => {
 
 describe("formatOgDate", () => {
   it("formats in UTC regardless of the build machine's zone", () => {
-    expect(formatOgDate("2026-01-01")).toBe("Jan 1, 2026");
-    expect(formatOgDate("2025-12-31")).toBe("Dec 31, 2025");
+    expect(formatOgDate("2026-01-01")).toBe("1 Jan 2026");
+    expect(formatOgDate("2025-12-31")).toBe("31 Dec 2025");
   });
 });
