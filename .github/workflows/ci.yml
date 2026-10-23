@@ -114,6 +114,15 @@ jobs:
       redis:
         image: redis:7-alpine
         ports: ["6379:6379"]
+      # One Redis per fixture ticker (phase17.md step 5, decision 3): every key
+      # the ticker uses is fixed, so sharing one would split the simulator's
+      # ticks between the tickers' databases through one consumer group.
+      redis-tripped:
+        image: redis:7-alpine
+        ports: ["6380:6379"]
+      redis-quiet:
+        image: redis:7-alpine
+        ports: ["6381:6379"]
       timescale:
         image: timescale/timescaledb:2.20.3-pg16
         env:
@@ -187,6 +196,37 @@ jobs:
             sleep 2
           done
 
+      # phase17.md step 5: the populated ledger, served by the real ticker. Each
+      # state gets its own database in the same Timescale service, migrated (which
+      # loads the 1 July - 8 October backfill) and filled by `ticker fixture`: the
+      # production judge on those closes, with invented news. Then a ticker per
+      # state, on the simulator, with its own Redis, on the port e2e-fixture/ports.ts
+      # names. The main ticker above keeps its empty ledger, which is the empty state.
+      - name: Fixture tickers
+        env:
+          REGISTRY: ${{ steps.ecr-login.outputs.registry }}
+          PGPASSWORD: ticker
+        run: |
+          start() {
+            state=$1 port=$2 redis=$3
+            dsn="postgres://ticker:ticker@localhost:5432/fixture_${state}?sslmode=disable"
+            psql -h localhost -U ticker -d ticker -c "CREATE DATABASE fixture_${state}"
+            docker run --rm --network host --platform linux/arm64 -e TIMESCALE_DSN="$dsn" "$REGISTRY/ticker:latest" migrate
+            docker run --rm --network host --platform linux/arm64 -e TIMESCALE_DSN="$dsn" "$REGISTRY/ticker:latest" fixture --state "$state"
+            docker run -d --network host --platform linux/arm64 --name "ticker-${state}" \
+              -e SOURCE=sim -e ADDR=":${port}" -e AGG_WINDOW=1m \
+              -e TIMESCALE_DSN="$dsn" -e REDIS_ADDR="localhost:${redis}" \
+              "$REGISTRY/ticker:latest" serve
+          }
+          start tripped 4010 6380
+          start quiet 4011 6381
+          for port in 4010 4011; do
+            for i in $(seq 1 30); do
+              curl -sf "http://localhost:${port}/ready" && break
+              sleep 2
+            done
+          done
+
       # Home is prerendered at `next build` (playwright's webServer) and
       # cached for 5 min (ISR). Its live band only renders once 1m candles
       # exist; a freshly started ticker has none yet, so the build would
@@ -204,16 +244,18 @@ jobs:
           echo "no 1m candles after 5 min" >&2
           exit 1
 
+      # TICKER_FIXTURE_URL: the populated cases run against the tripped fixture ticker.
       - run: npm run test:contract
+        env:
+          TICKER_FIXTURE_URL: http://localhost:4010
 
       - run: npx playwright install --with-deps chromium
 
       - run: npx playwright test
 
-      # Phase 15 step 7: the populated ledger. The simulator's database holds no events,
-      # so the run above only sees the empty state. This runs the same standalone build
-      # three times against fixture tickers (e2e-fixture/) that serve canned events:
-      # tripped, quiet and empty. It reuses the build Playwright's webServer just made.
+      # The populated ledger: the same standalone build, twice, against the tripped
+      # and quiet fixture tickers started above. It reuses the build Playwright's
+      # webServer just made.
       - run: npm run test:fixture
 
       # §21 "Performance": Lighthouse budgets on /, /about and /atlas
@@ -227,4 +269,7 @@ jobs:
 
       - if: always()
         name: Ticker logs (on failure, for debugging)
-        run: docker logs ticker || true
+        run: |
+          docker logs ticker || true
+          docker logs ticker-tripped || true
+          docker logs ticker-quiet || true

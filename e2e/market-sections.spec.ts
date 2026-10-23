@@ -27,6 +27,10 @@ test.describe("at 1440px", () => {
     await expect(empty).toContainText("The trigger is on and watching");
     await expect(empty).toContainText("sixty daily moves");
     await expect(page.getByTestId("ledger-line")).toContainText("Nothing has tripped yet.");
+    // The fixture suite's former empty state (phase17.md step 5, decision 4): this
+    // ticker has never tripped, so it is the empty ledger.
+    await expect(page.getByTestId("ledger-line")).toHaveAttribute("data-kind", "empty");
+    await expect(page.getByTestId("ledger")).toHaveCount(0);
   });
 
   test("carries no counter or progress bar: the history exists, so there is nothing to count", async ({ page }) => {

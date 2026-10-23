@@ -2,12 +2,12 @@ import { defineConfig, devices } from "@playwright/test";
 
 import { SITES } from "./e2e-fixture/ports";
 
-// The populated ledger (portfolio.md §15 Phase 15 step 7, decision 6). The default
-// suite runs against the simulator, whose database holds no events, so the ledger
-// would only ever show its empty state. This suite runs the same built site three
-// times against fixture tickers (e2e-fixture/) that serve canned events: one tripped,
-// one quiet, one empty. Needs a real ticker for everything else (the stream, the
-// sensors, the prices), at TICKER_API_URL as in the default suite.
+// The populated ledger (phase17.md step 5). The default suite runs against a ticker
+// whose database holds no events, so the ledger only ever shows its empty state.
+// This suite runs the same built site twice, against two real tickers whose
+// databases `ticker fixture` filled with the real judge's events on the backfilled
+// closes: one tripped at the newest session, one quiet. serve.mjs checks the tickers
+// are up and says how to start them.
 export default defineConfig({
   testDir: "./e2e-fixture",
   fullyParallel: true,

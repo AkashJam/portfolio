@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
+import type { z } from "zod";
 
+import { eventsResponseSchema, marketStateSchema, sensorRecordSchema } from "@/lib/market-schemas";
 import {
   getAtlasCities,
   getAtlasCity,
@@ -174,5 +176,67 @@ describe("ticker API contract", () => {
     const italy = atlas?.rows.find((r) => r.slug === "italy");
     expect(italy?.currency.reason).toBe("euro");
     expect(italy?.shares.change?.["2010"]).toBeTypeOf("number");
+  });
+});
+
+/**
+ * The populated ledger (phase17.md step 5). The ticker above has never tripped, so
+ * its events and records are parsed only empty. TICKER_FIXTURE_URL is a ticker whose
+ * database `ticker fixture --state tripped` filled: the production judge on the
+ * backfilled closes, with invented news. Its responses are parsed with the same
+ * schemas, so a field the Go handlers change in a populated event fails here. The
+ * figures (z, split labels) are the data's; what is asserted is the story's.
+ */
+const fixtureUrl = process.env.TICKER_FIXTURE_URL;
+
+async function fixture<Schema extends z.ZodType>(path: string, schema: Schema): Promise<z.infer<Schema>> {
+  const res = await fetch(`${fixtureUrl}${path}`);
+  expect(res.status, path).toBe(200);
+  return schema.parse(await res.json());
+}
+
+const IDS = ["japan-2026-10-08", "canada-2026-10-08", "korea-2026-10-06", "brazil-2026-10-02", "cat-2026-09-30", "colombia-2026-09-28"];
+
+describe.skipIf(!fixtureUrl)("ticker API contract, populated (TICKER_FIXTURE_URL)", () => {
+  it("GET /market/events parses with every entry populated: band, trigger, split, coverage", async () => {
+    const ledger = await fixture("/market/events", eventsResponseSchema);
+    expect(ledger.latestSession).toBe("2026-10-08");
+    expect(ledger.truncated).toBe(false);
+    expect(new Set(ledger.events.map((e) => e.id))).toEqual(new Set(IDS));
+    const byId = Object.fromEntries(ledger.events.map((e) => [e.id, e]));
+
+    for (const e of ledger.events) {
+      expect(e.band, e.id).not.toBeNull();
+      expect(e.trigger.window, e.id).toBe(60);
+    }
+    // Canada is the entry left pending.
+    expect(byId["canada-2026-10-08"].split).toBeNull();
+    expect(byId["canada-2026-10-08"].coverage).toBeNull();
+    // Every other entry has its split, and its coverage from the production collector.
+    for (const id of IDS.filter((i) => i !== "canada-2026-10-08")) {
+      expect(byId[id].split, id).not.toBeNull();
+      expect(byId[id].coverage, id).not.toBeNull();
+    }
+    expect(byId["colombia-2026-09-28"].split).toMatchObject({ status: "none", reason: "no_ecb_currency" });
+    expect(byId["colombia-2026-09-28"].coverage?.sources.centralBank).toMatchObject({ status: "error", attempts: 3 });
+    expect(byId["cat-2026-09-30"].split).toMatchObject({ status: "none", reason: "no_home_currency" });
+    expect(byId["cat-2026-09-30"].coverage?.sources.filings?.items?.[0]?.itemCodes?.map((c) => c.code)).toEqual(["5.02", "9.01"]);
+    expect(byId["korea-2026-10-06"].caveats).toContain("thin_listing");
+    expect(byId["korea-2026-10-06"].thin).not.toBeNull();
+  });
+
+  it("GET /market/sensors/{symbol} parses a record with events, and the country slug is the same record", async () => {
+    const japan = await fixture("/market/sensors/japan", sensorRecordSchema);
+    const mufg = await fixture("/market/sensors/MUFG", sensorRecordSchema);
+    expect(mufg).toEqual(japan);
+    expect(japan.eventCount).toBe(1);
+    expect(japan.events.map((e) => e.id)).toEqual(["japan-2026-10-08"]);
+    expect(japan.series.dates.length).toBe(70);
+    expect(japan.latestSession).toBe("2026-10-08");
+  });
+
+  it("GET /market/state says tripped when the newest session has an event", async () => {
+    const state = await fixture("/market/state", marketStateSchema);
+    expect(state.tripped).toBe(true);
   });
 });

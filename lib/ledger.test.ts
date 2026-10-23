@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import eventsFixture from "@/e2e/fixtures/events.json";
+import eventsFixture from "@/lib/fixtures/ledger-events.json";
 import {
   bandCaption,
   breakoutDirection,
@@ -25,6 +25,10 @@ import {
 } from "@/lib/ledger";
 import { eventsResponseSchema, type LedgerEvent } from "@/lib/market-schemas";
 
+// Hand-made cases, chosen for variety: every split label, moves both ways, each
+// dividend state. Never regenerated; the API's populated shapes are tested against
+// the real ticker instead (phase17.md step 5). Parsing them here still catches a
+// schema change.
 const { events } = eventsResponseSchema.parse(eventsFixture);
 const byId = (id: string): LedgerEvent => {
   const e = events.find((x) => x.id === id);
