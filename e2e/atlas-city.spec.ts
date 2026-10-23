@@ -82,8 +82,33 @@ test.describe("at 1440px", () => {
     await expect(page.getByTestId("headline")).toContainText("€1,224.64");
     await expect(page.getByTestId("no-split")).toContainText("No basket split");
     await expect(page.getByTestId("basket")).toHaveCount(0);
-    await expect(page.getByTestId("chart-currency-absent")).toContainText("The euro has no rate against itself");
+    // The euro has no rate against itself: no currency card, and nothing for the share caption to point at.
+    await expect(page.getByTestId("chart-currency")).toHaveCount(0);
+    await expect(page.getByTestId("chart-currency-absent")).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: /per euro/ })).toHaveCount(0);
+    await expect(page.getByTestId("chart-shares")).toContainText("in euros");
+    await expect(page.getByTestId("chart-shares")).not.toContainText("beside the currency below");
     await expect(page.getByTestId("chart-shares")).toBeVisible();
+  });
+
+  // Phase 18 step 5, M23: the page added a full stop to a note that already ended in one.
+  test("no sentence ends in two full stops", async ({ page }) => {
+    for (const slug of ["italy", "turkiye", "israel"]) {
+      await page.goto(`/atlas/${slug}`);
+      const text = await page.locator("main").innerText();
+      expect(text, slug).not.toMatch(/\.\.(\s|$)/);
+    }
+  });
+
+  // Phase 18 step 5, M32: a log axis with one label, or none, cannot be read against.
+  test("every log axis shows at least four labels", async ({ page }) => {
+    for (const slug of ["japan", "canada", "united-kingdom", "china"]) {
+      await page.goto(`/atlas/${slug}`);
+      for (const id of ["shares", "currency"]) {
+        const labels = page.getByTestId(`chart-${id}`).locator("span[aria-hidden='true'].absolute.-left-11");
+        expect(await labels.count(), `${slug} ${id}`).toBeGreaterThanOrEqual(4);
+      }
+    }
   });
 
   test("affordability: the ratio with both legs, their years and the gap", async ({ page }) => {

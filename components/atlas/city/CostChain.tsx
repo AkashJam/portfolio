@@ -1,4 +1,4 @@
-import { costChain, dayLabel, euro, HOUSING_TAG_TEXT, money } from "@/lib/city-cost";
+import { costChain, dayLabel, euro, HOUSING_TAG_TEXT, money, sentence } from "@/lib/city-cost";
 import type { CityResponse } from "@/lib/market-schemas";
 
 const MUTED = "font-mono text-[12px] leading-relaxed text-text-muted";
@@ -32,7 +32,7 @@ export function CostChain({ city }: { city: CityResponse }) {
           </p>
         )}
       </div>
-      <p className="mt-2 max-w-[70ch] text-[14.5px] text-read">{h.label}.</p>
+      <p className="mt-2 max-w-[70ch] text-[14.5px] text-read">{sentence(h.label)}.</p>
       {survey.secondLines.map((l) => (
         <p key={l.label} data-testid="second-line" className="mt-1.5 font-mono text-[13.5px] tabular-nums text-read">
           {l.label} {money(l.value, h.currency)}

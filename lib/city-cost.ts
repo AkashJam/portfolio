@@ -19,6 +19,10 @@ export function money(value: number, currency: string): string {
   }).format(value);
 }
 
+/** A phrase from the survey data as a sentence's body, without its own full stop: the page adds
+ * one, and three of the survey notes already end in one ("households.." on Milan's page). */
+export const sentence = (text: string): string => text.replace(/[\s.]+$/, "");
+
 export const euro = (value: number): string => money(value, "EUR");
 
 export interface ChainStep {
@@ -41,7 +45,7 @@ export function costChain(c: CityResponse): ChainStep[] {
     {
       key: "survey",
       title: "The survey's figure",
-      text: `${money(headline.value, headline.currency)} a month, ${headline.year}. ${headline.label}.`,
+      text: `${money(headline.value, headline.currency)} a month, ${headline.year}. ${sentence(headline.label)}.`,
       source: `${c.survey.publisher} · ${c.survey.instrument}`,
     },
   ];

@@ -1,7 +1,11 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+
 import { describe, expect, it } from "vitest";
 
 import {
   NO_FIGURE,
+  RAMP,
   TILES,
   caveatKind,
   colourFor,
@@ -75,6 +79,22 @@ const CHILE = row("chile", "Chile", {
   currency: ch(-30, -24, { derived: "via USD" }),
 });
 const JAPAN = row("japan", "Japan", { currency: ch(-19) });
+
+// The ramp's three colours are copies of tokens (see RAMP); this is what keeps them one source.
+// Phase 19's token pass will move them, and this fails until the map moves with it.
+describe("RAMP", () => {
+  const css = readFileSync(join(process.cwd(), "app/globals.css"), "utf8");
+  const tokenHex = (name: string): string => {
+    const m = css.match(new RegExp(`^\\s*${name}:\\s*(#[0-9a-fA-F]{6})\\s*;`, "m"));
+    if (!m) throw new Error(`${name} is not a hex token in globals.css`);
+    return m[1].toLowerCase();
+  };
+  const hexOf = (rgb: readonly number[]) => `#${rgb.map((n) => n.toString(16).padStart(2, "0")).join("")}`;
+
+  it.each(Object.values(RAMP))("$token in globals.css is the colour the map computes with", ({ token, rgb }) => {
+    expect(tokenHex(token)).toBe(hexOf(rgb));
+  });
+});
 
 describe("colourFor", () => {
   it("is the neutral at 0 and the full colour at the limit, either way", () => {

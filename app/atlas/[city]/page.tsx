@@ -47,6 +47,7 @@ export default async function CityPage({ params }: PageProps<"/atlas/[city]">) {
   if (!city || !city.verified) notFound();
 
   const cur = city.survey.headline.currency;
+  const euroArea = city.charts.currency.reason === "euro";
   const housingBehind = city.charts.housing.behind;
   return (
     <Container className="space-y-14 py-16">
@@ -94,16 +95,20 @@ export default async function CityPage({ params }: PageProps<"/atlas/[city]">) {
           chart={city.charts.shares}
           scale="log"
           unit="index, 2015 = 100"
-          caption={`OECD · monthly · local currency · index, 2015 = 100 · nominal, in ${cur === "EUR" ? "euro" : cur}: read it beside the currency below`}
+          caption={`OECD · monthly · local currency · index, 2015 = 100 · nominal, ${euroArea ? "in euros" : `in ${cur}: read it beside the currency below`}`}
         />
-        <LongChart
-          id="currency"
-          title={`${cur} per euro`}
-          chart={city.charts.currency}
-          scale="log"
-          unit={`${cur} per euro`}
-          caption={`ECB reference rate · monthly average from 1999 · ${cur} per euro: a rising line is a weakening ${cur}`}
-        />
+        {/* The euro has no rate against itself, so a euro page has no currency card to show, and
+            nothing below it for the share price caption to point at (phase18.md step 5, M23). */}
+        {!euroArea && (
+          <LongChart
+            id="currency"
+            title={`${cur} per euro`}
+            chart={city.charts.currency}
+            scale="log"
+            unit={`${cur} per euro`}
+            caption={`ECB reference rate · monthly average from 1999 · ${cur} per euro: a rising line is a weakening ${cur}`}
+          />
+        )}
         <LongChart
           id="housing"
           title="House prices"

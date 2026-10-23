@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { costChain, euro, money } from "@/lib/city-cost";
+import { costChain, euro, money, sentence } from "@/lib/city-cost";
 import type { CityResponse } from "@/lib/market-schemas";
 
 const base = {
@@ -56,5 +56,23 @@ describe("costChain", () => {
     const steps = costChain(c);
     expect(steps.map((s) => s.key)).toEqual(["survey", "derived", "cpi", "rate"]);
     expect(steps[3].text).toBe("Not converted: no ECB average for 2025.");
+  });
+});
+
+// Phase 18 step 5, M23: Milan's page read "…across all households.." because the page added a
+// full stop to a note that already ended in one (Italy, Türkiye and Israel).
+describe("sentence", () => {
+  it("drops the full stop the data already carries, so the page's own is the only one", () => {
+    expect(sentence("the components exist only as national averages across all households.")).toBe(
+      "the components exist only as national averages across all households",
+    );
+  });
+  it("drops repeated stops and trailing space, and leaves a clean phrase alone", () => {
+    expect(sentence("a total..")).toBe("a total");
+    expect(sentence("a total. ")).toBe("a total");
+    expect(sentence("Reference budget")).toBe("Reference budget");
+  });
+  it("keeps a stop inside the text", () => {
+    expect(sentence("one person aged 30–59, 1.5 m households.")).toBe("one person aged 30–59, 1.5 m households");
   });
 });

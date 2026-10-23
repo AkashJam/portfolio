@@ -81,9 +81,7 @@ export function LongChart({
         </figure>
       ) : (
         <p data-testid={`chart-${id}-absent`} className={`${MUTED} mt-3 rounded-[14px] border border-dashed border-hairline px-4 py-5`}>
-          {chart.reason === "euro"
-            ? "The euro has no rate against itself, so there is no currency line to draw."
-            : `Not shown: ${chart.reason ?? "the series cannot be served"}.`}
+          {`Not shown: ${chart.reason ?? "the series cannot be served"}.`}
         </p>
       )}
       {note && <p className={`${MUTED} mt-1`}>{note}</p>}

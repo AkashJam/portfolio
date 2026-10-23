@@ -58,16 +58,29 @@ function year(s: LongSeries, i: number): number {
   return Math.floor((y * 12 + (m - 1) + i * s.step) / 12);
 }
 
-/** 1, 2 and 5 times a power of ten inside [lo, hi]. */
+/** Fewest labels a log axis may show: one or none cannot be read against (phase18.md step 5, M32). */
+const MIN_LOG_TICKS = 4;
+
+/** 1, 2 and 5 times a power of ten inside [lo, hi] when a series spans enough range to give
+ * four of them; otherwise round linear steps (Tokyo's 93 to 186: 100, 120, 140, 160, 180),
+ * which are still placed by their logarithm, so the axis stays logarithmic. */
 export function logTicks(lo: number, hi: number): number[] {
-  const out: number[] = [];
+  // A log axis has no zero or negative end; cityGeometry never asks for one, but this is exported.
+  if (!(lo > 0) || !(hi >= lo) || !Number.isFinite(hi)) return [];
+  const decades: number[] = [];
   for (let p = Math.floor(Math.log10(lo)); p <= Math.ceil(Math.log10(hi)); p++) {
     for (const m of [1, 2, 5]) {
       const v = m * 10 ** p;
-      if (v >= lo && v <= hi) out.push(v);
+      if (v >= lo && v <= hi) decades.push(v);
     }
   }
-  return out;
+  if (decades.length >= MIN_LOG_TICKS) return decades;
+  // A finer step each time until four round values fall inside the range.
+  for (let n = 5; n <= 64; n++) {
+    const ticks = linearTicks(lo, hi, n);
+    if (ticks.length >= MIN_LOG_TICKS) return ticks;
+  }
+  return decades;
 }
 
 /** About `n` round values inside [lo, hi]. */

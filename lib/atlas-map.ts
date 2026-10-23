@@ -14,9 +14,19 @@ import type { AtlasRow, WindowStart } from "@/lib/market-schemas";
 
 // ---- colour ----------------------------------------------------------------
 
-const NEUTRAL = [0x13, 0x17, 0x1d] as const; // #13171d: no change
-const UP = [0x26, 0xa6, 0x9a] as const; // #26a69a: the market-up teal
-const DOWN = [0xef, 0x53, 0x50] as const; // #ef5350: the market-down red
+// The three colours of the diverging ramp are tokens in globals.css (`--panel-2`, `--market-up`,
+// `--market-down`). They are copied here as RGB because the ramp is computed in JavaScript, and
+// `textColourFor` needs a real colour to measure contrast against: a `var()` or `color-mix()`
+// string cannot be measured. `lib/atlas-map.test.ts` reads globals.css and fails if either
+// side moves alone (phase18.md step 5, I4's sibling).
+export const RAMP = {
+  neutral: { token: "--panel-2", rgb: [0x13, 0x17, 0x1d] }, // no change
+  up: { token: "--market-up", rgb: [0x26, 0xa6, 0x9a] }, // the market-up teal
+  down: { token: "--market-down", rgb: [0xef, 0x53, 0x50] }, // the market-down red
+} as const;
+const NEUTRAL = RAMP.neutral.rgb;
+const UP = RAMP.up.rgb;
+const DOWN = RAMP.down.rgb;
 
 /** Exponent fitted to the mock's legend swatches: a gentle curve, so small changes still show. */
 const CURVE = 0.7;

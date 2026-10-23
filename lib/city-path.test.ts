@@ -16,6 +16,39 @@ describe("ticks", () => {
   it("puts log ticks at 1, 2 and 5 times a power of ten", () => {
     expect(logTicks(3, 120)).toEqual([5, 10, 20, 50, 100]);
   });
+  // Phase 18 step 5, M32: Tokyo's share index ran 93 to 186, which holds one 1-2-5 value (100),
+  // so its axis read a single label.
+  it("gives a short log range at least four round labels, found by finer steps", () => {
+    expect(logTicks(93, 186)).toEqual([100, 120, 140, 160, 180]);
+  });
+  it("gives no ticks for a range a log axis cannot draw, rather than looping", () => {
+    expect(logTicks(0, 10)).toEqual([]);
+    expect(logTicks(-1, 10)).toEqual([]);
+    expect(logTicks(5, 1)).toEqual([]);
+    expect(logTicks(1, Infinity)).toEqual([]);
+  });
+  it("keeps the 1-2-5 ticks when a range holds four or more", () => {
+    expect(logTicks(1, 10_000)).toEqual([1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10_000]);
+  });
+  it("labels the ranges the city pages actually draw, inside the range, four or more", () => {
+    // Share indices and rates as they run on the production pages (ranges, not values).
+    for (const [lo, hi] of [[93, 186], [0.9, 1.6], [99, 101], [4, 7.5], [58, 110], [1.1, 1.3], [210, 480]] as const) {
+      const ticks = logTicks(lo, hi);
+      expect(ticks.length, `${lo} to ${hi}`).toBeGreaterThanOrEqual(4);
+      for (const t of ticks) {
+        expect(t).toBeGreaterThanOrEqual(lo);
+        expect(t).toBeLessThanOrEqual(hi);
+      }
+    }
+  });
+  it("keeps a short log range logarithmic: its labels are placed by their logarithm", () => {
+    const g = cityGeometry(monthly("2000-01", [93, 120, 186]), "log")!;
+    const pct = g.yTicks.map((t) => t.pct);
+    expect(g.yTicks.map((t) => t.label)).toEqual(["100", "120", "140", "160", "180"]);
+    // Each step of 20 is a smaller share of the log axis the higher it goes: gaps shrink upward.
+    const gaps = pct.slice(1).map((v, i) => pct[i] - v);
+    expect(gaps[0]).toBeGreaterThan(gaps[gaps.length - 1]);
+  });
   it("puts linear ticks on round values", () => {
     expect(linearTicks(0, 130)).toEqual([0, 50, 100]);
     expect(linearTicks(95, 125, 4)).toEqual([100, 110, 120]);

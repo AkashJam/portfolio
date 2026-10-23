@@ -1,4 +1,5 @@
 import { basketAlt, largest, segments } from "@/lib/city-basket";
+import { sentence } from "@/lib/city-cost";
 import type { CityResponse } from "@/lib/market-schemas";
 
 const MUTED = "font-mono text-[12px] leading-relaxed text-text-muted";
@@ -15,7 +16,7 @@ export function BasketBar({ city }: { city: CityResponse }) {
   if (!parts || parts.length === 0) {
     return (
       <p data-testid="no-split" className={`${MUTED} mt-6 max-w-[72ch]`}>
-        No basket split: {splitNote ?? "the survey publishes a total, with housing included in it"}.
+        No basket split: {sentence(splitNote ?? "the survey publishes a total, with housing included in it")}.
       </p>
     );
   }
