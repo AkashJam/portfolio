@@ -93,7 +93,7 @@ export function LiveSnapshot({
   return (
     <div className="space-y-6" data-session={frozen ? "closed" : undefined}>
       {sensor && (
-        <nav aria-label="Breadcrumb" className="font-mono text-xs text-text-muted">
+        <nav aria-label="Breadcrumb" className="text-meta text-text-muted">
           <Link href="/market" className="hover:text-read focus-visible:outline-2 focus-visible:outline-brand">
             Market
           </Link>
@@ -113,12 +113,12 @@ export function LiveSnapshot({
         <div>
           {sensor ? (
             <>
-              <h1 className="text-3xl font-light">{sensor.heading}</h1>
-              <p className="mt-1 text-sm text-text-muted">{sensor.sub}</p>
+              <h1 className="text-h1 font-light">{sensor.heading}</h1>
+              <p className="mt-1 text-small text-text-muted">{sensor.sub}</p>
             </>
           ) : (
             <>
-              <p className="text-xs uppercase tracking-[0.3em] text-text-muted">{snapshot.name}</p>
+              <p className="text-meta uppercase tracking-[0.3em] text-text-muted">{snapshot.name}</p>
               <h1 className="font-mono text-3xl">{snapshot.symbol}</h1>
             </>
           )}
@@ -127,7 +127,7 @@ export function LiveSnapshot({
           <p data-testid="live-price" className={cn("font-mono text-3xl tabular-nums", ink)}>
             {snapshot.price.toFixed(2)}
           </p>
-          <p className={cn("font-mono text-sm tabular-nums", ink)}>
+          <p className={cn("font-mono text-small tabular-nums", ink)}>
             {up ? "+" : ""}
             {snapshot.change.toFixed(2)} ({up ? "+" : ""}
             {snapshot.changePercent.toFixed(2)}%)
@@ -144,7 +144,7 @@ export function LiveSnapshot({
           bar already conveys high/low; Prev Close is the one figure it
           doesn't, so it's the only number kept alongside it. */}
       <DayRangeBar low={snapshot.dayLow} high={snapshot.dayHigh} price={snapshot.price} size="lg" />
-      <p className="font-mono text-sm text-text-muted">
+      <p className="font-mono text-small text-text-muted">
         Prev close <span className="text-text">{snapshot.prevClose.toFixed(2)}</span>
         <span className="mx-2" aria-hidden="true">
           ·

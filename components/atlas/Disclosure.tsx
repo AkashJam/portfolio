@@ -150,7 +150,7 @@ function Panel({
         width: pos?.width ?? WIDTH,
         visibility: pos ? "visible" : "hidden",
       }}
-      className="z-50 rounded-xl border border-brand/40 bg-panel-2 p-3.5 text-left text-[12.5px] leading-relaxed text-read shadow-[0_14px_34px_rgba(0,0,0,0.6)] outline-none"
+      className="z-50 rounded-xl border border-brand/40 bg-panel-2 p-3.5 text-left text-meta leading-relaxed text-read shadow-[0_14px_34px_rgba(0,0,0,0.6)] outline-none"
     >
       <p className="mb-2 font-medium text-text">{title}</p>
       {children}
@@ -165,7 +165,7 @@ function Ring({ className }: { className?: string }) {
     <span
       aria-hidden="true"
       className={cn(
-        "inline-flex size-[15px] shrink-0 items-center justify-center rounded-full border font-mono text-[9.5px] font-semibold leading-none",
+        "inline-flex size-[15px] shrink-0 items-center justify-center rounded-full border font-mono text-meta font-semibold leading-none",
         className,
       )}
     >

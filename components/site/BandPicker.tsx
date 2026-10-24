@@ -45,7 +45,7 @@ export function BandPicker({
       <Popover.Trigger
         data-testid="band-picker"
         aria-label={`Chart symbol: ${active}. Choose a different sensor`}
-        className="hero-chip is-active flex flex-none items-center gap-1.5 rounded-[7px] border border-hairline bg-panel px-2.25 py-0.75 font-mono text-[11.5px] tracking-[0.04em] text-text"
+        className="hero-chip is-active flex flex-none items-center gap-1.5 rounded-[7px] border border-hairline bg-panel px-2.25 py-0.75 font-mono text-meta tracking-[0.04em] text-text"
       >
         <span>
           {current && <span className="hidden text-text-muted md:inline">{placeOf(current)} · </span>}
@@ -57,11 +57,11 @@ export function BandPicker({
         {/* The sticky header is 57px. Without top padding the list flips upward on a
             short viewport and its first rows (the Countries label, Canada) sit under it. */}
         <Popover.Positioner side="bottom" align="start" sideOffset={6} collisionPadding={{ top: 64, right: 8, bottom: 8, left: 8 }}>
-          <Popover.Popup className="max-h-(--available-height) w-[min(440px,calc(100vw-2rem))] overflow-y-auto rounded-[10px] border border-hairline bg-panel p-1.5 font-mono text-xs shadow-lg">
+          <Popover.Popup className="max-h-(--available-height) w-[min(440px,calc(100vw-2rem))] overflow-y-auto rounded-[10px] border border-hairline bg-panel p-1.5 font-mono text-meta shadow-lg">
             <div role="listbox" aria-label="Chart symbol">
               {GROUPS.map(({ group, title }) => (
                 <div key={group} role="group" aria-label={title}>
-                  <div className="px-2.5 pt-2 pb-1 text-[10px] font-semibold tracking-[0.18em] text-text-muted uppercase">
+                  <div className="px-2.5 pt-2 pb-1 text-meta font-semibold tracking-[0.18em] text-text-muted uppercase">
                     {title}
                   </div>
                   {entries

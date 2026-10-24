@@ -116,7 +116,7 @@ function DataCell({
   const old = ctx.olderSlugs.has(row.slug);
   const delta = ctx.home ? homeDelta(row, ctx.home, k, ctx.window) : null;
   const deltaLine = delta && (
-    <small data-testid="home-delta" className="block text-[11px] text-brand-hover">
+    <small data-testid="home-delta" className="block text-meta text-brand-hover">
       {delta}
       <span className="sr-only">{` against ${ctx.home?.city}, computed`}</span>
     </small>
@@ -186,7 +186,7 @@ function ChangeCell({
       >
         {"—"}
         {m.reason && (
-          <small className="ml-1 text-[11px]">
+          <small className="ml-1 text-meta">
             {gapLabel(m.reason, ctx.window)}
           </small>
         )}
@@ -208,7 +208,7 @@ function ChangeCell({
     >
       {formatChange(value)}
       {m.derived && (
-        <small className="block text-[11px] text-text-muted">{m.derived}</small>
+        <small className="block text-meta text-text-muted">{m.derived}</small>
       )}
     </DataCell>
   );
@@ -262,7 +262,7 @@ function ColumnPanel({
       <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5">
         {info.rows.map((r) => (
           <div key={r.label} className="contents">
-            <dt className="font-mono text-[11px] uppercase tracking-wider text-text-muted">
+            <dt className="text-meta uppercase tracking-wider text-text-muted">
               {r.label}
             </dt>
             <dd>{r.value}</dd>
@@ -272,7 +272,7 @@ function ColumnPanel({
       <p className="mt-2.5 border-t border-hairline pt-2.5">{info.note}</p>
       {home && (
         <p data-testid="computed-line" className="mt-2.5 border-t border-hairline pt-2.5 text-brand-hover">
-          <b className="font-mono text-[11px] font-medium uppercase tracking-wider">Computed</b> {computedLine(k, home, window, end, rate)}
+          <b className="text-meta font-medium uppercase tracking-wider">Computed</b> {computedLine(k, home, window, end, rate)}
         </p>
       )}
     </>
@@ -376,12 +376,12 @@ export function CountriesTable({ rows }: { rows: AtlasRow[] }) {
                           accessibility target, so the unit line is not a second tab stop. */}
                       <small
                         onClick={() => onSort(c.key)}
-                        className="max-w-[7rem] cursor-pointer whitespace-normal text-right text-[11px] font-normal text-text-muted"
+                        className="max-w-[7rem] cursor-pointer whitespace-normal text-right text-meta font-normal text-text-muted"
                       >
                         {c.key === "everydaySpendingEur" && rate ? `${rate.currency} / person / month` : c.sub(end)}
                       </small>
                       {home && (
-                        <small data-testid="delta-unit" className="max-w-[7rem] whitespace-normal text-right text-[11px] font-normal text-brand-hover">
+                        <small data-testid="delta-unit" className="max-w-[7rem] whitespace-normal text-right text-meta font-normal text-brand-hover">
                           {deltaUnit(c.key)}
                         </small>
                       )}
@@ -420,11 +420,11 @@ export function CountriesTable({ rows }: { rows: AtlasRow[] }) {
                       <span className="font-medium">{r.city}</span>
                     )}
                     {r.slug === home?.slug && (
-                      <span data-testid="home-tag" className="font-mono text-[10.5px] uppercase tracking-wider text-brand-hover">
+                      <span data-testid="home-tag" className="text-meta uppercase tracking-wider text-brand-hover">
                         home
                       </span>
                     )}
-                    <small className="text-xs text-text-muted">
+                    <small className="text-meta text-text-muted">
                       {r.country} {"·"}{" "}
                       {r.sensor ? (
                         <>

@@ -87,7 +87,7 @@ export function JumpBar() {
           href={`#${s.id}`}
           aria-current={active === s.id ? "location" : undefined}
           className={cn(
-            "border-b-2 pb-1 font-mono text-[11.5px] font-semibold uppercase tracking-[0.14em] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand",
+            "border-b-2 pb-1 text-meta font-semibold uppercase tracking-[0.14em] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand",
             active === s.id
               ? "border-brand text-brand-hover"
               : "border-transparent text-text-muted hover:text-read",

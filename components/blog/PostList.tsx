@@ -41,7 +41,7 @@ export function PostList({ posts }: { posts: Blog[] }) {
           onClick={() => setDomain(null)}
           aria-pressed={domain === null}
           className={cn(
-            "rounded-full border px-3 py-1 text-xs",
+            "rounded-full border px-3 py-1 text-meta",
             domain === null ? "border-brand bg-brand/10 text-text" : "border-hairline text-text-muted"
           )}
         >
@@ -54,7 +54,7 @@ export function PostList({ posts }: { posts: Blog[] }) {
             onClick={() => setDomain(d === domain ? null : d)}
             aria-pressed={domain === d}
             className={cn(
-              "rounded-full border px-3 py-1 text-xs",
+              "rounded-full border px-3 py-1 text-meta",
               domain === d ? "border-brand bg-brand/10 text-text" : "border-hairline text-text-muted"
             )}
           >
@@ -68,19 +68,19 @@ export function PostList({ posts }: { posts: Blog[] }) {
           <Link
             key={post._meta.path}
             href={`/blog/${post._meta.path}`}
-            className="group flex max-w-[68ch] flex-col gap-1.5 py-6 first:pt-0"
+            className="group flex max-w-measure flex-col gap-1.5 py-6 first:pt-0"
           >
-            <span className="text-xs text-brand-hover">{post.category}</span>
-            <span className="text-lg text-text group-hover:text-brand-hover">{post.title}</span>
-            <span className="text-sm text-text-muted">{post.summary}</span>
-            <span className="mt-1 font-mono text-xs text-text-muted">
+            <span className="text-meta text-brand-hover">{post.category}</span>
+            <span className="text-lead text-text group-hover:text-brand-hover">{post.title}</span>
+            <span className="text-small text-text-muted">{post.summary}</span>
+            <span className="mt-1 font-mono text-meta text-text-muted">
               {dayMonthYear(post.date)}{" "}
               · {post.readingMinutes} min read
               {post.updated && " · Updated"}
             </span>
           </Link>
         ))}
-        {filtered.length === 0 && <p className="text-sm text-text-muted">No posts in this domain yet.</p>}
+        {filtered.length === 0 && <p className="text-small text-text-muted">No posts in this domain yet.</p>}
       </div>
     </div>
   );

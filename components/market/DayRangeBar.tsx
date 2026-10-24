@@ -33,7 +33,7 @@ export function DayRangeBar({
           style={{ left: `${pos}%` }}
         />
       </div>
-      <div className="flex justify-between font-mono text-[10px] text-text-muted">
+      <div className="flex justify-between font-mono text-meta text-text-muted">
         <span>L {low.toFixed(2)}</span>
         <span>H {high.toFixed(2)}</span>
       </div>

@@ -36,7 +36,7 @@ function TimelineWhen({
     <>
       {start}
       <br />— {end ?? "Present"}
-      {location && <div className="mt-2 text-xs text-text-muted">{location}</div>}
+      {location && <div className="mt-2 text-meta text-text-muted">{location}</div>}
     </>
   );
 }
@@ -53,33 +53,33 @@ export default function AboutPage() {
       <JsonLd data={profilePageLd()} />
       <Asterism />
       <Container className="relative z-10">
-        <p className="mb-4 text-xs tracking-[0.2em] text-text-muted uppercase">About</p>
-        <h1 className="max-w-[20ch] text-[clamp(34px,5.2vw,60px)] leading-tight font-light text-balance text-text">
+        <p className="mb-4 text-meta tracking-[0.2em] text-text-muted uppercase">About</p>
+        <h1 className="max-w-[20ch] text-h1 leading-tight font-light text-balance text-text">
           {statement.headline}
         </h1>
-        <p className="mt-4.5 max-w-[58ch] text-lg text-text-muted">{statement.subheadline}</p>
+        <p className="mt-4.5 max-w-measure text-lead text-read">{statement.subheadline}</p>
 
         <AboutStats />
 
-        <p className="mt-11 max-w-[72ch] text-lg leading-relaxed text-pretty text-read">{bio[0]}</p>
+        <p className="mt-11 max-w-measure text-lead leading-relaxed text-pretty text-read">{bio[0]}</p>
 
         <div className="mt-8 grid items-stretch gap-7 lg:grid-cols-[1.62fr_1fr] lg:gap-14">
-          <p className="text-base text-pretty text-text-muted">{bio[1]}</p>
+          <p className="text-body text-pretty text-text-muted">{bio[1]}</p>
           <div className="flex flex-col justify-end gap-3.5 border-t border-hairline pt-5 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-6">
             <Button
               variant="brand"
               render={<a href={RESUME_HREF} />}
               nativeButton={false}
-              className="h-auto w-fit gap-2 px-4 py-2 text-sm"
+              className="h-auto w-fit gap-2 px-4 py-2 text-small"
             >
               <Download className="size-4" />
               Download Résumé (PDF)
             </Button>
-            <span className="text-[13.5px] leading-normal text-text-muted">{workAuthorization}</span>
+            <span className="text-small leading-normal text-text-muted">{workAuthorization}</span>
           </div>
         </div>
 
-        <h2 className="mt-[72px] text-xs tracking-[0.2em] text-text-muted uppercase">Experience</h2>
+        <h2 className="mt-[72px] text-meta tracking-[0.2em] text-text-muted uppercase">Experience</h2>
         <Timeline
           items={experience.map((entry) => ({
             when: <TimelineWhen {...entry} />,
@@ -92,7 +92,7 @@ export default function AboutPage() {
           }))}
         />
 
-        <h2 className="mt-[72px] text-xs tracking-[0.2em] text-text-muted uppercase">Education</h2>
+        <h2 className="mt-[72px] text-meta tracking-[0.2em] text-text-muted uppercase">Education</h2>
         <Timeline
           items={education.map((entry) => ({
             when: <TimelineWhen {...entry} />,
@@ -105,7 +105,7 @@ export default function AboutPage() {
           }))}
         />
 
-        <h2 className="mt-[72px] text-xs tracking-[0.2em] text-text-muted uppercase">
+        <h2 className="mt-[72px] text-meta tracking-[0.2em] text-text-muted uppercase">
           Skills &amp; Capabilities
         </h2>
         <div className="reveal">

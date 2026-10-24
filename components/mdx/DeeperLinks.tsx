@@ -21,8 +21,8 @@ export function DeeperLinks({ items }: { items: DeeperLink[] }) {
           href={item.href}
           className="group flex flex-col gap-1 rounded-xl border border-hairline bg-panel p-4 transition-colors hover:border-brand"
         >
-          <span className="text-xs tracking-[0.15em] text-text-muted uppercase">{item.label}</span>
-          <span className="text-sm text-text group-hover:text-brand-hover">
+          <span className="text-meta tracking-[0.15em] text-text-muted uppercase">{item.label}</span>
+          <span className="text-small text-text group-hover:text-brand-hover">
             {item.description} →
           </span>
         </Link>

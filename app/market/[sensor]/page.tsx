@@ -62,7 +62,7 @@ export default async function SensorRecordPage({ params }: PageProps<"/market/[s
       <RecordHead record={record} priceHref={`${address}/price`} />
 
       <section aria-labelledby="since">
-        <h2 id="since" className="font-mono text-[13px] font-semibold uppercase tracking-[0.16em] text-text">
+        <h2 id="since" className="text-small font-semibold uppercase tracking-[0.16em] text-text">
           Since the series began
         </h2>
         <div className="mt-4">
@@ -71,10 +71,10 @@ export default async function SensorRecordPage({ params }: PageProps<"/market/[s
       </section>
 
       <section aria-labelledby="tripped">
-        <h2 id="tripped" className="font-mono text-[13px] font-semibold uppercase tracking-[0.16em] text-text">
+        <h2 id="tripped" className="text-small font-semibold uppercase tracking-[0.16em] text-text">
           Every move that tripped
         </h2>
-        <p data-testid="record-cadence" className="mt-3 max-w-[72ch] text-[15px] leading-relaxed text-read">
+        <p data-testid="record-cadence" className="mt-3 max-w-measure text-body leading-relaxed text-read">
           {line.text}
         </p>
         {record.events.length > 0 && (

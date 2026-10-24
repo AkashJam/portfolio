@@ -8,14 +8,14 @@ export function Hero({ hasLiveBand }: { hasLiveBand: boolean }) {
   return (
     <section className="pt-14">
       <div className="mx-auto max-w-6xl px-4">
-        <p className="font-mono text-xs tracking-[0.2em] text-text-muted uppercase">
+        <p className="text-meta tracking-[0.2em] text-text-muted uppercase">
           Akash James · {heroRole} · Milan
         </p>
-        <h1 className="mt-5 max-w-[20ch] text-[clamp(34px,5.5vw,64px)] leading-[1.05] font-light text-text">
+        <h1 className="mt-5 max-w-[20ch] text-h1 leading-[1.05] font-light text-text">
           {heroHeadline}
         </h1>
         {hasLiveBand && (
-          <p className="mt-5 max-w-[52ch] text-lg text-text-muted">
+          <p className="mt-5 max-w-[52ch] text-lead text-read">
             The chart below is one of them — eighteen real instruments, ingested, stored, and
             pushed to your browser while New York trades.
           </p>
@@ -26,7 +26,7 @@ export function Hero({ hasLiveBand }: { hasLiveBand: boolean }) {
           </Button>
           <Link
             href="/projects/market-ticker"
-            className="inline-flex items-center gap-1.5 text-sm text-text-muted hover:text-text"
+            className="inline-flex items-center gap-1.5 text-small text-text-muted hover:text-text"
           >
             How it was built →
           </Link>

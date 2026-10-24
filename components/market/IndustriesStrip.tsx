@@ -22,7 +22,7 @@ export function IndustriesStrip({ tiles, renderedAt }: { tiles: SectorTile[]; re
 
   return (
     <div data-testid="industries">
-      <p data-testid="industries-vintage" className="mb-3 font-mono text-[12.5px] text-text-muted">
+      <p data-testid="industries-vintage" className="mb-3 font-mono text-meta text-text-muted">
         {pricesVintage(asOfs, new Date(renderedAt), false)}
       </p>
       <ul
@@ -35,15 +35,15 @@ export function IndustriesStrip({ tiles, renderedAt }: { tiles: SectorTile[]; re
           const hasMove = row.asOf !== null && row.prevClose !== 0;
           return (
             <li key={symbol} data-testid={`industry-${symbol}`} className="flex flex-col gap-[7px] bg-panel px-3.5 py-[15px]">
-              <span className="font-mono text-xs font-semibold tracking-[0.1em] text-text-muted">{symbol}</span>
-              <span className="text-[11.5px] leading-tight text-text-muted">{label}</span>
+              <span className="font-mono text-meta font-semibold tracking-[0.1em] text-text-muted">{symbol}</span>
+              <span className="text-meta leading-tight text-text-muted">{label}</span>
               <span
                 data-testid="industry-change"
-                className={cn("font-mono text-[15px] font-semibold tabular-nums", DIRECTION[direction])}
+                className={cn("font-mono text-body font-semibold tabular-nums", DIRECTION[direction])}
               >
                 {changeLabel(row)}
               </span>
-              {own && <span className="text-[11px] text-text-muted">{own}</span>}
+              {own && <span className="text-meta text-text-muted">{own}</span>}
               {/* Decorative: the printed figure is the information. */}
               <span aria-hidden="true" className="relative block h-[3px] overflow-hidden rounded-sm bg-panel-2">
                 {hasMove && direction !== "flat" && (
@@ -61,7 +61,7 @@ export function IndustriesStrip({ tiles, renderedAt }: { tiles: SectorTile[]; re
           );
         })}
       </ul>
-      <p className="mt-3.5 max-w-[76ch] text-[13px] leading-relaxed text-text-muted">
+      <p className="mt-3.5 max-w-measure text-small leading-relaxed text-text-muted">
         Each tile is an iShares Global sector fund, and the figure is its close against the previous session&rsquo;s.
       </p>
     </div>

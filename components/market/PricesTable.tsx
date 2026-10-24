@@ -130,7 +130,7 @@ export function PricesTable({
 
   return (
     <div>
-      <p data-testid="prices-vintage" className="mb-3 font-mono text-[12.5px] text-text-muted">
+      <p data-testid="prices-vintage" className="mb-3 font-mono text-meta text-text-muted">
         {vintage}
       </p>
       <div data-session={frozen ? "closed" : "open"} className="panel-elevated overflow-hidden rounded-2xl">
@@ -153,10 +153,10 @@ export function PricesTable({
             <TableBody key={group}>
               <TableRow className="border-t border-hairline hover:bg-transparent">
                 <TableHead scope="rowgroup" colSpan={6} className="whitespace-normal px-4 pb-1.5 pt-4 text-left">
-                  <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-text-muted">
+                  <span className="text-meta font-semibold uppercase tracking-[0.18em] text-text-muted">
                     {title}
                   </span>
-                  <span className="ml-2.5 font-mono text-[11.5px] font-normal normal-case tracking-normal text-text-muted">
+                  <span className="ml-2.5 font-mono text-meta font-normal normal-case tracking-normal text-text-muted">
                     {gloss}
                   </span>
                 </TableHead>
@@ -218,7 +218,7 @@ function PriceRowView({
         >
           {place}
         </Link>
-        <small className="block text-[11.5px] text-text-muted">
+        <small className="block text-meta text-text-muted">
           {sensor.name}
           {sensor.note ? ` · ${sensor.note}` : ""}
           {sensor.liquidityUsdM !== null && sensor.liquidityAsOf !== null && (
@@ -229,7 +229,7 @@ function PriceRowView({
           )}
         </small>
       </TableCell>
-      <TableCell className="px-2 font-mono text-[13px] text-text-muted">{sensor.symbol}</TableCell>
+      <TableCell className="px-2 font-mono text-small text-text-muted">{sensor.symbol}</TableCell>
       <TableCell className="px-2 py-2 max-md:hidden">
         <Sparkline
           closes={tape?.closes ?? []}
@@ -242,7 +242,7 @@ function PriceRowView({
         <span data-testid="price" className={frozen ? "text-text-muted" : "text-text"}>
           {hasPrice ? row.price.toFixed(2) : "—"}
         </span>
-        {own && <small className="block text-[11px] text-text-muted">{own}</small>}
+        {own && <small className="block text-meta text-text-muted">{own}</small>}
       </TableCell>
       <TableCell className={cn("px-2 text-right font-mono tabular-nums", DIRECTION[direction])}>
         <span data-testid="change">{changeLabel(row)}</span>
@@ -263,7 +263,7 @@ function PriceRowView({
 function SigmaCell({ tape }: { tape: TapeSensor | undefined }) {
   if (!tape || tape.z === null) {
     return (
-      <span data-testid="sigma-none" title="Not enough history to judge this sensor yet" className="font-mono text-[13px] text-text-muted">
+      <span data-testid="sigma-none" title="Not enough history to judge this sensor yet" className="font-mono text-small text-text-muted">
         <span aria-hidden="true">—</span>
         <span className="sr-only">not enough history yet</span>
       </span>
@@ -279,7 +279,7 @@ function SigmaCell({ tape }: { tape: TapeSensor | undefined }) {
       />
       <b
         className={cn(
-          "min-w-[3.1rem] text-right font-mono text-[13px] font-semibold tabular-nums",
+          "min-w-[3.1rem] text-right font-mono text-small font-semibold tabular-nums",
           past === "up" ? "text-market-up" : past === "down" ? "text-market-down" : "text-text-muted",
         )}
       >

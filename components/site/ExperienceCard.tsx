@@ -8,17 +8,17 @@ import type { ExperienceEntry } from "@/data/experience";
 export function ExperienceCard({ entry }: { entry: ExperienceEntry }) {
   return (
     <article className="rounded-[18px] border border-hairline bg-panel p-7">
-      <h3 className="text-lg font-medium text-text">
+      <h3 className="text-lead font-medium text-text">
         {entry.role} · {entry.company}
       </h3>
-      <p className="mt-2 mb-6 max-w-[60ch] text-sm text-text-muted">{entry.summary}</p>
+      <p className="mt-2 mb-6 max-w-measure text-small text-text-muted">{entry.summary}</p>
 
       <div className="grid gap-6 md:grid-cols-2 md:gap-8">
         <div>
-          <h4 className="mb-3 text-xs tracking-[0.2em] text-text-muted uppercase">
+          <h4 className="mb-3 text-meta tracking-[0.2em] text-text-muted uppercase">
             Responsibilities
           </h4>
-          <ul className="space-y-2 text-sm">
+          <ul className="space-y-2 text-small">
             {entry.responsibilities.map((item, i) => (
               <li
                 key={i}
@@ -30,14 +30,14 @@ export function ExperienceCard({ entry }: { entry: ExperienceEntry }) {
           </ul>
         </div>
         <div>
-          <h4 className="mb-3 text-xs tracking-[0.2em] text-text-muted uppercase">
+          <h4 className="mb-3 text-meta tracking-[0.2em] text-text-muted uppercase">
             Achievements
           </h4>
-          <ul className="space-y-2 text-sm">
+          <ul className="space-y-2 text-small">
             {entry.achievements.map((item, i) => (
               <li
                 key={i}
-                className="relative pl-4 text-read before:absolute before:top-0.5 before:left-0 before:text-[11px] before:text-market-up before:content-['✦']"
+                className="relative pl-4 text-read before:absolute before:top-0.5 before:left-0 before:text-meta before:text-market-up before:content-['✦']"
               >
                 {item}
               </li>
@@ -47,10 +47,10 @@ export function ExperienceCard({ entry }: { entry: ExperienceEntry }) {
       </div>
 
       <div className="mt-8">
-        <h4 className="mb-3 text-xs tracking-[0.2em] text-text-muted uppercase">
+        <h4 className="mb-3 text-meta tracking-[0.2em] text-text-muted uppercase">
           Key Decisions
         </h4>
-        <ul className="space-y-2 text-sm">
+        <ul className="space-y-2 text-small">
           {entry.decisions.map((item, i) => (
             <li
               key={i}

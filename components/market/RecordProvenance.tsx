@@ -54,14 +54,14 @@ export function RecordProvenance({ record }: { record: SensorRecord }) {
   );
   return (
     <section aria-labelledby="provenance" data-testid="record-provenance">
-      <h2 id="provenance" className="font-mono text-[13px] font-semibold uppercase tracking-[0.16em] text-text">
+      <h2 id="provenance" className="text-small font-semibold uppercase tracking-[0.16em] text-text">
         Where these numbers come from
       </h2>
       <dl className="mt-4 space-y-2.5">
         {rows.map((r) => (
-          <div key={r.key} data-source={r.key} className="grid grid-cols-[5.5rem_1fr] gap-x-4 text-[14px] leading-relaxed">
-            <dt className="font-mono text-[12.5px] text-text-muted">{r.label}</dt>
-            <dd className="max-w-[78ch] text-read">{r.text}</dd>
+          <div key={r.key} data-source={r.key} className="grid grid-cols-[5.5rem_1fr] gap-x-4 text-small leading-relaxed">
+            <dt className="font-mono text-meta text-text-muted">{r.label}</dt>
+            <dd className="max-w-measure text-read">{r.text}</dd>
           </div>
         ))}
       </dl>

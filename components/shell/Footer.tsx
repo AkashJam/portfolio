@@ -12,7 +12,7 @@ import { Container } from "@/components/shell/Container";
 export function Footer() {
   return (
     <footer className="border-t border-hairline">
-      <Container className="flex flex-col gap-6 py-10 text-sm text-text-muted md:flex-row md:items-start md:justify-between">
+      <Container className="flex flex-col gap-6 py-10 text-small text-text-muted md:flex-row md:items-start md:justify-between">
         <nav aria-label="Footer" className="flex flex-wrap gap-x-6 gap-y-2">
           {navItems.map((link) => (
             <Link key={link.href} href={link.href} className="hover:text-text">

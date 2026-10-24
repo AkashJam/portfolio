@@ -70,7 +70,7 @@ export function useAtlasHome(): AtlasHomeValue {
 }
 
 const SELECT =
-  "rounded-lg border border-hairline bg-panel-2 px-3 py-2 text-sm text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand";
+  "rounded-lg border border-hairline bg-panel-2 px-3 py-2 text-small text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand";
 
 /** The picker: a native select over the rows, and the one dated rate line beneath it. */
 export function HomePicker() {
@@ -80,7 +80,7 @@ export function HomePicker() {
     <div data-testid="home-picker" className="panel-elevated rounded-2xl px-5 py-4">
       <div className="flex flex-wrap items-end gap-x-5 gap-y-2">
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="atlas-home" className="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-text-muted">
+          <label htmlFor="atlas-home" className="text-meta font-semibold uppercase tracking-[0.18em] text-text-muted">
             Home city
           </label>
           <select id="atlas-home" value={home?.slug ?? ""} onChange={(e) => setHome(e.target.value || null)} className={SELECT}>
@@ -92,12 +92,12 @@ export function HomePicker() {
             ))}
           </select>
         </div>
-        <p className="max-w-[60ch] pb-2 text-[13px] leading-relaxed text-text-muted">
+        <p className="max-w-measure pb-2 text-small leading-relaxed text-text-muted">
           sets the crosshairs, the pinned row, the comparison line and the display currency: one control, not four
         </p>
       </div>
       {note && (
-        <p data-testid="home-rate" className="mt-3 max-w-[78ch] font-mono text-[12.5px] leading-relaxed text-brand-hover">
+        <p data-testid="home-rate" className="mt-3 max-w-measure font-mono text-meta leading-relaxed text-brand-hover">
           {note}
         </p>
       )}

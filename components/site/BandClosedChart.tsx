@@ -53,7 +53,7 @@ export function BandClosedChart({ points, label }: { points: number[]; label: st
         // phone the end is under 3px from the edge, and a ring centred there would overflow.
         style={{ left: `min(${(last[0] / WIDTH) * 100}%, calc(100% - 6px))`, top: `${(last[1] / HEIGHT) * 100}%` }}
       />
-      <span aria-hidden="true" className="absolute top-1 right-4 font-mono text-[11px] tracking-[0.06em] text-text-muted">
+      <span aria-hidden="true" className="absolute top-1 right-4 font-mono text-meta tracking-[0.06em] text-text-muted">
         CLOSE
       </span>
     </div>

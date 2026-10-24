@@ -35,7 +35,7 @@ export function Pre({ children, ...props }: React.ComponentProps<"pre">) {
       <pre
         ref={ref}
         {...props}
-        className="overflow-x-auto rounded-xl border border-hairline bg-panel p-4 text-sm [&_[data-highlighted-line]]:border-l-2 [&_[data-highlighted-line]]:border-brand [&_[data-highlighted-line]]:bg-brand/10"
+        className="overflow-x-auto rounded-xl border border-hairline bg-panel p-4 text-small [&_[data-highlighted-line]]:border-l-2 [&_[data-highlighted-line]]:border-brand [&_[data-highlighted-line]]:bg-brand/10"
       >
         {children}
       </pre>

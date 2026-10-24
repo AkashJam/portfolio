@@ -1,6 +1,6 @@
 import type { CityResponse, Sourced } from "@/lib/market-schemas";
 
-const MUTED = "font-mono text-[12px] leading-relaxed text-text-muted";
+const MUTED = "text-meta leading-relaxed text-text-muted";
 
 function figure(s: Sourced, digits = 1): string {
   return s.value === null ? "—" : s.value.toLocaleString("en-US", { maximumFractionDigits: digits });
@@ -31,14 +31,14 @@ export function Economy({ city }: { city: CityResponse }) {
   const shown = bar.filter((b) => b.s.value !== null && b.s.value > 0);
   return (
     <section aria-labelledby="economy" data-testid="economy">
-      <h2 id="economy" className="font-mono text-[13px] font-semibold uppercase tracking-[0.16em] text-text">
+      <h2 id="economy" className="text-small font-semibold uppercase tracking-[0.16em] text-text">
         The economy
       </h2>
       <dl className="mt-4 grid gap-x-8 gap-y-3 sm:grid-cols-2">
         {rows.map((r) => (
           <div key={r.key} data-testid={`macro-${r.key}`}>
-            <dt className="text-[13px] text-text-muted">{r.label}</dt>
-            <dd className="font-mono text-[18px] tabular-nums text-text">{r.s.value === null ? "—" : r.text}</dd>
+            <dt className="text-small text-text-muted">{r.label}</dt>
+            <dd className="font-mono text-lead tabular-nums text-text">{r.s.value === null ? "—" : r.text}</dd>
             <dd className={MUTED}>
               {r.s.value === null ? `${r.s.reason ?? "unpublished"} · ` : ""}
               {r.s.source} · {r.s.asOf}
@@ -47,8 +47,8 @@ export function Economy({ city }: { city: CityResponse }) {
         ))}
       </dl>
 
-      <h3 className="mt-8 text-[13px] font-medium text-text">What the economy is made of</h3>
-      <p className="mt-1 max-w-[70ch] text-[13.5px] text-text-muted">
+      <h3 className="mt-8 text-small font-medium text-text">What the economy is made of</h3>
+      <p className="mt-1 max-w-measure text-small text-text-muted">
         Not which sectors move the share index, which needs country-sector indices nobody publishes free, but what the country
         produces, which is what most people there work in.
       </p>
@@ -57,7 +57,7 @@ export function Economy({ city }: { city: CityResponse }) {
           <span key={b.key} data-testid="composition-segment" className="block h-full" style={{ width: `${b.s.value}%`, background: b.token, opacity: 0.85 }} />
         ))}
       </div>
-      <ul className="mt-2 flex flex-wrap gap-x-5 gap-y-1 font-mono text-[12.5px] text-read">
+      <ul className="mt-2 flex flex-wrap gap-x-5 gap-y-1 font-mono text-meta text-read">
         {bar.map((b) => (
           <li key={b.key} data-testid={`composition-${b.key}`}>
             {b.label} {b.s.value === null ? "—" : `${figure(b.s)}%`}

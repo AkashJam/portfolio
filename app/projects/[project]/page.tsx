@@ -65,7 +65,7 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[proj
       <JsonLd data={caseStudyLd(project)} />
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start lg:gap-12">
         <article className="min-w-0">
-          <p className="text-xs text-text-muted">
+          <p className="text-meta text-text-muted">
             <Link href="/projects" className="text-brand-hover underline underline-offset-2">
               Projects
             </Link>{" "}
@@ -77,10 +77,10 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[proj
               Draft — pending review
             </Badge>
           )}
-          <h1 className="mt-2.5 text-[clamp(30px,3.6vw,44px)] leading-[1.15] font-light text-text">
+          <h1 className="mt-2.5 text-h1 leading-[1.15] font-light text-text">
             {project.title}
           </h1>
-          <p className="mt-3 max-w-[62ch] text-[17px] text-text-muted">{project.summary}</p>
+          <p className="mt-3 max-w-measure text-lead text-read">{project.summary}</p>
 
           <div className="mt-5.5 flex flex-wrap gap-3.5">
             {project.links.live && (
@@ -102,15 +102,15 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[proj
           <dl className="mt-7 grid grid-cols-2 gap-px overflow-hidden rounded-[14px] border border-hairline bg-hairline md:grid-cols-4">
             {FACTS.map((fact) => (
               <div key={fact.label} className="bg-panel px-4 py-3.5">
-                <dt className="font-mono text-[11px] tracking-[0.14em] text-text-muted uppercase">
+                <dt className="text-meta tracking-[0.14em] text-text-muted uppercase">
                   {fact.label}
                 </dt>
-                <dd className="mt-1.5 font-mono text-sm font-medium text-text">{fact.value(project)}</dd>
+                <dd className="mt-1.5 font-mono text-small font-medium text-text">{fact.value(project)}</dd>
               </div>
             ))}
             <div className="bg-panel px-4 py-3.5">
-              <dt className="font-mono text-[11px] tracking-[0.14em] text-text-muted uppercase">Status</dt>
-              <dd className={`mt-1.5 font-mono text-sm font-medium ${STATUS_COLOR[project.status]}`}>
+              <dt className="text-meta tracking-[0.14em] text-text-muted uppercase">Status</dt>
+              <dd className={`mt-1.5 font-mono text-small font-medium ${STATUS_COLOR[project.status]}`}>
                 {project.status}
               </dd>
             </div>
@@ -124,7 +124,7 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[proj
             ))}
           </div>
 
-          <div className="mt-9 max-w-[68ch]">
+          <div className="mt-9 max-w-measure">
             <MDXRenderer code={project.mdx} latencyStats={latencyStats} />
           </div>
         </article>

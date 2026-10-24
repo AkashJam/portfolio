@@ -27,7 +27,7 @@ export function ProjectCard({ project }: { project: Project }) {
           "border-brand/28 bg-[linear-gradient(180deg,color-mix(in_oklab,var(--brand)_6%,transparent),transparent_130px),var(--panel)]"
       )}
     >
-      <div className="flex items-center justify-between font-mono text-xs text-text-muted">
+      <div className="flex items-center justify-between font-mono text-meta text-text-muted">
         <span className="flex items-center gap-2.5">
           <span>{project.year}</span>
           {project.featured && (
@@ -40,8 +40,8 @@ export function ProjectCard({ project }: { project: Project }) {
       </div>
 
       <div>
-        <h2 className="text-xl font-medium text-text">{project.title}</h2>
-        <p className="mt-2 max-w-[60ch] text-sm text-text-muted">{project.summary}</p>
+        <h2 className="text-h3 font-medium text-text">{project.title}</h2>
+        <p className="mt-2 max-w-measure text-small text-text-muted">{project.summary}</p>
       </div>
 
       <div className="flex flex-wrap gap-2">
@@ -52,7 +52,7 @@ export function ProjectCard({ project }: { project: Project }) {
         ))}
       </div>
 
-      <div className="mt-auto flex items-center gap-4 pt-2 text-sm">
+      <div className="mt-auto flex items-center gap-4 pt-2 text-small">
         {project.links.live && (
           <a
             href={project.links.live}

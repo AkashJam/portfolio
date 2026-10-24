@@ -50,9 +50,9 @@ export function LatencyTrace({ stats, caption }: LatencyTraceProps) {
           <div key={tile.label} className="rounded-xl border border-hairline bg-panel-2 p-4">
             <div className="font-mono text-2xl font-medium text-text tabular-nums">
               {tile.value}
-              {tile.unit && tile.value !== "—" && <small className="text-sm text-text-muted"> {tile.unit}</small>}
+              {tile.unit && tile.value !== "—" && <small className="text-small text-text-muted"> {tile.unit}</small>}
             </div>
-            <div className="mt-2.5 font-mono text-[11px] tracking-[0.08em] text-text-muted uppercase">
+            <div className="mt-2.5 text-meta tracking-[0.08em] text-text-muted uppercase">
               {tile.label}
             </div>
           </div>
@@ -138,7 +138,7 @@ export function LatencyTrace({ stats, caption }: LatencyTraceProps) {
           </text>
         </svg>
       </div>
-      <p className="mt-3.5 text-[13.5px] text-text-muted">
+      <p className="mt-3.5 text-small text-text-muted">
         {reason && <span data-testid="latency-placeholder">{reason} </span>}
         {caption}
       </p>

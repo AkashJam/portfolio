@@ -21,9 +21,9 @@ export default function ProjectsPage() {
 
   return (
     <Container className="py-16">
-      <p className="mb-4 text-xs tracking-[0.2em] text-text-muted uppercase">Work</p>
-      <h1 className="text-4xl font-light text-text">Projects</h1>
-      <p className="mt-4 max-w-[60ch] text-lg text-text-muted">
+      <p className="mb-4 text-meta tracking-[0.2em] text-text-muted uppercase">Work</p>
+      <h1 className="text-h1 font-light text-text">Projects</h1>
+      <p className="mt-4 max-w-measure text-lead text-read">
         Case studies from the systems behind this site — what the problem was, how it got built,
         and what I&apos;d do differently next time.
       </p>

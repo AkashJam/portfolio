@@ -23,7 +23,7 @@ export function AboutStats() {
           <b className="font-mono text-xl font-semibold text-text tabular-nums md:text-2xl">
             {stat.value}
           </b>
-          <span className="text-[12.5px] leading-snug text-text-muted">{stat.label}</span>
+          <span className="text-meta leading-snug text-text-muted">{stat.label}</span>
         </div>
       ))}
     </div>

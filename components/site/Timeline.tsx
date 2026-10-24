@@ -37,7 +37,7 @@ function TimelineRow({
 }) {
   return (
     <>
-      <div className="col-start-2 pb-2.5 pl-3.5 font-mono text-[13px] leading-relaxed text-text-muted lg:col-start-1 lg:pb-0 lg:pl-0 lg:pt-[26px] lg:text-right">
+      <div className="col-start-2 pb-2.5 pl-3.5 font-mono text-small leading-relaxed text-text-muted lg:col-start-1 lg:pb-0 lg:pl-0 lg:pt-[26px] lg:text-right">
         {when}
       </div>
       <div className="relative row-span-2 lg:row-span-1">

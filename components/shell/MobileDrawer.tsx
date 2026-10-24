@@ -26,11 +26,11 @@ import { cn } from "@/lib/utils";
 import { heroRole } from "@/data/profile";
 
 const row =
-  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-text hover:bg-panel";
+  "flex items-center gap-3 rounded-lg px-3 py-2 text-small text-text hover:bg-panel";
 
 function Hint({ children }: { children: string }) {
   return (
-    <span className="ml-auto font-mono text-[11px] text-text-muted">
+    <span className="ml-auto font-mono text-meta text-text-muted">
       {children}
     </span>
   );
@@ -49,7 +49,7 @@ function MarketStateHint() {
     <span
       data-testid="drawer-market-state"
       className={cn(
-        "ml-auto flex min-w-0 items-start gap-1.5 font-mono text-[11px] leading-snug",
+        "ml-auto flex min-w-0 items-start gap-1.5 font-mono text-meta leading-snug",
         state.state === "tripped" ? "text-brand-hover" : state.state === "unreachable" ? "text-stale" : "text-text-muted",
       )}
     >
@@ -106,7 +106,7 @@ export function MobileDrawer({
         <SheetHeader className="gap-3 border-b border-hairline">
           <div className="flex items-center gap-2.5 pr-10">
             <IdentityMark className="size-7.5 rounded-[9px]" />
-            <p className="min-w-0 truncate font-mono text-[11px] tracking-widest text-text-muted">
+            <p className="min-w-0 truncate font-mono text-meta tracking-widest text-text-muted">
               {heroRole} · Milan
             </p>
           </div>
@@ -122,7 +122,7 @@ export function MobileDrawer({
               onOpenChange(false);
               onOpenPalette();
             }}
-            className="flex items-center gap-2 rounded-lg border border-hairline bg-panel px-3 py-2 text-sm text-text-muted"
+            className="flex items-center gap-2 rounded-lg border border-hairline bg-panel px-3 py-2 text-small text-text-muted"
           >
             <Search className="size-4" />
             Search...
@@ -145,7 +145,7 @@ export function MobileDrawer({
               <Hint>PDF</Hint>
             </a>
           </nav>
-          <div className="flex gap-4 border-t border-hairline px-3 pt-4 text-xs tracking-[0.2em] text-text-muted uppercase">
+          <div className="flex gap-4 border-t border-hairline px-3 pt-4 text-meta tracking-[0.2em] text-text-muted uppercase">
             <a
               href={GITHUB_URL}
               target="_blank"

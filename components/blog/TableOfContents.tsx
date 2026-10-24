@@ -37,7 +37,7 @@ export function TableOfContents({ headings }: { headings: { id: string; text: st
 
   return (
     <nav aria-label="On this page" className="sticky top-22 hidden w-55 shrink-0 lg:block">
-      <p className="mb-3 text-xs tracking-[0.15em] text-text-muted uppercase">On this page</p>
+      <p className="mb-3 text-meta tracking-[0.15em] text-text-muted uppercase">On this page</p>
       <ul className="flex flex-col gap-2 border-l border-hairline">
         {headings.map((h) => (
           <li key={h.id}>
@@ -45,7 +45,7 @@ export function TableOfContents({ headings }: { headings: { id: string; text: st
               href={`#${h.id}`}
               aria-current={activeId === h.id ? "location" : undefined}
               className={cn(
-                "-ml-px block border-l pl-3 text-sm transition-colors",
+                "-ml-px block border-l pl-3 text-small transition-colors",
                 activeId === h.id
                   ? "border-brand text-text"
                   : "border-transparent text-text-muted hover:text-text"

@@ -2,7 +2,7 @@ import { basketAlt, largest, segments } from "@/lib/city-basket";
 import { sentence } from "@/lib/city-cost";
 import type { CityResponse } from "@/lib/market-schemas";
 
-const MUTED = "font-mono text-[12px] leading-relaxed text-text-muted";
+const MUTED = "text-meta leading-relaxed text-text-muted";
 
 /**
  * The basket split (bearing.md #114, #115): one stacked bar, a closed summary that
@@ -15,7 +15,7 @@ export function BasketBar({ city }: { city: CityResponse }) {
   const { parts, splitNote, housing, headline } = city.survey;
   if (!parts || parts.length === 0) {
     return (
-      <p data-testid="no-split" className={`${MUTED} mt-6 max-w-[72ch]`}>
+      <p data-testid="no-split" className={`${MUTED} mt-6 max-w-measure`}>
         No basket split: {sentence(splitNote ?? "the survey publishes a total, with housing included in it")}.
       </p>
     );
@@ -23,7 +23,7 @@ export function BasketBar({ city }: { city: CityResponse }) {
   const segs = segments(parts, headline.currency, housing.tag);
   return (
     <div data-testid="basket" className="mt-6">
-      <h3 className="text-[13px] font-medium text-text">What the figure is made of</h3>
+      <h3 className="text-small font-medium text-text">What the figure is made of</h3>
       <div
         role="img"
         aria-label={basketAlt(city.city, parts, headline.currency)}
@@ -51,7 +51,7 @@ export function BasketBar({ city }: { city: CityResponse }) {
         ))}
       </div>
       <details className="group mt-2">
-        <summary className="flex cursor-pointer list-none flex-wrap items-baseline justify-between gap-2 font-mono text-[13px] text-read focus-visible:outline-2 focus-visible:outline-brand [&::-webkit-details-marker]:hidden">
+        <summary className="flex cursor-pointer list-none flex-wrap items-baseline justify-between gap-2 font-mono text-small text-read focus-visible:outline-2 focus-visible:outline-brand [&::-webkit-details-marker]:hidden">
           <span data-testid="basket-largest">{largest(parts, headline.currency)}</span>
           <span className="text-text-muted">
             All {parts.length} {parts.length === 1 ? "part" : "parts"} <span aria-hidden="true">▾</span>
@@ -60,7 +60,7 @@ export function BasketBar({ city }: { city: CityResponse }) {
         <ul className="mt-3 divide-y divide-hairline rounded-[12px] border border-hairline bg-panel">
           {segs.map((s) => (
             <li key={s.label} data-testid="part" className="px-4 py-2.5">
-              <div className="flex items-baseline justify-between gap-4 font-mono text-[13px] tabular-nums">
+              <div className="flex items-baseline justify-between gap-4 font-mono text-small tabular-nums">
                 <span className="text-read">
                   {s.label}
                   {s.includesHousing && <span className="text-text-muted"> · including housing</span>}

@@ -25,7 +25,7 @@ export const metadata: Metadata = pageMetadata({
 
 // Plain-language headings, each with a lede: the explanation arrives before the
 // content, not in a footnote below it (portfolio.md §15 Phase 14).
-const LEDE = "mt-3 max-w-[66ch] text-[16.5px] leading-relaxed text-read";
+const LEDE = "mt-3 max-w-measure text-body leading-relaxed text-read";
 
 export default async function MarketPage() {
   const renderedAt = new Date().toISOString();
@@ -92,7 +92,7 @@ export default async function MarketPage() {
     <FeedFreshnessProvider seedQuoteAt={newestAsOf}>
       <Container className="space-y-16 py-16">
         <header>
-          <h1 className="text-4xl font-light">Market</h1>
+          <h1 className="text-h1 font-light">Market</h1>
           <p className={LEDE}>
             Eighteen real instruments: one bank or telecom for each of thirteen countries, and five global names, read
             once a day at the close. When one moves further than it usually does, the news that explains it is fetched,
@@ -104,7 +104,7 @@ export default async function MarketPage() {
 
         <section aria-labelledby="prices">
           <div className="flex flex-wrap items-center gap-3">
-            <h2 id="prices" className="text-2xl font-light">
+            <h2 id="prices" className="text-h2 font-medium">
               Prices
             </h2>
             <FeedStatus fresh={<SessionPill initial={initialState} />} />
@@ -122,12 +122,12 @@ export default async function MarketPage() {
               tripped={tripped}
             />
           ) : (
-            <p className="text-sm text-text-muted">Live market data is temporarily unavailable.</p>
+            <p className="text-small text-text-muted">Live market data is temporarily unavailable.</p>
           )}
         </section>
 
         <section aria-labelledby="what-moved">
-          <h2 id="what-moved" className="text-2xl font-light">
+          <h2 id="what-moved" className="text-h2 font-medium">
             What moved, and why
           </h2>
           <p className={cn(LEDE, "mb-6")}>
@@ -137,19 +137,19 @@ export default async function MarketPage() {
           {events !== null ? (
             <Ledger events={ledger} truncated={events.truncated} />
           ) : (
-            <p className="text-sm text-text-muted">The ledger is temporarily unavailable.</p>
+            <p className="text-small text-text-muted">The ledger is temporarily unavailable.</p>
           )}
         </section>
 
         <section aria-labelledby="industries">
-          <h2 id="industries" className="text-2xl font-light">
+          <h2 id="industries" className="text-h2 font-medium">
             Industries
           </h2>
           <p className={cn(LEDE, "mb-6")}>Ten worldwide industry baskets, priced once a day at the close.</p>
           {tiles.some((t) => t.row.asOf !== null) ? (
             <IndustriesStrip tiles={tiles} renderedAt={renderedAt} />
           ) : (
-            <p className="text-sm text-text-muted">Industry data is temporarily unavailable.</p>
+            <p className="text-small text-text-muted">Industry data is temporarily unavailable.</p>
           )}
         </section>
       </Container>

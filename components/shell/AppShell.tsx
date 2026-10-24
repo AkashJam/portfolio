@@ -18,7 +18,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {/* First in the tab order: keyboard and screen-reader users jump past the bar (I5). */}
       <a
         href="#main"
-        className="sr-only focus-visible:not-sr-only focus-visible:fixed focus-visible:top-3 focus-visible:left-3 focus-visible:z-50 focus-visible:rounded-lg focus-visible:border focus-visible:border-hairline focus-visible:bg-panel focus-visible:px-4 focus-visible:py-2 focus-visible:text-sm focus-visible:text-text focus-visible:outline-2 focus-visible:outline-brand"
+        className="sr-only focus-visible:not-sr-only focus-visible:fixed focus-visible:top-3 focus-visible:left-3 focus-visible:z-50 focus-visible:rounded-lg focus-visible:border focus-visible:border-hairline focus-visible:bg-panel focus-visible:px-4 focus-visible:py-2 focus-visible:text-small focus-visible:text-text focus-visible:outline-2 focus-visible:outline-brand"
       >
         Skip to content
       </a>

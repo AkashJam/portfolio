@@ -29,7 +29,7 @@ export default function ErrorPage({
       <h2 className="text-balance text-[clamp(20px,2.6vw,27px)] font-normal tracking-tight text-text">
         The feed cut out on our side.
       </h2>
-      <p className="mt-3 max-w-[46ch] text-pretty text-base text-text-muted">
+      <p className="mt-3 max-w-[46ch] text-pretty text-body text-read">
         This one is logged and already on its way to me. Trying again usually works.
       </p>
       <div className="mt-6.5 flex flex-wrap items-center justify-center gap-3">

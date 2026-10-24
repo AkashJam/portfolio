@@ -30,7 +30,7 @@ import { cn } from "@/lib/utils";
  */
 
 const SELECT =
-  "rounded-lg border border-hairline bg-panel-2 px-3 py-2 text-sm text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand";
+  "rounded-lg border border-hairline bg-panel-2 px-3 py-2 text-small text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand";
 
 export function AtlasExplorer({ rows }: { rows: AtlasRow[] }) {
   const { window: win, setWindow, windows, end } = useAtlasWindow();
@@ -74,7 +74,7 @@ export function AtlasExplorer({ rows }: { rows: AtlasRow[] }) {
       >
         <span
           id="atlas-ask-label"
-          className="mr-1 font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-text-muted"
+          className="mr-1 text-meta font-semibold uppercase tracking-[0.18em] text-text-muted"
         >
           Ask
         </span>
@@ -85,7 +85,7 @@ export function AtlasExplorer({ rows }: { rows: AtlasRow[] }) {
             aria-pressed={chip === c.id}
             onClick={() => pick(c.id)}
             className={cn(
-              "rounded-full border px-3.5 py-2 text-[12.5px] font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand",
+              "rounded-full border px-3.5 py-2 text-meta font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand",
               chip === c.id
                 ? "border-brand/55 bg-brand/20 text-text"
                 : "border-hairline bg-panel-2 text-text-muted hover:border-brand/25 hover:text-read",
@@ -105,7 +105,7 @@ export function AtlasExplorer({ rows }: { rows: AtlasRow[] }) {
           <div key={id} className="flex flex-col gap-1.5">
             <label
               htmlFor={id}
-              className="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-text-muted"
+              className="text-meta font-semibold uppercase tracking-[0.18em] text-text-muted"
             >
               {label}
             </label>
@@ -127,7 +127,7 @@ export function AtlasExplorer({ rows }: { rows: AtlasRow[] }) {
           </div>
         ))}
         <WindowSelect />
-        <p className="ml-auto text-right font-mono text-xs leading-relaxed text-text-muted">
+        <p className="ml-auto text-right font-mono text-meta leading-relaxed text-text-muted">
           {model.points.length} countries plotted
           <br />
           no weighting, no composite
@@ -165,14 +165,14 @@ export function AtlasExplorer({ rows }: { rows: AtlasRow[] }) {
         </div>
       </div>
       {model.points.some((p) => p.clip) && (
-        <p className="mt-2 text-xs text-text-muted">
+        <p className="mt-2 text-meta text-text-muted">
           <span aria-hidden="true">{"▸"} </span>
           Off the axis: a value more than twice the next highest sits on the
           edge, labelled with its figure, so the other points keep their room.
         </p>
       )}
       {model.skipped > 0 && (
-        <p className="mt-2 text-xs text-text-muted">
+        <p className="mt-2 text-meta text-text-muted">
           {model.skipped}{" "}
           {model.skipped === 1 ? "country has" : "countries have"} no figure for
           this pair and {model.skipped === 1 ? "is" : "are"} left off.

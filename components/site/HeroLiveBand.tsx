@@ -128,15 +128,15 @@ export function HeroLiveBand({
       <Container className="flex items-center justify-between gap-4 pb-3.5">
         <FeedStatus
           tracker={feed}
-          className="px-3 py-1.5 text-xs font-semibold"
+          className="px-3 py-1.5 text-meta font-semibold"
           fresh={
             frozen ? (
-              <span className="inline-flex flex-none items-center gap-2 rounded-full border border-hairline bg-panel px-3 py-1.5 font-mono text-xs font-semibold text-text-muted">
+              <span className="inline-flex flex-none items-center gap-2 rounded-full border border-hairline bg-panel px-3 py-1.5 font-mono text-meta font-semibold text-text-muted">
                 <span aria-hidden="true" className="size-[7px] rounded-full border-[1.5px] border-text-muted" />
                 CLOSED
               </span>
             ) : (
-              <span className="inline-flex flex-none items-center gap-2 rounded-full border border-market-up/35 bg-market-up/10 px-3 py-1.5 font-mono text-xs font-semibold text-market-up">
+              <span className="inline-flex flex-none items-center gap-2 rounded-full border border-market-up/35 bg-market-up/10 px-3 py-1.5 font-mono text-meta font-semibold text-market-up">
                 <span aria-hidden="true" className="size-1.5 rounded-full bg-market-up motion-safe:animate-pulse" />
                 LIVE
               </span>
@@ -147,7 +147,7 @@ export function HeroLiveBand({
             stacking. A flex item with non-visible overflow gets an automatic min-width
             of 0, so it shrinks to the space left by the flex-none siblings. The picker
             popover is portalled, so the clip does not touch it. */}
-        <div className="flex min-w-0 flex-1 items-center gap-5 font-mono text-[13px] text-text-muted">
+        <div className="flex min-w-0 flex-1 items-center gap-5 font-mono text-small text-text-muted">
           <BandPicker entries={entries} rows={rows} active={active} frozen={frozen} onSelect={setActive} />
           <span data-testid="band-quote" className="min-w-0 flex-1 truncate">
             <b className="font-semibold text-text">{row.asOf === null ? "—" : row.price.toFixed(2)}</b>{" "}
@@ -163,10 +163,10 @@ export function HeroLiveBand({
             </span>
           </span>
           {/* The mock's --text-faint fails AA at this size; text-muted is the established swap. */}
-          <span className="hidden flex-none text-[11px] md:inline-flex">⌘K for all</span>
+          <span className="hidden flex-none text-meta md:inline-flex">⌘K for all</span>
         </div>
         {/* Transport only, no cadence: real trades have no fixed one. Freshness is the pill's job. */}
-        <span className="hidden flex-none font-mono text-[11px] tracking-[0.1em] text-text-muted uppercase md:inline-flex">
+        <span className="hidden flex-none text-meta tracking-[0.1em] text-text-muted uppercase md:inline-flex">
           SSE
         </span>
       </Container>
@@ -196,7 +196,7 @@ export function HeroLiveBand({
             />
           )
         ) : (
-          <div className="flex h-56 w-full items-center justify-center font-mono text-xs text-text-muted md:h-64">
+          <div className="flex h-56 w-full items-center justify-center font-mono text-meta text-text-muted md:h-64">
             {view.status === "none" ? `No line for ${placeOf(current)} yet.` : " "}
           </div>
         )}

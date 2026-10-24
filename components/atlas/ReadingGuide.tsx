@@ -13,10 +13,10 @@ export function ReadingGuide() {
   const next = String(Number(end) + 1);
   return (
     <div>
-      <p className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-brand-hover">
+      <p className="mb-2 text-meta font-semibold uppercase tracking-[0.16em] text-brand-hover">
         How to read this
       </p>
-      <p className="text-[13.5px] leading-[1.65] text-text-muted">
+      <p className="text-small leading-[1.65] text-text-muted">
         Every figure is published by someone else and carries their name and
         date, and{" "}
         <b className="font-medium text-read">every figure here is national</b>:

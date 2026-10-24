@@ -42,8 +42,8 @@ function FlowNode({ label, active }: { label: string; active: boolean }) {
     <span
       className={
         active
-          ? "rounded-lg border border-brand bg-brand/10 px-3 py-1.5 font-mono text-xs whitespace-nowrap text-text"
-          : "rounded-lg border border-hairline bg-panel-2 px-3 py-1.5 font-mono text-xs whitespace-nowrap text-text-muted"
+          ? "rounded-lg border border-brand bg-brand/10 px-3 py-1.5 font-mono text-meta whitespace-nowrap text-text"
+          : "rounded-lg border border-hairline bg-panel-2 px-3 py-1.5 font-mono text-meta whitespace-nowrap text-text-muted"
       }
     >
       {label}

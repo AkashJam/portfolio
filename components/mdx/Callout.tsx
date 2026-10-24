@@ -20,7 +20,7 @@ export function Callout({
   children: React.ReactNode;
 }) {
   return (
-    <div className={cn("not-prose my-6 rounded-lg border-l-4 p-4 text-sm", VARIANTS[variant])}>
+    <div className={cn("not-prose my-6 rounded-lg border-l-4 p-4 text-small", VARIANTS[variant])}>
       {label && <p className="mb-1 font-medium">{label}</p>}
       <div className="text-text-muted [&>p]:m-0">{children}</div>
     </div>

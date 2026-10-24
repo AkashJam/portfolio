@@ -13,7 +13,7 @@ export function ProofStrip() {
     <div
       aria-label="At a glance"
       data-testid="proof-strip"
-      className="mt-7 flex w-fit max-w-full flex-wrap items-center gap-x-4 gap-y-2 border-t border-hairline pt-4.5 font-mono text-[13px] leading-snug text-text-muted md:gap-x-5.5"
+      className="mt-7 flex w-fit max-w-full flex-wrap items-center gap-x-4 gap-y-2 border-t border-hairline pt-4.5 font-mono text-small leading-snug text-text-muted md:gap-x-5.5"
     >
       <span>
         <b className="font-semibold text-text tabular-nums">{fullStackYears()} yrs</b> full-stack

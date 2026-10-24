@@ -1,7 +1,7 @@
 import { CITY_H, CITY_W, cityAlt, cityGeometry, type Scale } from "@/lib/city-path";
 import type { CityChart } from "@/lib/market-schemas";
 
-const MUTED = "font-mono text-[12px] leading-relaxed text-text-muted";
+const MUTED = "text-meta leading-relaxed text-text-muted";
 
 /**
  * One long series on a city page (Phase 16 step 4). The line is server-built SVG;
@@ -32,7 +32,7 @@ export function LongChart({
   return (
     <section aria-labelledby={`${id}-h`} data-testid={`chart-${id}`}>
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-        <h3 id={`${id}-h`} className="text-[15px] font-medium text-text">
+        <h3 id={`${id}-h`} className="text-body font-medium text-text">
           {title}
         </h3>
         <span className={MUTED}>
@@ -62,14 +62,14 @@ export function LongChart({
                 />
               </svg>
               {g.yTicks.map((t) => (
-                <span key={t.label} aria-hidden="true" className="absolute -left-11 w-10 -translate-y-1/2 text-right font-mono text-[11px] text-text-muted" style={{ top: `${t.pct}%` }}>
+                <span key={t.label} aria-hidden="true" className="absolute -left-11 w-10 -translate-y-1/2 text-right font-mono text-meta text-text-muted" style={{ top: `${t.pct}%` }}>
                   {t.label}
                 </span>
               ))}
             </div>
             <div aria-hidden="true" className="relative mt-1 h-4">
               {g.xTicks.map((t) => (
-                <span key={t.label} className="absolute -translate-x-1/2 font-mono text-[11px] text-text-muted" style={{ left: `${t.pct}%` }}>
+                <span key={t.label} className="absolute -translate-x-1/2 font-mono text-meta text-text-muted" style={{ left: `${t.pct}%` }}>
                   {t.label}
                 </span>
               ))}

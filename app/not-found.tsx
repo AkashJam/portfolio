@@ -15,16 +15,16 @@ export default function NotFound() {
       <h2 className="text-balance text-[clamp(20px,2.6vw,27px)] font-normal tracking-tight text-text">
         This page drifted off the chart.
       </h2>
-      <p className="mt-3 max-w-[46ch] text-pretty text-base text-text-muted">
+      <p className="mt-3 max-w-[46ch] text-pretty text-body text-read">
         The link may be broken, or the page may have moved.
       </p>
       <div className="mt-6.5 flex flex-wrap items-center justify-center gap-3">
         <Button render={<Link href="/" />} nativeButton={false}>
           ← Back home
         </Button>
-        <span className="inline-flex h-10 items-center gap-1.5 rounded-lg border border-hairline px-4 text-sm text-text-muted">
+        <span className="inline-flex h-10 items-center gap-1.5 rounded-lg border border-hairline px-4 text-small text-text-muted">
           Press{" "}
-          <kbd className="rounded border border-hairline bg-panel-2 px-1.5 py-0.5 font-mono text-xs text-text">
+          <kbd className="rounded border border-hairline bg-panel-2 px-1.5 py-0.5 font-mono text-meta text-text">
             ⌘K
           </kbd>{" "}
           to search

@@ -106,7 +106,7 @@ export function Scatter({
               x={PLOT.right - 4}
               y={model.zeroY - 6}
               textAnchor="end"
-              className="fill-text-muted font-mono text-[10.5px]"
+              className="fill-text-muted font-mono text-meta"
             >
               {ym.zeroLabel}
             </text>
@@ -128,7 +128,7 @@ export function Scatter({
             x={model.diagonal.x2 - 6}
             y={model.diagonal.y2 + 16}
             textAnchor="end"
-            className="fill-text-muted font-mono text-[10.5px]"
+            className="fill-text-muted font-mono text-meta"
           >
             kept pace with prices
           </text>
@@ -158,7 +158,7 @@ export function Scatter({
           x={PLOT.left - 10}
           y={py(t) + 4}
           textAnchor="end"
-          className="fill-text-muted font-mono text-[11px]"
+          className="fill-text-muted font-mono text-meta"
         >
           {ym.tick(t)}
         </text>
@@ -169,7 +169,7 @@ export function Scatter({
           x={px(t)}
           y={PLOT.bottom + 20}
           textAnchor="middle"
-          className="fill-text-muted font-mono text-[11px]"
+          className="fill-text-muted font-mono text-meta"
         >
           {xm.tick(t)}
         </text>
@@ -178,7 +178,7 @@ export function Scatter({
         x={(PLOT.left + PLOT.right) / 2}
         y={PLOT.height - 12}
         textAnchor="middle"
-        className="fill-text-muted font-mono text-[11px] font-semibold uppercase tracking-[0.14em]"
+        className="fill-text-muted text-meta font-semibold uppercase tracking-[0.14em]"
       >
         {xm.title}
       </text>
@@ -187,7 +187,7 @@ export function Scatter({
         y={(PLOT.top + PLOT.bottom) / 2}
         textAnchor="middle"
         transform={`rotate(-90 15 ${(PLOT.top + PLOT.bottom) / 2})`}
-        className="fill-text-muted font-mono text-[11px] font-semibold uppercase tracking-[0.14em]"
+        className="fill-text-muted text-meta font-semibold uppercase tracking-[0.14em]"
       >
         {ym.title}
       </text>
@@ -240,7 +240,7 @@ export function Scatter({
                 x={p.label.x}
                 y={p.label.y}
                 textAnchor={p.label.anchor}
-                className="fill-read font-sans text-[12.5px]"
+                className="fill-read font-sans text-meta"
               >
                 {p.label.text}
               </text>

@@ -17,7 +17,7 @@ export function LedgerHead({ events }: { events: LedgerEvent[] }) {
     <p
       data-testid="ledger-line"
       data-kind={head.kind}
-      className="mt-2.5 flex items-start gap-3 font-mono text-[13px] leading-normal text-text-muted"
+      className="mt-2.5 flex items-start gap-3 font-mono text-small leading-normal text-text-muted"
     >
       <DotFor state={state} decorative className="mt-1.5 size-2" />
       <span>

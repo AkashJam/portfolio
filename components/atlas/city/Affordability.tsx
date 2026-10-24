@@ -1,7 +1,7 @@
 import { affordView } from "@/lib/city-afford";
 import type { CityResponse } from "@/lib/market-schemas";
 
-const MUTED = "font-mono text-[12px] leading-relaxed text-text-muted";
+const MUTED = "text-meta leading-relaxed text-text-muted";
 
 /**
  * *Derived on this page · affordability* (Phase 16 step 5; mockups/atlas-v1/atlas-city.html):
@@ -24,17 +24,17 @@ export function Affordability({ city }: { city: CityResponse }) {
         <span data-testid="afford-ratio" className="font-mono text-4xl tabular-nums text-text">
           {v.ratio ?? "—"}
         </span>
-        <span className="max-w-[60ch] text-[15px] font-normal text-read">{v.sentence}</span>
+        <span className="max-w-measure text-body font-normal text-read">{v.sentence}</span>
       </h2>
 
       <dl className="mt-4 grid gap-x-8 gap-y-3 sm:grid-cols-2">
         <div data-testid="afford-cost">
-          <dt className="text-[13px] text-text-muted">{v.costLabel}</dt>
-          <dd className="font-mono text-[13.5px] leading-relaxed text-read">{v.costLine}</dd>
+          <dt className="text-small text-text-muted">{v.costLabel}</dt>
+          <dd className="font-mono text-small leading-relaxed text-read">{v.costLine}</dd>
         </div>
         <div data-testid="afford-spending">
-          <dt className="text-[13px] text-text-muted">{v.spendingLabel}</dt>
-          <dd className="font-mono text-[13.5px] leading-relaxed text-read">{v.spendingLine}</dd>
+          <dt className="text-small text-text-muted">{v.spendingLabel}</dt>
+          <dd className="font-mono text-small leading-relaxed text-read">{v.spendingLine}</dd>
         </div>
       </dl>
 
@@ -44,7 +44,7 @@ export function Affordability({ city }: { city: CityResponse }) {
         </p>
       )}
       {v.caveat && (
-        <p data-testid="afford-caveat" className="mt-2 max-w-[72ch] text-[13.5px] leading-relaxed text-read">
+        <p data-testid="afford-caveat" className="mt-2 max-w-measure text-small leading-relaxed text-read">
           {v.caveat}
         </p>
       )}
@@ -53,7 +53,7 @@ export function Affordability({ city }: { city: CityResponse }) {
           {v.reason}.
         </p>
       )}
-      <p className="mt-4 max-w-[72ch] text-[13.5px] leading-relaxed text-text-muted">
+      <p className="mt-4 max-w-measure text-small leading-relaxed text-text-muted">
         A ratio of two sources, both dated. Neither publishes it, so it never sits on /atlas, where it would put two different survey methods into one
         comparable-looking column. Here it reads one city&apos;s figure against its own country&apos;s spending, with both legs and their years in view.
       </p>

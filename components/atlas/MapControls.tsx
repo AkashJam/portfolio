@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils";
  */
 
 const button =
-  "inline-flex items-center gap-2 rounded-lg border border-hairline bg-panel-2 px-3.5 py-2.5 font-mono text-[12.5px] text-text-muted hover:border-brand/25 hover:text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-40 disabled:hover:text-text-muted";
+  "inline-flex items-center gap-2 rounded-lg border border-hairline bg-panel-2 px-3.5 py-2.5 font-mono text-meta text-text-muted hover:border-brand/25 hover:text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-40 disabled:hover:text-text-muted";
 
 /** Years worth a label on the track: both ends and the multiples of five clear of them. */
 function labelled(b: YearBounds): number[] {
@@ -127,7 +127,7 @@ export function MapControls({
                 <span
                   key={y}
                   aria-hidden="true"
-                  className="absolute top-6 -translate-x-1/2 font-mono text-[11px] leading-none text-text-muted"
+                  className="absolute top-6 -translate-x-1/2 font-mono text-meta leading-none text-text-muted"
                   style={{ left: calc(at(y)) }}
                 >
                   {y}
@@ -135,7 +135,7 @@ export function MapControls({
               ))}
             </div>
             <span
-              className="min-w-[3.5rem] text-center font-mono text-base font-semibold tabular-nums text-text"
+              className="min-w-[3.5rem] text-center font-mono text-body font-semibold tabular-nums text-text"
               aria-hidden="true"
             >
               {state.year}
@@ -155,7 +155,7 @@ export function MapControls({
               </button>
               <span
                 aria-live="polite"
-                className="flex min-w-[76px] items-center justify-center border-x border-hairline bg-panel px-3.5 font-mono text-base font-semibold tabular-nums text-text"
+                className="flex min-w-[76px] items-center justify-center border-x border-hairline bg-panel px-3.5 font-mono text-body font-semibold tabular-nums text-text"
               >
                 {state.year}
               </span>
@@ -169,7 +169,7 @@ export function MapControls({
                 {"›"}
               </button>
             </div>
-            <span className="font-mono text-[11.5px] text-text-muted">
+            <span className="font-mono text-meta text-text-muted">
               of {bounds.first}
               {"–"}
               {bounds.last}

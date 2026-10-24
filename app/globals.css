@@ -69,6 +69,28 @@
   --animate-loading-sweep: loading-sweep 2s ease-in-out infinite;
 
   --color-read: var(--read);
+
+  /* D9's named type scale (portfolio.md §17, mockups/site-review/tokens.html).
+     `small` is the 14px "secondary" tier: `text-secondary` is already
+     shadcn's colour utility (--color-secondary), so a font-size of that name
+     would be two utilities in one class. h1 is the one fluid size. */
+  --text-meta: 12px;
+  --text-meta--line-height: 1.4;
+  --text-small: 14px;
+  --text-small--line-height: 1.55;
+  --text-body: 16px;
+  --text-body--line-height: 1.65;
+  --text-lead: 18px;
+  --text-lead--line-height: 1.6;
+  --text-h3: 22px;
+  --text-h3--line-height: 1.3;
+  --text-h2: 30px;
+  --text-h2--line-height: 1.2;
+  --text-h1: clamp(34px, 5.5vw, 56px);
+  --text-h1--line-height: 1.05;
+
+  /* D9's measure: about 60ch (from 68ch). `max-w-measure`. */
+  --container-measure: 60ch;
 }
 
 @keyframes loading-sweep {
@@ -240,7 +262,7 @@
    components/mdx/MDXRenderer.tsx) rather than the plugin's own default
    gray scale, keeping every color single-sourced in one place. */
 .prose {
-  --tw-prose-body: var(--text-muted);
+  --tw-prose-body: var(--read);
   --tw-prose-headings: var(--text);
   --tw-prose-lead: var(--read);
   --tw-prose-links: var(--brand-hover);
@@ -256,6 +278,22 @@
   --tw-prose-pre-bg: var(--panel);
   --tw-prose-th-borders: var(--hairline);
   --tw-prose-td-borders: var(--hairline);
+  /* D9: body 16, lead 18, h2 30 and h3 22 at weight 500 (h1 stays light, and is
+     the page's, not the prose's). The plugin's own scale would otherwise win. */
+  font-size: var(--text-body);
+}
+.prose :where(h2) {
+  font-size: var(--text-h2);
+  line-height: 1.2;
+  font-weight: 500;
+}
+.prose :where(h3) {
+  font-size: var(--text-h3);
+  line-height: 1.3;
+  font-weight: 500;
+}
+.prose :where(.lead) {
+  font-size: var(--text-lead);
 }
 
 @layer base {

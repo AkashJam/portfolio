@@ -15,7 +15,7 @@ export function RecordChart({ record }: { record: SensorRecord }) {
   const base = record.baseSession;
   if (!g || !base) {
     return (
-      <p data-testid="record-chart-empty" className="font-mono text-[12.5px] text-text-muted">
+      <p data-testid="record-chart-empty" className="font-mono text-meta text-text-muted">
         The series is too short to draw: it needs two sessions.
       </p>
     );
@@ -55,7 +55,7 @@ export function RecordChart({ record }: { record: SensorRecord }) {
           <circle key={d.date} data-testid="record-dot" cx={d.x} cy={d.y} r={5} style={{ fill: "var(--brand-hover)" }} />
         ))}
       </svg>
-      <figcaption className="mt-2 font-mono text-[12px] leading-relaxed text-text-muted">
+      <figcaption className="mt-2 font-mono text-meta leading-relaxed text-text-muted">
         solid: {record.symbol}
         {bench ? ` · dotted: ${bench}` : ""} · {bench ? "both " : ""}at 100 on {sessionShort(base)}, each close divided by the
         close that day · {g.sessions} sessions to {sessionShort(last)} · a dot is a session that tripped

@@ -11,11 +11,11 @@ import type { MarketState } from "@/lib/market-state";
 export function SessionPill({ initial }: { initial: MarketState }) {
   const closed = useSessionState(initial).session === "closed";
   return closed ? (
-    <span className="rounded-full border border-hairline bg-panel-2 px-2.5 py-1 font-mono text-[11px] font-medium text-text-muted">
+    <span className="rounded-full border border-hairline bg-panel-2 px-2.5 py-1 font-mono text-meta font-medium text-text-muted">
       ○ SSE connected
     </span>
   ) : (
-    <span className="rounded-full border border-market-up/30 bg-panel-2 px-2.5 py-1 font-mono text-[11px] font-medium text-market-up">
+    <span className="rounded-full border border-market-up/30 bg-panel-2 px-2.5 py-1 font-mono text-meta font-medium text-market-up">
       ● SSE live
     </span>
   );

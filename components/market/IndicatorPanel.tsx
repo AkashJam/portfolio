@@ -28,7 +28,7 @@ export function IndicatorPanel({ indicators, bars }: { indicators: IndicatorSeri
         : bars < RSI_MIN_BARS
           ? `RSI(14) needs ${RSI_MIN_BARS} bars; this view has ${bars}.`
           : "RSI unavailable right now.";
-    return <p className="text-sm text-text-muted">{message}</p>;
+    return <p className="text-small text-text-muted">{message}</p>;
   }
 
   const guide = { stroke: "var(--color-text-faint)", strokeDasharray: "3 3", vectorEffect: "non-scaling-stroke" } as const;

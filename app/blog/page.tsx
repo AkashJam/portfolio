@@ -25,9 +25,9 @@ export default function BlogPage() {
     <div className="relative overflow-hidden pt-16 pb-16">
       <StarField />
       <Container className="relative z-10">
-        <p className="mb-4 text-xs tracking-[0.2em] text-text-muted uppercase">Blog</p>
-        <h1 className="text-4xl font-light text-text">Notes &amp; engineering</h1>
-        <p className="mt-4 max-w-[60ch] text-lg text-text-muted">
+        <p className="mb-4 text-meta tracking-[0.2em] text-text-muted uppercase">Blog</p>
+        <h1 className="text-h1 font-light text-text">Notes &amp; engineering</h1>
+        <p className="mt-4 max-w-measure text-lead text-read">
           Field notes on distributed systems, performance, and the occasional war story — filter by
           domain.
         </p>

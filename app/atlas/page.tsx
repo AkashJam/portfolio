@@ -39,15 +39,15 @@ export default async function AtlasPage() {
     <>
       <section id="compare">
         <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className="text-lg font-medium">Compare</h2>
-          <span className="text-sm text-text-muted">
+          <h2 className="text-lead font-medium">Compare</h2>
+          <span className="text-small text-text-muted">
             any two of the eight measures
           </span>
         </div>
         {atlas && atlas.rows.length > 0 ? (
           <AtlasExplorer rows={atlas.rows} />
         ) : (
-          <p className="text-sm text-text-muted">
+          <p className="text-small text-text-muted">
             Atlas data is temporarily unavailable.
           </p>
         )}
@@ -57,8 +57,8 @@ export default async function AtlasPage() {
         <WorldMap rows={atlas.rows} />
       ) : (
         <section id="map">
-          <h2 className="mb-4 text-lg font-medium">Where and when</h2>
-          <p className="text-sm text-text-muted">
+          <h2 className="mb-4 text-lead font-medium">Where and when</h2>
+          <p className="text-small text-text-muted">
             Atlas data is temporarily unavailable.
           </p>
         </section>
@@ -66,14 +66,14 @@ export default async function AtlasPage() {
 
       <section id="countries">
         <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className="text-lg font-medium">Countries</h2>
+          <h2 className="text-lead font-medium">Countries</h2>
           {atlas && <WindowHint />}
         </div>
         {atlas && atlas.rows.length > 0 ? (
           <>
             <TierOne />
             <CountriesTable rows={atlas.rows} />
-            <div className="mt-4 max-w-[78ch] space-y-2 text-[13px] leading-relaxed text-text-muted">
+            <div className="mt-4 max-w-measure space-y-2 text-small leading-relaxed text-text-muted">
               <p>
                 <b className="font-medium text-read">
                   Market answers a different question about the same countries.
@@ -84,7 +84,7 @@ export default async function AtlasPage() {
             </div>
           </>
         ) : (
-          <p className="text-sm text-text-muted">
+          <p className="text-small text-text-muted">
             Atlas data is temporarily unavailable.
           </p>
         )}
@@ -95,8 +95,8 @@ export default async function AtlasPage() {
   return (
     <Container className="space-y-10 py-16">
       <header>
-        <h1 className="text-4xl font-light">Atlas</h1>
-        <p className="mt-3 max-w-[66ch] text-[16.5px] leading-relaxed text-read">
+        <h1 className="text-h1 font-light">Atlas</h1>
+        <p className="mt-3 max-w-measure text-body leading-relaxed text-read">
           {atlas ? `${cap(count(atlas.rows.length))} countries` : "Countries"},
           each labelled by a city, {count(MEASURES.length)} measures. What
           living standards look like for the median person: what their savings,
@@ -105,7 +105,7 @@ export default async function AtlasPage() {
           is ranked and nothing is scored; put two measures on the axes and read
           it yourself.
         </p>
-        <p className="mt-3.5 max-w-[66ch] border-t border-hairline pt-3.5 font-mono text-[12.5px] leading-relaxed text-text-muted">
+        <p className="mt-3.5 max-w-measure border-t border-hairline pt-3.5 font-mono text-meta leading-relaxed text-text-muted">
           Every figure carries its source and the year it describes, one click
           away in the column header. Measures that could not clear that bar for
           all {atlas ? count(atlas.rows.length) : "the"} countries were left out

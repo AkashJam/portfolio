@@ -50,7 +50,7 @@ export default async function BlogPostPage({ params }: PageProps<"/blog/[slug]">
         <article className="min-w-0">
           {/* Only the link is link-coloured — colouring the whole crumb made
               the category, which isn't a link, look clickable. */}
-          <p className="text-xs text-text-muted">
+          <p className="text-meta text-text-muted">
             <Link href="/blog" className="text-brand-hover underline underline-offset-2">
               Blog
             </Link>{" "}
@@ -61,10 +61,10 @@ export default async function BlogPostPage({ params }: PageProps<"/blog/[slug]">
               Draft — pending review
             </Badge>
           )}
-          <h1 className="mt-2 max-w-[24ch] text-[clamp(28px,3.4vw,40px)] leading-[1.18] font-light text-text">
+          <h1 className="mt-2 max-w-[24ch] text-h1 leading-[1.18] font-light text-text">
             {post.title}
           </h1>
-          <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[13px] text-text-muted">
+          <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-small text-text-muted">
             <span>
               {dayMonthYear(post.date)}
             </span>
@@ -87,7 +87,7 @@ export default async function BlogPostPage({ params }: PageProps<"/blog/[slug]">
             ))}
           </div>
 
-          <div className="mt-7 max-w-[68ch]">
+          <div className="mt-7 max-w-measure">
             <MDXRenderer code={post.mdx} />
           </div>
         </article>

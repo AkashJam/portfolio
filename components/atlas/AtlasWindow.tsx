@@ -69,7 +69,7 @@ export function WindowSelect() {
 export function WindowHint() {
   const { window, end } = useAtlasWindow();
   return (
-    <span className="text-sm text-text-muted">
+    <span className="text-small text-text-muted">
       labelled by a city {"·"} change {windowLabel(window, end)} {"·"} click a
       header to sort
     </span>

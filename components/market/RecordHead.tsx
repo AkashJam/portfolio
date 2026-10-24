@@ -3,7 +3,7 @@ import Link from "next/link";
 import { sessionShort, signedPercent } from "@/lib/ledger";
 import type { SensorRecord } from "@/lib/market-schemas";
 
-const FAINT = "font-mono text-[12.5px] leading-relaxed text-text-muted";
+const FAINT = "text-meta leading-relaxed text-text-muted";
 
 /**
  * The top of a sensor's record (Phase 16 step 2; mockups/market-v2/market-detail.html):
@@ -31,7 +31,7 @@ export function RecordHead({ record, priceHref }: { record: SensorRecord; priceH
 
   return (
     <header>
-      <nav aria-label="Breadcrumb" className="font-mono text-xs text-text-muted">
+      <nav aria-label="Breadcrumb" className="text-meta text-text-muted">
         <Link href="/market" className="hover:text-read focus-visible:outline-2 focus-visible:outline-brand">
           Market
         </Link>
@@ -40,8 +40,8 @@ export function RecordHead({ record, priceHref }: { record: SensorRecord; priceH
       </nav>
       <div className="mt-4 flex flex-wrap items-end justify-between gap-x-8 gap-y-3">
         <div>
-          <h1 className="text-4xl font-light sm:text-5xl">{title}</h1>
-          <p className="mt-2 max-w-[64ch] text-[15.5px] text-text-muted">
+          <h1 className="text-h1 font-light">{title}</h1>
+          <p className="mt-2 max-w-measure text-body text-read">
             {what} · {bench}
           </p>
           {record.thin && (
@@ -53,13 +53,13 @@ export function RecordHead({ record, priceHref }: { record: SensorRecord; priceH
         {last && pct !== null && (
           <p data-testid="record-last" className="text-right font-mono tabular-nums">
             <span className="block text-3xl text-text">{last.close.toFixed(2)}</span>
-            <span className="block text-sm text-text-muted">
+            <span className="block text-small text-text-muted">
               {signedPercent(pct)} · last close, {sessionShort(last.date)}, against {sessionShort(last.prevDate)}
             </span>
           </p>
         )}
       </div>
-      <p className="mt-4 text-[14px]">
+      <p className="mt-4 text-small">
         <Link
           href={priceHref}
           data-testid="price-link"

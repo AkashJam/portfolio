@@ -62,7 +62,7 @@ export function SymbolChartPanel({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
-        <h2 className="text-lg font-medium">Price · candlesticks</h2>
+        <h2 className="text-lead font-medium">Price · candlesticks</h2>
         <IntervalSwitcher value={selectedInterval} onChange={handleChange} />
       </div>
       <div className={loading ? "opacity-60 transition-opacity" : "transition-opacity"}>

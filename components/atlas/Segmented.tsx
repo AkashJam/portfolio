@@ -24,7 +24,7 @@ export function Segmented<T extends string>({
     <div className={cn("flex flex-col gap-1.5", className)}>
       <span
         id={id}
-        className="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-text-muted"
+        className="text-meta font-semibold uppercase tracking-[0.18em] text-text-muted"
       >
         {label}
       </span>
@@ -43,7 +43,7 @@ export function Segmented<T extends string>({
               aria-checked={on}
               onClick={() => onChange(o.value)}
               className={cn(
-                "border-r border-hairline px-3 py-2 font-mono text-[12.5px] last:border-r-0 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand",
+                "border-r border-hairline px-3 py-2 font-mono text-meta last:border-r-0 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand",
                 on
                   ? "bg-brand/25 text-text"
                   : "bg-panel-2 text-text-muted hover:text-read",

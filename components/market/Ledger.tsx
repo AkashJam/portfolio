@@ -22,7 +22,7 @@ import {
 import { cn } from "@/lib/utils";
 
 const DIRECTION = { up: "text-market-up", down: "text-market-down" } as const;
-const FAINT = "font-mono text-[12px] leading-relaxed text-text-muted";
+const FAINT = "text-meta leading-relaxed text-text-muted";
 
 /**
  * *What moved, and why*: the ledger (portfolio.md §15 Phase 15 step 7). A record,
@@ -37,12 +37,12 @@ export function Ledger({ events, truncated }: { events: LedgerEvent[]; truncated
   if (events.length === 0) {
     return (
       <div data-testid="ledger-empty" className="rounded-2xl border border-dashed border-brand/30 bg-panel px-7 py-8">
-        <h3 className="text-[19px] font-semibold text-read">Nothing has tripped yet.</h3>
-        <p className="mt-2.5 max-w-[72ch] text-[14.5px] leading-relaxed text-text-muted">
+        <h3 className="text-lead font-semibold text-read">Nothing has tripped yet.</h3>
+        <p className="mt-2.5 max-w-measure text-small leading-relaxed text-text-muted">
           The trigger is on and watching. It judges every sensor once, at the close, against the sixty daily moves before it,
           and the history it needs is recorded. When a move leaves its band, it appears here with the news that explains it.
         </p>
-        <p className="mt-3.5 max-w-[76ch] text-[13px] leading-relaxed text-text-muted">
+        <p className="mt-3.5 max-w-measure text-small leading-relaxed text-text-muted">
           An empty list is a statement, not a gap: a dead feed says it is dead, a closed market says it is closed, and a
           watching trigger with nothing to report says that.
         </p>
@@ -64,7 +64,7 @@ export function Ledger({ events, truncated }: { events: LedgerEvent[]; truncated
           The ledger holds more entries than this page lists; the oldest are not shown.
         </p>
       )}
-      <div className="mt-6 max-w-[76ch] space-y-3 text-[13px] leading-relaxed text-text-muted">
+      <div className="mt-6 max-w-measure space-y-3 text-small leading-relaxed text-text-muted">
         <p>
           <b className="font-medium text-read">This replaces the general news feed.</b> Nothing on this list arrived
           unprompted: each entry is a move that left its band, with the news fetched afterwards to explain it.
@@ -102,7 +102,7 @@ function LeadEntry({ event }: { event: LedgerEvent }) {
       }
     >
       <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-        <h3 className="text-2xl font-semibold tracking-tight text-text">{entryHeading(event)}</h3>
+        <h3 className="text-h3 font-medium tracking-tight text-text">{entryHeading(event)}</h3>
         <span className={FAINT}>{entryVia(event)}</span>
       </div>
       <Body event={event} recordLink />
@@ -121,18 +121,18 @@ export function RowEntry({ event, recordLink = true }: { event: LedgerEvent; rec
   return (
     <details id={event.id} data-testid="ledger-row" className="group scroll-mt-24 bg-panel">
       <summary className="grid cursor-pointer list-none grid-cols-[3.2rem_1fr_auto_auto_1rem] items-center gap-x-3 px-5 py-[15px] hover:bg-panel-2 focus-visible:outline-2 focus-visible:outline-brand sm:grid-cols-[4.75rem_1fr_5.4rem_4.25rem_1.25rem] sm:gap-x-4 sm:px-[26px] [&::-webkit-details-marker]:hidden">
-        <span className="font-mono text-[12px] tabular-nums text-text-muted">{sessionShort(event.sessionDate)}</span>
-        <span className="min-w-0 text-[14.5px] font-medium text-text">
+        <span className="font-mono text-meta tabular-nums text-text-muted">{sessionShort(event.sessionDate)}</span>
+        <span className="min-w-0 text-small font-medium text-text">
           {entryHeading(event)}
-          <span className="ml-2 font-mono text-[12px] font-normal text-text-muted">{event.symbol}</span>
+          <span className="ml-2 font-mono text-meta font-normal text-text-muted">{event.symbol}</span>
         </span>
-        <span className={cn("text-right font-mono text-[13.5px] font-semibold tabular-nums", DIRECTION[dir])}>
+        <span className={cn("text-right font-mono text-small font-semibold tabular-nums", DIRECTION[dir])}>
           {pct === null ? "—" : signedPercent(pct)}
         </span>
-        <span className="text-right font-mono text-[13px] font-semibold tabular-nums text-text-muted">
+        <span className="text-right font-mono text-small font-semibold tabular-nums text-text-muted">
           {sigmaLabel(event.trigger.z)}
         </span>
-        <span aria-hidden="true" className="text-center text-[12px] text-text-muted group-open:text-brand-hover">
+        <span aria-hidden="true" className="text-center text-meta text-text-muted group-open:text-brand-hover">
           <span className="group-open:hidden">▾</span>
           <span className="hidden group-open:inline">▴</span>
         </span>
@@ -152,13 +152,13 @@ function Body({ event, compact = false, recordLink }: { event: LedgerEvent; comp
       {price ? (
         <div className={cn("flex flex-wrap items-baseline gap-x-3.5 gap-y-1 font-mono tabular-nums", compact ? "mt-4" : "mt-3")}>
           <span className={cn("font-semibold text-text", compact ? "text-[28px]" : "text-[34px]")}>{price.close.toFixed(2)}</span>
-          <span className={cn("text-[15px] font-semibold", DIRECTION[dir])}>{signedChange(price.change)}</span>
-          <span className={cn("text-[15px] font-semibold", DIRECTION[dir])}>{signedPercent(price.changePercent)}</span>
+          <span className={cn("text-body font-semibold", DIRECTION[dir])}>{signedChange(price.change)}</span>
+          <span className={cn("text-body font-semibold", DIRECTION[dir])}>{signedPercent(price.changePercent)}</span>
         </div>
       ) : (
         <p className={cn(FAINT, "mt-3")}>The price move is unavailable: the daily bars for this session could not be read.</p>
       )}
-      <p className="mt-2 text-[14.5px] text-read">{contextLine(event)}</p>
+      <p className="mt-2 text-small text-read">{contextLine(event)}</p>
       {band && (
         <>
           <BandChart
@@ -172,7 +172,7 @@ function Body({ event, compact = false, recordLink }: { event: LedgerEvent; comp
       <SplitBlock event={event} />
       <CoverageBlock event={event} />
       {recordLink && (
-        <p className="mt-5 text-[13.5px]">
+        <p className="mt-5 text-small">
           <Link
             href={recordHref(event)}
             data-testid="record-link"
@@ -184,7 +184,7 @@ function Body({ event, compact = false, recordLink }: { event: LedgerEvent; comp
         </p>
       )}
       {event.country?.atlas && (
-        <p className="mt-5 text-[13.5px]">
+        <p className="mt-5 text-small">
           <Link
             href={event.country.cityPage ? `/atlas/${event.country.slug}` : `/atlas#${event.country.slug}`}
             className="text-brand-hover underline underline-offset-2 hover:text-brand-hover/80 focus-visible:outline-2 focus-visible:outline-brand"

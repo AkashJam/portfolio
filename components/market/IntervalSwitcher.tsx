@@ -23,7 +23,7 @@ export function IntervalSwitcher({
           onClick={() => onChange(iv)}
           aria-pressed={value === iv}
           className={cn(
-            "border-r border-hairline px-3 py-1.5 font-mono text-xs transition-colors last:border-r-0",
+            "border-r border-hairline px-3 py-1.5 font-mono text-meta transition-colors last:border-r-0",
             value === iv ? "bg-brand/25 text-text" : "text-text-muted hover:text-read"
           )}
         >

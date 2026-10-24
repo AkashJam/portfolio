@@ -55,7 +55,7 @@ export function ProjectGrid({ projects }: { projects: Project[] }) {
             type="button"
             onClick={() => setTag(null)}
             className={cn(
-              "rounded-full border px-3 py-1 text-xs",
+              "rounded-full border px-3 py-1 text-meta",
               tag === null ? "border-brand bg-brand/10 text-text" : "border-hairline text-text-muted"
             )}
           >
@@ -67,7 +67,7 @@ export function ProjectGrid({ projects }: { projects: Project[] }) {
               type="button"
               onClick={() => setTag(t === tag ? null : t)}
               className={cn(
-                "rounded-full border px-3 py-1 text-xs",
+                "rounded-full border px-3 py-1 text-meta",
                 tag === t ? "border-brand bg-brand/10 text-text" : "border-hairline text-text-muted"
               )}
             >
@@ -84,7 +84,7 @@ export function ProjectGrid({ projects }: { projects: Project[] }) {
           ))}
         </div>
       ) : (
-        <p className="text-sm text-text-muted">No projects match &quot;{query}&quot;.</p>
+        <p className="text-small text-text-muted">No projects match &quot;{query}&quot;.</p>
       )}
     </div>
   );

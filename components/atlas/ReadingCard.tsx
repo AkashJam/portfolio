@@ -19,7 +19,7 @@ export function ReadingCard({
       aria-label="Reading this view"
       className={cn("border-l-2 border-brand/55 pl-4", className)}
     >
-      <p className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-text-muted">
+      <p className="mb-2 text-meta font-semibold uppercase tracking-[0.16em] text-text-muted">
         Reading this view {"·"}{" "}
         <b className="font-medium text-text">{reading.title}</b>
       </p>
@@ -27,12 +27,12 @@ export function ReadingCard({
         <dl className="mb-2 flex flex-wrap gap-x-6 gap-y-2">
           {reading.figs.map((f) => (
             <div key={f.label} className="flex flex-col gap-0.5">
-              <dt className="order-2 font-mono text-[11px] leading-snug text-text-muted">
+              <dt className="order-2 font-mono text-meta leading-snug text-text-muted">
                 {f.label}
               </dt>
               <dd
                 className={cn(
-                  "order-1 font-mono text-[17px] font-semibold tabular-nums",
+                  "order-1 font-mono text-lead font-semibold tabular-nums",
                   f.tone === "up" && "text-market-up",
                   f.tone === "down" && "text-market-down",
                 )}
@@ -43,7 +43,7 @@ export function ReadingCard({
           ))}
         </dl>
       )}
-      <p className="text-[13px] leading-relaxed text-read">
+      <p className="text-small leading-relaxed text-read">
         {reading.sentence}
       </p>
     </aside>

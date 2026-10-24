@@ -94,7 +94,7 @@ export function FeedStatus({
           data-testid="feed-stale"
           className={cn(
             "inline-flex items-center gap-2 rounded-full border border-stale/35 bg-stale/10 font-mono text-stale",
-            className ?? "px-2.5 py-1 text-[11px] font-medium"
+            className ?? "px-2.5 py-1 text-meta font-medium"
           )}
         >
           <span aria-hidden="true" className="size-1.5 rounded-full bg-stale" />

@@ -14,9 +14,9 @@ export function SplitBlock({ event }: { event: LedgerEvent }) {
       <div
         data-testid="split"
         data-label={view.label ?? undefined}
-        className="mt-3.5 flex flex-wrap items-baseline gap-x-2.5 gap-y-1.5 rounded-[10px] border border-hairline bg-panel-2 px-3 py-2.5 text-[13px] text-read"
+        className="mt-3.5 flex flex-wrap items-baseline gap-x-2.5 gap-y-1.5 rounded-[10px] border border-hairline bg-panel-2 px-3 py-2.5 text-small text-read"
       >
-        <span className="rounded-full border border-brand/45 px-2 py-1 font-mono text-[12px] font-semibold uppercase leading-none tracking-[0.14em] text-brand-hover">
+        <span className="rounded-full border border-brand/45 px-2 py-1 text-meta font-semibold uppercase leading-none tracking-[0.14em] text-brand-hover">
           {view.label}
         </span>
         <span>
@@ -26,7 +26,7 @@ export function SplitBlock({ event }: { event: LedgerEvent }) {
           </span>
           <b className="font-mono font-semibold text-text">{view.stockLine}</b>
         </span>
-        <small className="basis-full font-mono text-[12px] leading-normal text-text-muted">
+        <small className="basis-full font-mono text-meta leading-normal text-text-muted">
           {view.fix} {view.note}
         </small>
       </div>
@@ -34,13 +34,13 @@ export function SplitBlock({ event }: { event: LedgerEvent }) {
   }
   if (event.split === null) {
     return (
-      <p data-testid="split-pending" className="mt-3.5 font-mono text-[12px] leading-normal text-text-muted">
+      <p data-testid="split-pending" className="mt-3.5 font-mono text-meta leading-normal text-text-muted">
         The currency split has not been made yet; it is retried at the next run.
       </p>
     );
   }
   return (
-    <p data-testid="split-none" className="mt-3.5 font-mono text-[12px] leading-normal text-text-muted">
+    <p data-testid="split-none" className="mt-3.5 font-mono text-meta leading-normal text-text-muted">
       {noSplitText(event.split.reason)}
     </p>
   );

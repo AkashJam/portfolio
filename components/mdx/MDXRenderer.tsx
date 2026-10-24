@@ -26,7 +26,7 @@ export function MDXRenderer({ code, latencyStats }: { code: string; latencyStats
     ? { ...components, LatencyTrace: (props: Parameters<typeof LatencyTrace>[0]) => <LatencyTrace {...props} stats={latencyStats} /> }
     : components;
   return (
-    <div className="prose max-w-none prose-headings:font-light">
+    <div className="prose max-w-none">
       <MDXContent code={code} components={bound} />
     </div>
   );

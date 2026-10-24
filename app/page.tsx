@@ -107,12 +107,12 @@ export default async function Home() {
           <Container>
             <div className="flex flex-wrap items-baseline justify-between gap-4">
               <div>
-                <p className="mb-4 text-xs tracking-[0.2em] text-text-muted uppercase">Work</p>
-                <h2 className="text-3xl font-light text-text">Three systems, end to end</h2>
+                <p className="mb-4 text-meta tracking-[0.2em] text-text-muted uppercase">Work</p>
+                <h2 className="text-h2 font-medium text-text">Three systems, end to end</h2>
               </div>
               <Link
                 href="/projects"
-                className="inline-flex items-center gap-1.5 text-sm text-text-muted hover:text-text"
+                className="inline-flex items-center gap-1.5 text-small text-text-muted hover:text-text"
               >
                 All projects →
               </Link>
@@ -123,10 +123,10 @@ export default async function Home() {
               ))}
             </div>
             <div className="mt-12 flex flex-col items-baseline gap-2 border-t border-hairline pt-6 md:flex-row md:gap-6">
-              <span className="flex-none font-mono text-[11px] tracking-[0.18em] text-text-muted uppercase">
+              <span className="flex-none text-meta tracking-[0.18em] text-text-muted uppercase">
                 Built with
               </span>
-              <p className="font-mono text-xs text-text-muted">{builtWith.join(" · ")}</p>
+              <p className="font-mono text-meta text-text-muted">{builtWith.join(" · ")}</p>
             </div>
           </Container>
         </section>

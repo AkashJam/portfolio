@@ -171,8 +171,8 @@ export function WorldMap({
   return (
     <section id="map">
       <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
-        <h2 className="text-lg font-medium">Where and when</h2>
-        <span className="text-sm text-text-muted">
+        <h2 className="text-lead font-medium">Where and when</h2>
+        <span className="text-small text-text-muted">
           {MEASURE_NAME[state.measure]} {"·"} change {viewLabel(view, win, end)}
         </span>
       </div>
@@ -195,7 +195,7 @@ export function WorldMap({
           onPlay={onPlay}
         />
 
-        <div className="mb-3 flex flex-wrap items-center gap-0.5 font-mono text-[11px] text-text-muted">
+        <div className="mb-3 flex flex-wrap items-center gap-0.5 font-mono text-meta text-text-muted">
           <span className="mx-2">{lo}</span>
           {stops.map((s) => (
             <i
@@ -226,7 +226,7 @@ export function WorldMap({
           )}
         </div>
         {exceptions && (
-          <p className="mb-3 text-xs text-text-muted">{exceptions}</p>
+          <p className="mb-3 text-meta text-text-muted">{exceptions}</p>
         )}
 
         <svg
@@ -296,7 +296,7 @@ export function WorldMap({
                   y={y + 17}
                   textAnchor="middle"
                   fill={ink}
-                  className="pointer-events-none font-mono text-[11px] font-semibold"
+                  className="pointer-events-none font-mono text-meta font-semibold"
                 >
                   {row.code}
                   {star ? "*" : ""}
@@ -309,7 +309,7 @@ export function WorldMap({
                   fill={ink}
                   className={cn(
                     "pointer-events-none font-mono",
-                    text.length >= 6 ? "text-[9.5px]" : "text-[11px]",
+                    text.length >= 6 ? "text-meta" : "text-meta",
                   )}
                 >
                   {text}
@@ -319,7 +319,7 @@ export function WorldMap({
           })}
         </svg>
 
-        <p className="mt-4 border-t border-hairline pt-4 text-[13px] leading-relaxed text-text-muted">
+        <p className="mt-4 border-t border-hairline pt-4 text-small leading-relaxed text-text-muted">
           Each colour is{" "}
           <b className="font-medium text-read">the change over the period</b>,
           from that country{"’"}s own published series, on a scale set by the

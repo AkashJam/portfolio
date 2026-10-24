@@ -25,7 +25,7 @@ export function Sparkline({
       <span
         data-testid="sparkline-empty"
         title={`${closes.length} of ${TAPE_WINDOW} sessions so far`}
-        className="block w-[104px] text-center font-mono text-[12px] text-text-muted"
+        className="block w-[104px] text-center font-mono text-meta text-text-muted"
       >
         <span aria-hidden="true">—</span>
         <span className="sr-only">fewer than sixty sessions of history so far</span>

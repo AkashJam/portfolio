@@ -52,24 +52,24 @@ export default async function CityPage({ params }: PageProps<"/atlas/[city]">) {
   return (
     <Container className="space-y-14 py-16">
       <header>
-        <nav aria-label="Breadcrumb" className="font-mono text-xs text-text-muted">
+        <nav aria-label="Breadcrumb" className="text-meta text-text-muted">
           <Link href="/atlas" className="hover:text-read focus-visible:outline-2 focus-visible:outline-brand">
             Atlas
           </Link>
           <span aria-hidden="true"> / </span>
           <span aria-current="page">{city.city}</span>
         </nav>
-        <h1 className="mt-4 text-4xl font-light sm:text-5xl">{city.city}</h1>
-        <p className="mt-2 text-[15.5px] text-text-muted">
+        <h1 className="mt-4 text-h1 font-light">{city.city}</h1>
+        <p className="mt-2 text-body text-read">
           {city.country} · {cur === "EUR" ? "euro" : cur}
           {city.charts.shares.series ? ` · share price index, latest ${city.charts.shares.asOf}` : ""}
         </p>
-        <p className="mt-3 max-w-[70ch] text-[14.5px] text-text-muted">
+        <p className="mt-3 max-w-measure text-small text-text-muted">
           The city is a label: every national figure here is {city.country}&apos;s own, and the cost of living is one survey&apos;s answer for one adult,
           with its method and its year.
         </p>
         {city.sensor && (
-          <p className="mt-3 text-[14px]">
+          <p className="mt-3 text-small">
             <Link
               href={`/market/${city.slug}`}
               data-testid="sensor-link"
@@ -86,7 +86,7 @@ export default async function CityPage({ params }: PageProps<"/atlas/[city]">) {
       <BasketBar city={city} />
 
       <section aria-labelledby="charts" className="space-y-10">
-        <h2 id="charts" className="font-mono text-[13px] font-semibold uppercase tracking-[0.16em] text-text">
+        <h2 id="charts" className="text-small font-semibold uppercase tracking-[0.16em] text-text">
           The whole record
         </h2>
         <LongChart
