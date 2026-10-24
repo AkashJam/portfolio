@@ -278,8 +278,8 @@ test.describe("at 390px", () => {
   test("the drawer lists the same six with route hints, grouped between dividers, then Résumé and the social links", async ({
     page,
   }) => {
-    // The Market row says its state where the others show their route; pin it so
-    // the list is the same on every run (market-state.spec.ts covers each state).
+    // The Market row shows its route unless the last close tripped something; pin a
+    // quiet day so the list is the same on every run (market-state.spec.ts covers each state).
     await page.route("**/api/market-state", (route) =>
       route.fulfill({ json: { feed: "closed", tripped: false } }),
     );
@@ -288,7 +288,6 @@ test.describe("at 390px", () => {
     const menu = page
       .getByRole("dialog")
       .getByRole("navigation", { name: "Menu" });
-    await expect(page.getByTestId("drawer-market-state")).toHaveText("quiet");
     const rows = (await menu.getByRole("link").allInnerTexts()).map((t) =>
       t.replace(/\s+/g, " ").trim(),
     );
@@ -297,7 +296,7 @@ test.describe("at 390px", () => {
       "Projects /projects",
       "Blog /blog",
       "About /about",
-      "Market quiet",
+      "Market /market",
       "Atlas /atlas",
       "Résumé PDF",
     ]);

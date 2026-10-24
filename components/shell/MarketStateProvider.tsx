@@ -30,6 +30,7 @@ export function MarketStateProvider({ children }: { children: React.ReactNode })
         next = deriveMarketState({
           feed: res.ok ? toFeed(record.feed) : "unreachable",
           tripped: record.tripped === true,
+          trips: typeof record.trips === "number" && Number.isInteger(record.trips) && record.trips > 0 ? record.trips : 0,
           session: res.ok ? toSession(record.session) : "unknown",
           opensAt: typeof record.opensAt === "string" ? record.opensAt : null,
         });
@@ -38,7 +39,7 @@ export function MarketStateProvider({ children }: { children: React.ReactNode })
       }
       if (!cancelled) {
         setState((prev) =>
-          prev && prev.state === next.state && prev.live === next.live && prev.session === next.session && prev.opensAt === next.opensAt
+          prev && prev.state === next.state && prev.live === next.live && prev.trips === next.trips && prev.session === next.session && prev.opensAt === next.opensAt
             ? prev
             : next,
         );

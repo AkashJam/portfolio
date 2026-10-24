@@ -23,6 +23,8 @@ export async function GET() {
       // close that trips nothing (Phase 15 step 7). A ticker that could not be asked
       // cannot claim a trip.
       tripped: state?.tripped ?? false,
+      // How many events that close recorded, for the drawer's "3 unusual moves".
+      trips: state?.trips ?? 0,
     },
     { headers: { "Cache-Control": "no-store" } },
   );

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Download, Search } from "lucide-react";
 
 import {
@@ -11,7 +12,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { NavIcon } from "@/components/shell/NavIcon";
-import { siteLinks, surfaceLinks, type NavItem } from "@/lib/nav";
+import { isActive, siteLinks, surfaceLinks, type NavItem } from "@/lib/nav";
 import {
   CONTACT_EMAIL,
   GITHUB_URL,
@@ -21,12 +22,14 @@ import {
 import { IdentityMark } from "@/components/shell/IdentityMark";
 import { MarketDot } from "@/components/shell/MarketDot";
 import { useMarketState } from "@/components/shell/MarketStateProvider";
-import { stateLabel } from "@/lib/market-state";
+import { tripsLabel } from "@/lib/market-state";
 import { cn } from "@/lib/utils";
 import { heroRole } from "@/data/profile";
 
 const row =
   "flex items-center gap-3 rounded-lg px-3 py-2 text-small text-text hover:bg-panel";
+// The current section, as the desktop nav marks it (I7).
+const rowOn = "bg-brand/10 text-brand-hover hover:bg-brand/10";
 
 function Hint({ children }: { children: string }) {
   return (
@@ -37,33 +40,18 @@ function Hint({ children }: { children: string }) {
 }
 
 /**
- * The Market row's right-hand side: the same state as the tab, in words, where
- * the other rows show their route (bearing.md #104). "Live" appears only while
- * ticks flow, so only in US hours.
+ * The Market row's right-hand side (I12): "1 unusual move" with the tab's indigo dot
+ * after a trip at the last close, and the row's route like every other row on a
+ * quiet day, an unreachable feed included (/market says so itself). The words are
+ * sans, as the mock draws them: this is a sentence, not a figure.
  */
-function MarketStateHint() {
+function MarketStateHint({ href }: { href: string }) {
   const state = useMarketState();
-  if (!state) return null;
-  const word = stateLabel({ ...state, live: false });
+  if (state?.state !== "tripped") return <Hint>{href}</Hint>;
   return (
-    <span
-      data-testid="drawer-market-state"
-      className={cn(
-        "ml-auto flex min-w-0 items-start gap-1.5 font-mono text-meta leading-snug",
-        state.state === "tripped" ? "text-brand-hover" : state.state === "unreachable" ? "text-stale" : "text-text-muted",
-      )}
-    >
-      <MarketDot decorative className="mt-[3px]" />
-      {/* "live" may drop to its own line on a narrow drawer, but the state word never truncates. */}
-      <span className="text-right">
-        <span className="whitespace-nowrap">{word}</span>
-        {state.live && (
-          <>
-            {" "}
-            <span className="whitespace-nowrap">&middot; live</span>
-          </>
-        )}
-      </span>
+    <span data-testid="drawer-market-state" className="ml-auto flex min-w-0 items-center gap-1.5 text-meta leading-none whitespace-nowrap text-brand-hover">
+      <MarketDot decorative className="mt-0" />
+      {tripsLabel(state.trips)}
     </span>
   );
 }
@@ -87,26 +75,32 @@ export function MobileDrawer({
   onOpenChange: (open: boolean) => void;
   onOpenPalette: () => void;
 }) {
-  const item = (link: NavItem) => (
-    <Link
-      key={link.href}
-      href={link.href}
-      onClick={() => onOpenChange(false)}
-      className={row}
-    >
-      <NavIcon icon={link.icon} className="size-[15px] shrink-0 text-text-muted" />
-      {link.label}
-      {link.icon === "market" ? <MarketStateHint /> : <Hint>{link.href}</Hint>}
-    </Link>
-  );
+  const pathname = usePathname();
+  const item = (link: NavItem) => {
+    const active = isActive(link.href, pathname);
+    return (
+      <Link
+        key={link.href}
+        href={link.href}
+        aria-current={active ? "page" : undefined}
+        onClick={() => onOpenChange(false)}
+        className={cn(row, active && rowOn)}
+      >
+        <NavIcon icon={link.icon} className={cn("size-[15px] shrink-0", active ? "text-brand-hover" : "text-text-muted")} />
+        {link.label}
+        {link.icon === "market" ? <MarketStateHint href={link.href} /> : <Hint>{link.href}</Hint>}
+      </Link>
+    );
+  };
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="left" className="w-3/4 max-w-xs">
         <SheetHeader className="gap-3 border-b border-hairline">
-          <div className="flex items-center gap-2.5 pr-10">
-            <IdentityMark className="size-7.5 rounded-[9px]" />
-            <p className="min-w-0 truncate font-mono text-meta tracking-widest text-text-muted">
+          <div className="flex items-start gap-2.5 pr-10">
+            <IdentityMark className="size-7.5 shrink-0 rounded-[9px]" />
+            {/* The role wraps rather than truncating in the narrow drawer (I7); sans, since it is words. */}
+            <p className="min-w-0 pt-[5px] text-meta leading-snug font-medium tracking-[0.12em] text-text-muted uppercase">
               {heroRole} · Milan
             </p>
           </div>

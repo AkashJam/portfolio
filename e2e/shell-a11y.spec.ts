@@ -59,3 +59,41 @@ test("the blog is called Blog on its index and its posts", async ({ page }) => {
   await expect(page.getByRole("link", { name: "Blog", exact: true }).first()).toBeVisible();
   await expect(page).toHaveTitle(/— Blog — Akash James$/);
 });
+
+test("the drawer marks the current section, as the desktop nav does (I7)", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/projects");
+  await page.getByRole("button", { name: "Open menu" }).click();
+  const menu = page.getByRole("dialog").getByRole("navigation", { name: "Menu" });
+  await expect(menu.locator("[aria-current='page']")).toHaveCount(1);
+  await expect(menu.getByRole("link", { name: /^Projects/ })).toHaveAttribute("aria-current", "page");
+  await expect(menu.getByRole("link", { name: /^Home/ })).not.toHaveAttribute("aria-current", "page");
+});
+
+test("the drawer's role line wraps instead of truncating (I7)", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/about");
+  await page.getByRole("button", { name: "Open menu" }).click();
+  const role = page.getByRole("dialog").getByText(/Milan$/);
+  const clipped = await role.evaluate((el) => {
+    const cs = getComputedStyle(el);
+    return cs.textOverflow === "ellipsis" || cs.whiteSpace === "nowrap" || el.scrollWidth > el.clientWidth;
+  });
+  expect(clipped).toBe(false);
+});
+
+test("the search chip names the shortcut for the platform, after hydration (I11)", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/about");
+  const search = page.locator("header button[aria-label='Open command palette'][aria-haspopup='dialog']").first();
+  await expect(search).toHaveAttribute("aria-keyshortcuts", "Control+K Meta+K");
+  await expect(search.locator("kbd")).toHaveText("Ctrl K");
+  await expect(search.locator("kbd")).toBeVisible();
+});
+
+test("the search chip reads ⌘K on a Mac (I11)", async ({ page }) => {
+  await page.addInitScript(() => Object.defineProperty(navigator, "platform", { get: () => "MacIntel" }));
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/about");
+  await expect(page.locator("header button[aria-haspopup='dialog'] kbd")).toHaveText("⌘K");
+});

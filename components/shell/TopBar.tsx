@@ -9,6 +9,7 @@ import { isActive, siteLinks, surfaceLinks, type NavItem } from "@/lib/nav";
 import { IdentityMark } from "@/components/shell/IdentityMark";
 import { Container } from "@/components/shell/Container";
 import { MarketDot } from "@/components/shell/MarketDot";
+import { useShortcutLabel } from "@/components/shell/useShortcutLabel";
 
 function NavTab({ link, pathname }: { link: NavItem; pathname: string }) {
   const active = isActive(link.href, pathname);
@@ -42,6 +43,7 @@ export function TopBar({
   paletteOpen: boolean;
 }) {
   const pathname = usePathname();
+  const shortcut = useShortcutLabel();
 
   return (
     <header className="sticky top-0 z-30 border-b border-hairline bg-canvas/80 backdrop-blur supports-backdrop-filter:bg-canvas/60">
@@ -85,11 +87,16 @@ export function TopBar({
             aria-label="Open command palette"
             aria-haspopup="dialog"
             aria-expanded={paletteOpen}
+            aria-keyshortcuts="Control+K Meta+K"
             onClick={onOpenPalette}
           >
             <Search className="size-4" />
-            <kbd className="rounded border border-hairline px-1.5 py-0.5 font-mono text-meta">
-              ⌘K
+            {/* One control, icon and chip. The chip holds its width until the platform is known (I11). */}
+            <kbd
+              aria-hidden="true"
+              className={`min-w-[2.75rem] rounded border border-hairline px-1.5 py-0.5 text-center font-mono text-meta ${shortcut ? "" : "invisible"}`}
+            >
+              {shortcut ?? "Ctrl K"}
             </kbd>
           </Button>
           <Button

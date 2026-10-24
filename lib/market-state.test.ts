@@ -1,29 +1,29 @@
 import { describe, expect, it } from "vitest";
 
-import { deriveMarketState, stateAriaLabel, stateLabel, toFeed, toSession } from "@/lib/market-state";
+import { TRIP_DOT_LABEL, deriveMarketState, toFeed, toSession, tripsLabel } from "@/lib/market-state";
 
 describe("deriveMarketState", () => {
   it("is quiet and live while ticks flow and nothing has tripped", () => {
-    expect(deriveMarketState({ feed: "live", tripped: false })).toEqual({ state: "quiet", live: true, session: "open", opensAt: null });
+    expect(deriveMarketState({ feed: "live", tripped: false })).toEqual({ state: "quiet", trips: 0, live: true, session: "open", opensAt: null });
   });
 
   it("is quiet and not live when the market is closed, not unreachable", () => {
-    expect(deriveMarketState({ feed: "closed", tripped: false })).toEqual({ state: "quiet", live: false, session: "open", opensAt: null });
+    expect(deriveMarketState({ feed: "closed", tripped: false })).toEqual({ state: "quiet", trips: 0, live: false, session: "open", opensAt: null });
   });
 
   it("is tripped when a sensor tripped, live or not", () => {
-    expect(deriveMarketState({ feed: "live", tripped: true })).toEqual({ state: "tripped", live: true, session: "open", opensAt: null });
-    expect(deriveMarketState({ feed: "closed", tripped: true })).toEqual({ state: "tripped", live: false, session: "open", opensAt: null });
+    expect(deriveMarketState({ feed: "live", tripped: true })).toEqual({ state: "tripped", trips: 1, live: true, session: "open", opensAt: null });
+    expect(deriveMarketState({ feed: "closed", tripped: true })).toEqual({ state: "tripped", trips: 1, live: false, session: "open", opensAt: null });
   });
 
   it("is unreachable for a stale or down feed, and for a probe that failed", () => {
     for (const feed of ["stale", "down", "unreachable"] as const) {
-      expect(deriveMarketState({ feed, tripped: false })).toEqual({ state: "unreachable", live: false, session: "unknown", opensAt: null });
+      expect(deriveMarketState({ feed, tripped: false })).toEqual({ state: "unreachable", trips: 0, live: false, session: "unknown", opensAt: null });
     }
   });
 
   it("lets unreachable outrank tripped: a feed that cannot be vouched for does not claim a trip", () => {
-    expect(deriveMarketState({ feed: "stale", tripped: true })).toEqual({ state: "unreachable", live: false, session: "unknown", opensAt: null });
+    expect(deriveMarketState({ feed: "stale", tripped: true })).toEqual({ state: "unreachable", trips: 0, live: false, session: "unknown", opensAt: null });
   });
 });
 
@@ -77,19 +77,23 @@ describe("toFeed", () => {
   });
 });
 
-describe("stateLabel and stateAriaLabel", () => {
-  it("says live only while ticks flow", () => {
-    expect(stateLabel({ state: "quiet", live: true })).toBe("quiet · live");
-    expect(stateLabel({ state: "quiet", live: false })).toBe("quiet");
+describe("trips", () => {
+  it("carries the count from the ticker, and reads a trip with no count as one", () => {
+    expect(deriveMarketState({ feed: "live", tripped: true, trips: 3 }).trips).toBe(3);
+    expect(deriveMarketState({ feed: "live", tripped: true }).trips).toBe(1);
   });
-  it("names a trip as the mock does", () => {
-    expect(stateLabel({ state: "tripped", live: false })).toBe("a sensor tripped");
-    expect(stateLabel({ state: "tripped", live: true })).toBe("a sensor tripped · live");
+  it("is zero when nothing tripped or the feed cannot be vouched for", () => {
+    expect(deriveMarketState({ feed: "live", tripped: false, trips: 2 }).trips).toBe(0);
+    expect(deriveMarketState({ feed: "down", tripped: true, trips: 2 }).trips).toBe(0);
   });
-  it("says unreachable plainly", () => {
-    expect(stateLabel({ state: "unreachable", live: false })).toBe("unreachable");
+});
+
+describe("the words", () => {
+  it("counts the drawer's trips, singular and plural", () => {
+    expect(tripsLabel(1)).toBe("1 unusual move");
+    expect(tripsLabel(3)).toBe("3 unusual moves");
   });
-  it("reads aloud as a phrase, not a middle dot", () => {
-    expect(stateAriaLabel({ state: "quiet", live: true })).toBe("quiet, live");
+  it("names the dot as the mock does", () => {
+    expect(TRIP_DOT_LABEL).toBe("An unusual move at the last close");
   });
 });

@@ -93,6 +93,9 @@ export const marketStateSchema = z.object({
   // session with bars (Phase 15 step 7). Defaults to false so a ticker that
   // predates the ledger still parses.
   tripped: z.boolean().default(false),
+  // How many events that close recorded (phase19.md step 3, I12): the drawer says
+  // "3 unusual moves". Zero from a ticker that predates the count.
+  trips: z.number().int().min(0).default(0),
 });
 export type MarketStateResponse = z.infer<typeof marketStateSchema>;
 
