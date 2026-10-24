@@ -3,6 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 
+import { SwipeHint } from "@/components/atlas/SwipeHint";
 import { useScrollEdges } from "@/components/atlas/useScrollEdges";
 import { useFeedTracker } from "@/components/market/FeedStatus";
 import { useNow, useSessionState } from "@/components/market/useMarketSession";
@@ -133,6 +134,7 @@ export function PricesTable({
       <p data-testid="prices-vintage" className="mb-3 font-mono text-meta text-text-muted">
         {vintage}
       </p>
+      <SwipeHint />
       <div data-session={frozen ? "closed" : "open"} className="panel-elevated overflow-hidden rounded-2xl">
         <Table
           containerClassName="atlas-edge-cue"

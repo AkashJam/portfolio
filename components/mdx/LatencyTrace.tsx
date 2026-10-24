@@ -69,7 +69,7 @@ export function LatencyTrace({ stats, caption }: LatencyTraceProps) {
         >
           <defs>
             <marker id="lt-ah" markerWidth="9" markerHeight="9" refX="7.5" refY="4" orient="auto">
-              <path d="M0,0 L9,4 L0,8 z" fill="var(--brand-hover)" />
+              <path d="M0,0 L9,4 L0,8 z" fill="var(--text-muted)" />
             </marker>
             <marker id="lt-aha" markerWidth="9" markerHeight="9" refX="7.5" refY="4" orient="auto">
               <path d="M0,0 L9,4 L0,8 z" fill="var(--text-muted)" />
@@ -86,7 +86,7 @@ export function LatencyTrace({ stats, caption }: LatencyTraceProps) {
             ] as const
           ).map(([x, label, cx]) => (
             <g key={label}>
-              <rect x={x} y={10} width={112} height={30} rx={7} fill="var(--panel-2)" stroke="color-mix(in oklab, var(--brand) 30%, var(--hairline))" />
+              <rect x={x} y={10} width={112} height={30} rx={7} fill="var(--panel-2)" stroke="var(--hairline)" />
               <text x={cx} y={30} textAnchor="middle" fill="var(--text)" fontSize={12} fontWeight={500} fontFamily="var(--font-mono)">
                 {label}
               </text>
@@ -97,9 +97,9 @@ export function LatencyTrace({ stats, caption }: LatencyTraceProps) {
           <text x={170} y={70} textAnchor="middle" fill="var(--read)" fontSize={11.5} fontFamily="var(--font-mono)">
             tick
           </text>
-          <line x1={80} y1={76} x2={258} y2={76} stroke="var(--brand-hover)" strokeWidth={1.5} markerEnd="url(#lt-ah)" />
+          <line x1={80} y1={76} x2={258} y2={76} stroke="var(--text-muted)" strokeWidth={1.5} markerEnd="url(#lt-ah)" />
 
-          <rect x={254} y={98} width={12} height={24} rx={2} fill="color-mix(in oklab, var(--brand) 42%, var(--panel))" stroke="color-mix(in oklab, var(--brand) 50%, var(--hairline))" />
+          <rect x={254} y={98} width={12} height={24} rx={2} fill="var(--text-faint)" stroke="var(--text-muted)" />
           <text x={274} y={107} textAnchor="start" fill="var(--read)" fontSize={11.5} fontFamily="var(--font-mono)">
             normalize + Redis lease
           </text>
@@ -107,7 +107,7 @@ export function LatencyTrace({ stats, caption }: LatencyTraceProps) {
           <text x={350} y={144} textAnchor="middle" fill="var(--read)" fontSize={11.5} fontFamily="var(--font-mono)">
             XADD + PUBLISH
           </text>
-          <line x1={260} y1={150} x2={438} y2={150} stroke="var(--brand-hover)" strokeWidth={1.5} markerEnd="url(#lt-ah)" />
+          <line x1={260} y1={150} x2={438} y2={150} stroke="var(--text-muted)" strokeWidth={1.5} markerEnd="url(#lt-ah)" />
 
           <line x1={260} y1={184} x2={360} y2={184} stroke="var(--text-muted)" strokeWidth={1.3} strokeDasharray="5 4" markerEnd="url(#lt-aha)" />
           <rect x={366} y={172} width={200} height={26} rx={4} fill="var(--panel-2)" stroke="var(--hairline)" />
@@ -118,21 +118,21 @@ export function LatencyTrace({ stats, caption }: LatencyTraceProps) {
           <text x={530} y={214} textAnchor="middle" fill="var(--read)" fontSize={11.5} fontFamily="var(--font-mono)">
             consume + build event
           </text>
-          <line x1={440} y1={220} x2={618} y2={220} stroke="var(--brand-hover)" strokeWidth={1.5} markerEnd="url(#lt-ah)" />
+          <line x1={440} y1={220} x2={618} y2={220} stroke="var(--text-muted)" strokeWidth={1.5} markerEnd="url(#lt-ah)" />
 
           <text x={710} y={250} textAnchor="middle" fill="var(--read)" fontSize={11.5} fontFamily="var(--font-mono)">
             event: quote · SSE
           </text>
-          <line x1={620} y1={256} x2={798} y2={256} stroke="var(--brand-hover)" strokeWidth={1.5} markerEnd="url(#lt-ah)" />
+          <line x1={620} y1={256} x2={798} y2={256} stroke="var(--text-muted)" strokeWidth={1.5} markerEnd="url(#lt-ah)" />
 
-          <rect x={794} y={278} width={12} height={24} rx={2} fill="color-mix(in oklab, var(--brand) 42%, var(--panel))" stroke="color-mix(in oklab, var(--brand) 50%, var(--hairline))" />
+          <rect x={794} y={278} width={12} height={24} rx={2} fill="var(--text-faint)" stroke="var(--text-muted)" />
           <text x={786} y={287} textAnchor="end" fill="var(--read)" fontSize={11.5} fontFamily="var(--font-mono)">
             parse + paint · not measured
           </text>
 
           {/* The measured span ends at the hub's write, not the browser's paint:
               a server can't time a network hop and a repaint it never sees. */}
-          <line x1={80} y1={320} x2={710} y2={320} stroke="var(--hairline)" strokeDasharray="3 3" />
+          <line x1={80} y1={320} x2={710} y2={320} stroke="var(--brand-hover)" strokeWidth={2} />
           <text x={395} y={340} textAnchor="middle" fill="var(--brand-hover)" fontSize={12.5} fontWeight={600} fontFamily="var(--font-mono)">
             {endToEnd}
           </text>

@@ -42,7 +42,9 @@ export function BasketBar({ city }: { city: CityResponse }) {
                 ? "repeating-linear-gradient(135deg, var(--brand) 0 4px, transparent 4px 8px)"
                 : s.outlined
                   ? "transparent"
-                  : "var(--brand)",
+                  : s.opacity === 1
+                    ? "var(--brand-hover)"
+                    : "var(--read)",
               opacity: s.outlined || s.hatched ? 1 : s.opacity,
               outline: s.outlined ? "1.5px solid var(--brand-hover)" : undefined,
               outlineOffset: s.outlined ? "-1.5px" : undefined,

@@ -23,10 +23,10 @@ export function Economy({ city }: { city: CityResponse }) {
   ];
   const c = city.composition;
   const bar: { key: string; label: string; s: Sourced; token: string }[] = [
-    { key: "industry", label: "Industry", s: c.industry, token: "var(--brand)" },
-    { key: "services", label: "Services", s: c.services, token: "var(--brand-hover)" },
-    { key: "agriculture", label: "Agriculture", s: c.agriculture, token: "var(--market-up)" },
-    { key: "residual", label: "Taxes less subsidies", s: c.residual, token: "var(--text-muted)" },
+    { key: "industry", label: "Industry", s: c.industry, token: "var(--read)" },
+    { key: "services", label: "Services", s: c.services, token: "var(--text-muted)" },
+    { key: "agriculture", label: "Agriculture", s: c.agriculture, token: "var(--text-faint)" },
+    { key: "residual", label: "Taxes less subsidies", s: c.residual, token: "var(--hairline)" },
   ];
   const shown = bar.filter((b) => b.s.value !== null && b.s.value > 0);
   return (

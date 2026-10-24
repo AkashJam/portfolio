@@ -70,7 +70,7 @@ export function PostList({ posts }: { posts: Blog[] }) {
             href={`/blog/${post._meta.path}`}
             className="group flex max-w-measure flex-col gap-1.5 py-6 first:pt-0"
           >
-            <span className="text-meta text-brand-hover">{post.category}</span>
+            <span className="text-meta text-text-muted">{post.category}</span>
             <span className="text-lead text-text group-hover:text-brand-hover">{post.title}</span>
             <span className="text-small text-text-muted">{post.summary}</span>
             <span className="mt-1 font-mono text-meta text-text-muted">

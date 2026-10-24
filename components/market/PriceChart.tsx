@@ -77,9 +77,13 @@ export function PriceChart({
     chartRef.current = chart;
 
     const candleSeries = chart.addSeries(CandlestickSeries, {
-      upColor: tokens.up,
+      // I4: an up candle is hollow, a down candle filled, so direction is never
+      // colour alone. The border carries the colour for both.
+      upColor: "rgba(0, 0, 0, 0)",
       downColor: tokens.down,
-      borderVisible: false,
+      borderVisible: true,
+      borderUpColor: tokens.up,
+      borderDownColor: tokens.down,
       wickUpColor: tokens.up,
       wickDownColor: tokens.down,
     });

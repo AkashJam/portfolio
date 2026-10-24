@@ -551,6 +551,25 @@
    of a mask (a mask would fade the pinned column itself). The mock's
    local/scroll background trick was dropped: its dark shadow sits behind the
    text, on a near-black panel, where it cannot be seen. */
+/* One scroller for everything that scrolls sideways (owner, 2026-10-24;
+   mockups/site-review/atlas.html .tbl): the site's thin indigo bar on a dark
+   track, at every width. The edge fade and the pinned column's shadow below are
+   phone-only. */
+.atlas-edge-cue {
+  scrollbar-width: thin;
+  scrollbar-color: var(--brand) var(--panel-2);
+}
+.atlas-edge-cue::-webkit-scrollbar {
+  height: 6px;
+}
+.atlas-edge-cue::-webkit-scrollbar-track {
+  background: var(--panel-2);
+  border-radius: 3px;
+}
+.atlas-edge-cue::-webkit-scrollbar-thumb {
+  background: var(--brand);
+  border-radius: 3px;
+}
 @media (max-width: 767.98px) {
   .atlas-edge-cue {
     --fade-l: 0px;

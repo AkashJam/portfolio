@@ -7,7 +7,7 @@
 export function TierOne() {
   return (
     <div className="mb-4 rounded-xl border border-brand/30 bg-brand/5 px-4 py-3.5">
-      <p className="mb-2 text-meta font-semibold uppercase tracking-[0.16em] text-brand-hover">
+      <p className="mb-2 text-meta font-semibold uppercase tracking-[0.16em] text-text-muted">
         Reading rules
       </p>
       <p className="max-w-measure text-small leading-[1.68] text-read">

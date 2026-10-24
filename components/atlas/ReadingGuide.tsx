@@ -13,7 +13,7 @@ export function ReadingGuide() {
   const next = String(Number(end) + 1);
   return (
     <div>
-      <p className="mb-2 text-meta font-semibold uppercase tracking-[0.16em] text-brand-hover">
+      <p className="mb-2 text-meta font-semibold uppercase tracking-[0.16em] text-text-muted">
         How to read this
       </p>
       <p className="text-small leading-[1.65] text-text-muted">

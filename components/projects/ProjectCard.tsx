@@ -24,14 +24,14 @@ export function ProjectCard({ project }: { project: Project }) {
       className={cn(
         "flex flex-col gap-4 rounded-2xl border border-hairline bg-panel p-6",
         project.featured &&
-          "border-brand/28 bg-[linear-gradient(180deg,color-mix(in_oklab,var(--brand)_6%,transparent),transparent_130px),var(--panel)]"
+          "bg-[linear-gradient(180deg,rgba(255,255,255,0.03),transparent_130px),var(--panel)]"
       )}
     >
       <div className="flex items-center justify-between font-mono text-meta text-text-muted">
         <span className="flex items-center gap-2.5">
           <span>{project.year}</span>
           {project.featured && (
-            <span className="tracking-widest text-brand-hover uppercase">Featured</span>
+            <span className="tracking-widest text-read uppercase">Featured</span>
           )}
         </span>
         <span className={STATUS_COLOR[project.status]}>

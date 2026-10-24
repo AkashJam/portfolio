@@ -60,7 +60,7 @@ export function SkillsCapabilities() {
               : "grid grid-cols-1 gap-2.5 border-t border-hairline py-5 lg:grid-cols-[190px_minmax(0,1fr)] lg:gap-x-8 lg:gap-y-0"
           }
         >
-          <h3 className="text-meta leading-normal tracking-[0.14em] text-brand-hover uppercase lg:text-right lg:leading-[1.9]">
+          <h3 className="text-meta leading-normal tracking-[0.14em] text-read uppercase lg:text-right lg:leading-[1.9]">
             {cap.category}
           </h3>
           <div className="flex max-w-measure flex-col gap-2.5">

@@ -30,6 +30,7 @@ import {
   provenance,
   sortRows,
 } from "@/lib/atlas";
+import { SwipeHint } from "@/components/atlas/SwipeHint";
 import { useScrollEdges } from "@/components/atlas/useScrollEdges";
 import { useTargetSlug } from "@/components/atlas/useTargetSlug";
 import { cityHref, noCityPageNote } from "@/lib/atlas-absences";
@@ -319,6 +320,7 @@ export function CountriesTable({ rows }: { rows: AtlasRow[] }) {
 
   return (
     <DisclosureGroup>
+      <SwipeHint />
       <div className="panel-elevated overflow-hidden rounded-2xl">
         <Table
           containerClassName="atlas-edge-cue"

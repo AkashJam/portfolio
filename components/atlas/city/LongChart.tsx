@@ -54,11 +54,11 @@ export function LongChart({
                 {g.yTicks.map((t) => (
                   <line key={t.label} x1={0} x2={CITY_W} y1={(t.pct / 100) * CITY_H} y2={(t.pct / 100) * CITY_H} vectorEffect="non-scaling-stroke" style={{ stroke: "var(--hairline)", strokeWidth: 1 }} />
                 ))}
-                <path d={g.area} style={{ fill: "var(--brand)", fillOpacity: 0.08 }} />
+                <path d={g.area} style={{ fill: "var(--read)", fillOpacity: 0.06 }} />
                 <polyline
                   points={g.line}
                   vectorEffect="non-scaling-stroke"
-                  style={{ fill: "none", stroke: "var(--brand-hover)", strokeWidth: 1.6, strokeLinejoin: "round" }}
+                  style={{ fill: "none", stroke: "var(--read)", strokeWidth: 1.6, strokeLinejoin: "round" }}
                 />
               </svg>
               {g.yTicks.map((t) => (

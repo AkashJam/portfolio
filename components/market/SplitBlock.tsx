@@ -16,7 +16,7 @@ export function SplitBlock({ event }: { event: LedgerEvent }) {
         data-label={view.label ?? undefined}
         className="mt-3.5 flex flex-wrap items-baseline gap-x-2.5 gap-y-1.5 rounded-[10px] border border-hairline bg-panel-2 px-3 py-2.5 text-small text-read"
       >
-        <span className="rounded-full border border-brand/45 px-2 py-1 text-meta font-semibold uppercase leading-none tracking-[0.14em] text-brand-hover">
+        <span className="rounded-full border border-hairline px-2 py-1 text-meta font-semibold uppercase leading-none tracking-[0.14em] text-text-muted">
           {view.label}
         </span>
         <span>
