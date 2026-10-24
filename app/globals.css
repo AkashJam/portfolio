@@ -271,52 +271,6 @@
   }
 }
 
-/* §17 decorative glow elements — Hero orb / About sphere / error-page orbs
-   (components/site/Glow.tsx, GlowBar.tsx). Ported from
-   mockups/html/{home,about,errors}.html; token names adjusted to this
-   repo's --brand/--market-down (mockups used --accent/--down), and
-   color-mix() replaces their hardcoded rgba literals so the glow always
-   tracks the real tokens instead of a second, driftable hardcoded color. */
-.glow-orb {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(30px);
-  background: radial-gradient(
-    circle at 45% 40%,
-    color-mix(in oklab, var(--brand) 16%, transparent),
-    transparent 70%
-  );
-}
-.glow-orb--down {
-  background: radial-gradient(
-    circle at 45% 40%,
-    color-mix(in oklab, var(--market-down) 15%, transparent),
-    transparent 70%
-  );
-}
-.glow-sphere {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(6px);
-  box-shadow: inset 0 0 120px color-mix(in oklab, var(--brand) 15%, transparent);
-  background: radial-gradient(
-    circle at 40% 35%,
-    color-mix(in oklab, var(--brand) 18%, transparent),
-    color-mix(in oklab, var(--brand) 4%, transparent) 45%,
-    transparent 70%
-  );
-}
-.glow-bar {
-  height: 2px;
-  border-radius: 2px;
-  background: linear-gradient(90deg, transparent, var(--brand), transparent);
-  box-shadow: 0 0 18px 2px color-mix(in oklab, var(--brand) 55%, transparent);
-}
-.glow-bar--down {
-  background: linear-gradient(90deg, transparent, var(--market-down), transparent);
-  box-shadow: 0 0 18px 2px color-mix(in oklab, var(--market-down) 45%, transparent);
-}
-
 /* mockups/v3 card-elevation pass — a top-lit gradient wash + 1px inset
    highlight + a soft drop shadow, layered over --panel. Applied to the
    market symbol cards and cost-of-living surfaces (Days 13+); the same
@@ -385,7 +339,6 @@
   .error-trace-run {
     opacity: 1;
     stroke-dasharray: 12 88;
-    filter: drop-shadow(0 0 6px currentColor);
     animation: run 3.4s linear infinite;
   }
   /* No unconditional `.reveal{opacity:1}` base rule exists — content is
@@ -401,16 +354,12 @@
   }
 }
 
-/* §17: parallax/drift is disabled on touch devices, not just under
+/* §17: the error-page trace's run is off on touch devices, not just under
    prefers-reduced-motion — a separate media feature Tailwind's
    `motion-safe:` variant doesn't cover. */
 @media (hover: none) and (pointer: coarse) {
-  .glow-orb,
-  .glow-sphere,
   .error-trace-run {
     animation: none !important;
-  }
-  .error-trace-run {
     opacity: 0 !important;
   }
 }

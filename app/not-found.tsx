@@ -1,35 +1,44 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
+import { Container } from "@/components/shell/Container";
 import { ErrorTrace } from "@/components/site/ErrorTrace";
+import { SITE_NAME } from "@/lib/metadata";
 
+// Every real route replaces the layout's metadata through pageMetadata; the 404 has
+// no route of its own, so it names itself (M24).
+export const metadata: Metadata = { title: `Not found — ${SITE_NAME}` };
+
+// One group in one screen under the 56px bar (mockups/site-review/errors.html): the
+// message, the trace in its own band, then the button, so nothing overlaps.
 export default function NotFound() {
   return (
-    <div className="mx-auto flex min-h-[52vh] max-w-3xl flex-col items-center justify-center rounded-[18px] border border-hairline bg-panel px-6 py-14 text-center">
-      <span className="font-mono text-[clamp(72px,11vw,118px)] leading-none font-light tracking-tight text-text tabular-nums">
-        404
-      </span>
-      <div className="relative my-2 h-8.5 w-full flex-none" aria-hidden="true">
+    <div className="relative flex min-h-[calc(100svh-3.5rem)] flex-col justify-center overflow-clip pt-12 pb-[9svh] max-md:pt-8 max-md:pb-[8svh]">
+      <Container className="w-full">
+        <span
+          aria-hidden="true"
+          className="block font-mono text-[clamp(72px,11vw,128px)] leading-none font-light tracking-tight text-text tabular-nums"
+        >
+          404
+        </span>
+        <h1 className="mt-4.5 max-w-[22ch] text-[clamp(26px,3.4vw,40px)] leading-[1.15] font-light text-balance text-text">
+          This page drifted off the chart.
+        </h1>
+        <p className="mt-3.5 max-w-[46ch] text-pretty text-body text-read">
+          The link may be broken, or the page may have moved.
+        </p>
+      </Container>
+      <div className="my-9 max-md:mt-7 max-md:mb-6">
         <ErrorTrace variant="flat" />
       </div>
-      <h2 className="text-balance text-[clamp(20px,2.6vw,27px)] font-normal tracking-tight text-text">
-        This page drifted off the chart.
-      </h2>
-      <p className="mt-3 max-w-[46ch] text-pretty text-body text-read">
-        The link may be broken, or the page may have moved.
-      </p>
-      <div className="mt-6.5 flex flex-wrap items-center justify-center gap-3">
-        <Button render={<Link href="/" />} nativeButton={false}>
-          ← Back home
-        </Button>
-        <span className="inline-flex h-10 items-center gap-1.5 rounded-lg border border-hairline px-4 text-small text-text-muted">
-          Press{" "}
-          <kbd className="rounded border border-hairline bg-panel-2 px-1.5 py-0.5 font-mono text-meta text-text">
-            ⌘K
-          </kbd>{" "}
-          to search
-        </span>
-      </div>
+      <Container className="w-full">
+        <div className="flex flex-wrap items-center gap-3">
+          <Button render={<Link href="/" />} nativeButton={false} className="max-md:h-12 max-md:w-full">
+            ← Back home
+          </Button>
+        </div>
+      </Container>
     </div>
   );
 }
