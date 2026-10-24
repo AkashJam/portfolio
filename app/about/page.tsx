@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Download } from "lucide-react";
 
 import { AboutStats } from "@/components/site/AboutStats";
-import { Asterism } from "@/components/site/Asterism";
 import { EducationCard } from "@/components/site/EducationCard";
 import { ExperienceCard } from "@/components/site/ExperienceCard";
 import { SkillsCapabilities } from "@/components/site/SkillsCapabilities";
@@ -43,15 +42,8 @@ function TimelineWhen({
 
 export default function AboutPage() {
   return (
-    // phase6.md Step 4: the asterism is a sibling of the
-    // copy below, not a wrapper around it — LiveSignal's old inset-0
-    // treatment sat over the reading column and degenerated on mobile.
-    // `overflow-clip`, not `overflow-hidden`: both clip the asterism, but
-    // `hidden` makes this section a scroll container, which captured the
-    // `.reveal` view() timelines inside it — About's reveals never moved.
-    <section className="relative overflow-clip pt-16 pb-16">
+    <section className="pt-16 pb-16">
       <JsonLd data={profilePageLd()} />
-      <Asterism />
       <Container className="relative z-10">
         <p className="mb-4 text-meta tracking-[0.2em] text-text-muted uppercase">About</p>
         <h1 className="max-w-[20ch] text-h1 leading-tight font-light text-balance text-text">

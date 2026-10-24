@@ -3,7 +3,6 @@ import type { Metadata } from "next";
 import { allBlogs } from "content-collections";
 
 import { PostList } from "@/components/blog/PostList";
-import { StarField } from "@/components/site/StarField";
 import { Container } from "@/components/shell/Container";
 import { pageMetadata } from "@/lib/metadata";
 
@@ -22,8 +21,7 @@ export default function BlogPage() {
     .sort((a, b) => +new Date(b.date) - +new Date(a.date));
 
   return (
-    <div className="relative overflow-hidden pt-16 pb-16">
-      <StarField />
+    <div className="pt-16 pb-16">
       <Container className="relative z-10">
         <p className="mb-4 text-meta tracking-[0.2em] text-text-muted uppercase">Blog</p>
         <h1 className="text-h1 font-light text-text">Notes &amp; engineering</h1>
@@ -32,7 +30,7 @@ export default function BlogPage() {
           domain.
         </p>
 
-        <div className="mt-10">
+        <div className="reveal mt-10">
           <Suspense>
             <PostList posts={posts} />
           </Suspense>

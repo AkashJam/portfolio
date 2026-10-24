@@ -169,7 +169,7 @@ export function WorldMap({
   }
 
   return (
-    <section id="map">
+    <section id="map" className="reveal">
       <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="text-lead font-medium">Where and when</h2>
         <span className="text-small text-text-muted">

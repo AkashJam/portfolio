@@ -37,7 +37,7 @@ export default async function AtlasPage() {
 
   const sections = (
     <>
-      <section id="compare">
+      <section id="compare" className="reveal">
         <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
           <h2 className="text-lead font-medium">Compare</h2>
           <span className="text-small text-text-muted">
@@ -56,7 +56,7 @@ export default async function AtlasPage() {
       {atlas && atlas.rows.length > 0 ? (
         <WorldMap rows={atlas.rows} />
       ) : (
-        <section id="map">
+        <section id="map" className="reveal">
           <h2 className="mb-4 text-lead font-medium">Where and when</h2>
           <p className="text-small text-text-muted">
             Atlas data is temporarily unavailable.
@@ -64,7 +64,7 @@ export default async function AtlasPage() {
         </section>
       )}
 
-      <section id="countries">
+      <section id="countries" className="reveal">
         <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
           <h2 className="text-lead font-medium">Countries</h2>
           {atlas && <WindowHint />}

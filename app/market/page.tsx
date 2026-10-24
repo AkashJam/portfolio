@@ -102,7 +102,7 @@ export default async function MarketPage() {
           {events !== null && <LedgerHead events={ledger} />}
         </header>
 
-        <section aria-labelledby="prices">
+        <section aria-labelledby="prices" className="reveal">
           <div className="flex flex-wrap items-center gap-3">
             <h2 id="prices" className="text-h2 font-medium">
               Prices
@@ -126,7 +126,7 @@ export default async function MarketPage() {
           )}
         </section>
 
-        <section aria-labelledby="what-moved">
+        <section aria-labelledby="what-moved" className="reveal">
           <h2 id="what-moved" className="text-h2 font-medium">
             What moved, and why
           </h2>
@@ -141,7 +141,7 @@ export default async function MarketPage() {
           )}
         </section>
 
-        <section aria-labelledby="industries">
+        <section aria-labelledby="industries" className="reveal">
           <h2 id="industries" className="text-h2 font-medium">
             Industries
           </h2>

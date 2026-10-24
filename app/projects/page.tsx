@@ -28,7 +28,7 @@ export default function ProjectsPage() {
         and what I&apos;d do differently next time.
       </p>
 
-      <div className="mt-10">
+      <div className="reveal mt-10">
         <ProjectGrid projects={projects} />
       </div>
     </Container>

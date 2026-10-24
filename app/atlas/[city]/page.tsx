@@ -85,7 +85,7 @@ export default async function CityPage({ params }: PageProps<"/atlas/[city]">) {
       <Affordability city={city} />
       <BasketBar city={city} />
 
-      <section aria-labelledby="charts" className="space-y-10">
+      <section aria-labelledby="charts" className="reveal space-y-10">
         <h2 id="charts" className="text-small font-semibold uppercase tracking-[0.16em] text-text">
           The whole record
         </h2>

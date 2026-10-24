@@ -18,7 +18,7 @@ const VIEWPORTS = [
   { width: 1440, height: 900 },
 ];
 
-for (const path of ["/", "/about"]) {
+for (const path of ["/", "/about", "/blog", "/projects"]) {
   for (const viewport of VIEWPORTS) {
     test(`${path} at ${viewport.width}×${viewport.height}: reveal content is fully opaque and AA-clean before any scroll`, async ({
       page,

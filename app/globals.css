@@ -117,68 +117,6 @@
     stroke-dashoffset: 0;
   }
 }
-/* About's ambient "asterism" (components/site/Asterism.tsx,
-   phase6.md Step 12, "F / Ingress") — a glow hops star to star breadth-
-   first from the hub, one hop every 1.8s. The lit window (0%→5.51%, ~1.4s)
-   is kept well under the 1.8s spacing so exactly one star is ever lit;
-   25.4s = 13 stars × 1.8s + a 2s rest before it repeats.
-   `backwards` fill-mode (applied on the .aster-node class, not here) is
-   load-bearing: without it a delayed node sits fully lit until its first
-   turn instead of holding the 0% (dim) frame through its delay.
-   The stops are percentages of the cycle, so changing 25.4s rescales the
-   beat: recompute them with it. The catch (0.4s) is shorter than the decay
-   (1s) — a gentle 1:2.5; at 1:15 it read as a blink. Peak opacity is
-   already 1, so the flare is the 1.1× swell and the shift toward white.
-   Every stop carries the same two drop-shadows: a mismatched list snaps
-   instead of interpolating. */
-@keyframes hop {
-  0% {
-    opacity: 0.55;
-    transform: scale(1);
-    fill: var(--brand-hover);
-    animation-timing-function: cubic-bezier(0.35, 0, 0.35, 1);
-    filter: drop-shadow(0 0 3px color-mix(in oklab, var(--brand) 45%, transparent))
-      drop-shadow(0 0 5px color-mix(in oklab, var(--brand-hover) 25%, transparent));
-  }
-  1.57% {
-    opacity: 1;
-    transform: scale(1.1);
-    fill: color-mix(in oklab, var(--text) 82%, var(--brand-hover));
-    animation-timing-function: cubic-bezier(0.25, 0, 0.45, 1);
-    filter: drop-shadow(0 0 5px color-mix(in oklab, var(--brand-hover) 100%, transparent))
-      drop-shadow(0 0 16px color-mix(in oklab, var(--brand) 85%, transparent));
-  }
-  5.51%,
-  100% {
-    opacity: 0.55;
-    transform: scale(1);
-    fill: var(--brand-hover);
-    filter: drop-shadow(0 0 3px color-mix(in oklab, var(--brand) 45%, transparent))
-      drop-shadow(0 0 5px color-mix(in oklab, var(--brand-hover) 25%, transparent));
-  }
-}
-
-/* Blog index's ambient star field (components/site/StarField.tsx,
-   phase6.md Step 5) — the same flicker-and-afterglow beat as the asterism's
-   `hop`, deliberately softened: brightness only (no swell, no shift toward
-   white), a shallower peak (.38→.85 vs the asterism's full range), and no
-   ordering, since a field has no path through it. 14s cycle keeps ~12 of 142
-   stars mid-flicker at any moment. */
-@keyframes twinkle {
-  0% {
-    opacity: 0.38;
-    animation-timing-function: cubic-bezier(0.35, 0, 0.35, 1);
-  }
-  2.5% {
-    opacity: 0.85;
-    animation-timing-function: cubic-bezier(0.25, 0, 0.45, 1);
-  }
-  8.57%,
-  100% {
-    opacity: 0.38;
-  }
-}
-
 /*
  * portfolio.md §17 — dark-only in v1, no light toggle (next-themes + a real
  * `.light` override is a §16.3 future item). These are the literal §17
@@ -444,19 +382,6 @@
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  /* transform-box/origin: an SVG element scales about the viewBox origin by
-     default, so a bare scale() in the hop keyframe would fling each star
-     across the figure instead of swelling it in place. */
-  .aster-node {
-    animation: hop 25.4s linear infinite backwards;
-    animation-delay: var(--d, 0s);
-    transform-box: fill-box;
-    transform-origin: center;
-  }
-  .star-twinkle {
-    animation: twinkle 14s linear infinite backwards;
-    animation-delay: var(--d, 0s);
-  }
   .error-trace-run {
     opacity: 1;
     stroke-dasharray: 12 88;
@@ -482,8 +407,6 @@
 @media (hover: none) and (pointer: coarse) {
   .glow-orb,
   .glow-sphere,
-  .aster-node,
-  .star-twinkle,
   .error-trace-run {
     animation: none !important;
   }

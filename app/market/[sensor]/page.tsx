@@ -61,7 +61,7 @@ export default async function SensorRecordPage({ params }: PageProps<"/market/[s
     <Container className="space-y-12 py-16">
       <RecordHead record={record} priceHref={`${address}/price`} />
 
-      <section aria-labelledby="since">
+      <section aria-labelledby="since" className="reveal">
         <h2 id="since" className="text-small font-semibold uppercase tracking-[0.16em] text-text">
           Since the series began
         </h2>
@@ -70,7 +70,7 @@ export default async function SensorRecordPage({ params }: PageProps<"/market/[s
         </div>
       </section>
 
-      <section aria-labelledby="tripped">
+      <section aria-labelledby="tripped" className="reveal">
         <h2 id="tripped" className="text-small font-semibold uppercase tracking-[0.16em] text-text">
           Every move that tripped
         </h2>
