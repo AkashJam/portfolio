@@ -197,7 +197,7 @@ test.describe("at 1440px", () => {
     await expect(page).toHaveURL(/\/atlas\/japan$/);
     await page.keyboard.press("Control+k");
     const dialog = page.getByRole("dialog");
-    await dialog.getByPlaceholder("Search pages, sensors, actions…").fill("tokyo");
+    await dialog.getByPlaceholder("Search projects, posts, companies, cities…").fill("tokyo");
     const group = dialog.getByRole("group", { name: "Cities" });
     await expect(group.getByRole("option", { name: /Tokyo/ })).toContainText("/atlas/japan");
   });

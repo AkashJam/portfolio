@@ -298,7 +298,7 @@ test.describe("at 390px", () => {
       "About /about",
       "Market /market",
       "Atlas /atlas",
-      "Résumé PDF",
+      "Résumé",
     ]);
     await expect(menu.locator('[aria-hidden="true"].h-px')).toHaveCount(2);
     await expect(

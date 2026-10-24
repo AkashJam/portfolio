@@ -136,7 +136,6 @@ export function MobileDrawer({
                 className="size-[15px] text-text-muted"
               />
               Résumé
-              <Hint>PDF</Hint>
             </a>
           </nav>
           <div className="flex gap-4 border-t border-hairline px-3 pt-4 text-meta tracking-[0.2em] text-text-muted uppercase">

@@ -39,12 +39,15 @@ function CommandDialog({
   children,
   className,
   showCloseButton = false,
+  commandProps,
   ...props
 }: Omit<React.ComponentProps<typeof Dialog>, "children"> & {
   title?: string
   description?: string
   className?: string
   showCloseButton?: boolean
+  /** Passed to the cmdk root this dialog wraps its children in (a `filter`, say). */
+  commandProps?: Omit<React.ComponentProps<typeof CommandPrimitive>, "children">
   children: React.ReactNode
 }) {
   return (
@@ -68,7 +71,7 @@ function CommandDialog({
             they dereference an undefined context and take the whole tree down the
             moment the dialog opens. AppShell sits in RootLayout, so that is every
             page. Canonical shadcn wraps the children here for the same reason. */}
-        <Command>{children}</Command>
+        <Command {...commandProps}>{children}</Command>
       </DialogContent>
     </Dialog>
   )

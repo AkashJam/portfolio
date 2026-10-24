@@ -45,14 +45,23 @@ export function isActive(href: string, pathname: string): boolean {
     : pathname === href || pathname.startsWith(`${href}/`);
 }
 
-// One shaped entry per ⌘K "Symbols" result (CommandPalette.tsx) — built
-// server-side in app/layout.tsx from the Ticker API (portfolio.md §15
-// Phase C) so the palette itself stays a dumb client component with no
-// API-shape knowledge.
-export interface PaletteSymbol {
+// The ⌘K palette's index (phase19.md step 4, M24): one shaped list per group, built
+// server-side by app/api/palette-index/route.ts so the palette itself stays a dumb
+// client component with no API-shape or content-collection knowledge. Fetched once,
+// when the palette first opens, so no page carries it.
+export interface PaletteEntry {
   href: string;
+  /** The row's name: a title, a ticker, a city. */
   label: string;
-  sublabel: string;
-  /** Which ⌘K group the entry sits in; sensors unless it says otherwise. */
-  group?: "sensors" | "cities";
+  /** The second line: a post's or project's tags, a company's "Country · Name", a city's country. */
+  sub: string;
+  /** Searched as well as the label and the sub line. */
+  keywords: string[];
+}
+
+export interface PaletteIndex {
+  projects: PaletteEntry[];
+  posts: PaletteEntry[];
+  companies: PaletteEntry[];
+  cities: PaletteEntry[];
 }
