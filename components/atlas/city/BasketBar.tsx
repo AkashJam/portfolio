@@ -45,7 +45,8 @@ export function BasketBar({ city }: { city: CityResponse }) {
                   : s.opacity === 1
                     ? "var(--brand-hover)"
                     : "var(--read)",
-              opacity: s.outlined || s.hatched ? 1 : s.opacity,
+              // A floor of .5: the faintest part is still 3:1 against the panel (WCAG 1.4.11).
+              opacity: s.outlined || s.hatched ? 1 : Math.max(s.opacity, 0.5),
               outline: s.outlined ? "1.5px solid var(--brand-hover)" : undefined,
               outlineOffset: s.outlined ? "-1.5px" : undefined,
             }}

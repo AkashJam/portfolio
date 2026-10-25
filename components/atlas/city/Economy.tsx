@@ -26,7 +26,7 @@ export function Economy({ city }: { city: CityResponse }) {
     { key: "industry", label: "Industry", s: c.industry, token: "var(--read)" },
     { key: "services", label: "Services", s: c.services, token: "var(--text-muted)" },
     { key: "agriculture", label: "Agriculture", s: c.agriculture, token: "var(--text-faint)" },
-    { key: "residual", label: "Taxes less subsidies", s: c.residual, token: "var(--hairline)" },
+    { key: "residual", label: "Taxes less subsidies", s: c.residual, token: "repeating-linear-gradient(135deg, var(--text-faint) 0 3px, transparent 3px 6px)" },
   ];
   const shown = bar.filter((b) => b.s.value !== null && b.s.value > 0);
   return (
@@ -54,12 +54,14 @@ export function Economy({ city }: { city: CityResponse }) {
       </p>
       <div role="img" aria-label={`${city.country}'s economy by share of GDP: ${shown.map((b) => `${b.label} ${figure(b.s)}%`).join(", ")}.`} className="mt-3 flex h-5 overflow-hidden rounded-md border border-hairline">
         {shown.map((b) => (
-          <span key={b.key} data-testid="composition-segment" className="block h-full" style={{ width: `${b.s.value}%`, background: b.token, opacity: 0.85 }} />
+          <span key={b.key} data-testid="composition-segment" className="block h-full" style={{ width: `${b.s.value}%`, background: b.token }} />
         ))}
       </div>
       <ul className="mt-2 flex flex-wrap gap-x-5 gap-y-1 font-mono text-meta text-read">
         {bar.map((b) => (
           <li key={b.key} data-testid={`composition-${b.key}`}>
+            {/* A key to the bar above: with neutral marks the order alone is not enough. */}
+            <i aria-hidden="true" className="mr-1.5 inline-block size-2.5 rounded-[2px] align-[-1px]" style={{ background: b.token }} />
             {b.label} {b.s.value === null ? "—" : `${figure(b.s)}%`}
             {b.key === "industry" && c.manufacturing.value !== null && <span className="text-text-muted"> (manufacturing {figure(c.manufacturing)}%)</span>}
           </li>

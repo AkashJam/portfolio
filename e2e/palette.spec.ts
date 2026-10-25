@@ -132,6 +132,19 @@ test.describe("at 390px", () => {
   });
 });
 
+test.describe("a query that matches nothing", () => {
+  test("says so, in a way a listbox allows (axe's aria-required-children, found in the Phase 19 gate)", async ({ page }) => {
+    await page.goto("/about");
+    await openPalette(page);
+    await search(page).fill("zzzqqq");
+    await expect(page.getByRole("option", { name: "No results found." })).toBeDisabled();
+    await expect(page.getByRole("option")).toHaveCount(1);
+    await page.getByRole("dialog").evaluate((el) => Promise.all(el.getAnimations({ subtree: true }).map((a) => a.finished)));
+    const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();
+    expect(results.violations, JSON.stringify(results.violations, null, 2)).toEqual([]);
+  });
+});
+
 test.describe("accessibility", () => {
   test("has no WCAG 2.1 AA violations empty or with a query", async ({ page }) => {
     await page.goto("/about");

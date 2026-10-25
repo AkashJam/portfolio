@@ -18,8 +18,9 @@ test("a missing page is a 404 named for itself, with the message as its h1", asy
 test("the numeral is decoration, and Back home is the only action", async ({ page }) => {
   await page.goto(MISSING);
   await expect(page.locator("main [aria-hidden='true']", { hasText: "404" })).toHaveCount(1);
-  await expect(page.getByRole("main").getByRole("link", { name: "← Back home" })).toHaveAttribute("href", "/");
-  await expect(page.getByRole("main").getByRole("link")).toHaveCount(1);
+  // Base UI renders a link-styled Button as <a role="button">, so it is found as a button.
+  await expect(page.getByRole("main").getByRole("button", { name: "← Back home" })).toHaveAttribute("href", "/");
+  await expect(page.locator("main a")).toHaveCount(1);
   // The search hint is gone; the top bar's chip stays.
   await expect(page.getByText(/Press\s+(⌘K|Ctrl K)\s+to search/)).toHaveCount(0);
   await expect(page.locator("header button[aria-haspopup='dialog']").first()).toBeVisible();

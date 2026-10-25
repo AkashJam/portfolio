@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Command as CommandPrimitive } from "cmdk"
+import { Command as CommandPrimitive, useCommandState } from "cmdk"
 
 import { cn } from "@/lib/utils"
 import {
@@ -116,16 +116,31 @@ function CommandList({
   )
 }
 
+/**
+ * "No results" as a disabled option. cmdk's own Empty is `role="presentation"` and
+ * cannot be overridden, which leaves the listbox with nothing in it and fails axe's
+ * aria-required-children on every query that matches nothing (found in Phase 19's
+ * gate). A disabled option is a valid child, is read as "No results found", and is
+ * not a cmdk item, so the arrow keys skip it.
+ */
 function CommandEmpty({
   className,
+  children,
   ...props
-}: React.ComponentProps<typeof CommandPrimitive.Empty>) {
+}: Omit<React.ComponentProps<"div">, "role">) {
+  const empty = useCommandState((state) => state.filtered.count === 0)
+  if (!empty) return null
   return (
-    <CommandPrimitive.Empty
+    <div
       data-slot="command-empty"
+      role="option"
+      aria-disabled="true"
+      aria-selected="false"
       className={cn("py-6 text-center text-sm", className)}
       {...props}
-    />
+    >
+      {children}
+    </div>
   )
 }
 
