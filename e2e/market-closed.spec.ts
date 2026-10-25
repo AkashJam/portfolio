@@ -96,10 +96,15 @@ test.describe("at 1440px", () => {
     await expect(page.getByTestId("prices-vintage")).not.toContainText("Live");
   });
 
-  test("the nav reads quiet and not live while closed", async ({ page }) => {
+  test("the nav draws no dot while closed", async ({ page }) => {
+    // A closed session is quiet, and a quiet day draws nothing (I12): the slot is there to hold
+    // the space, hidden from readers, and the Market tab has no image in it.
     await stub(page, closedStub(HOUR, "live"));
     await page.goto("/market");
-    await expect(page.locator('header a[href="/market"] [data-market-state]')).toHaveAttribute("aria-label", "quiet");
+    const slot = page.locator('header a[href="/market"] [data-market-state]');
+    await expect(slot).toHaveAttribute("data-market-state", "quiet");
+    await expect(slot).toHaveAttribute("data-dot", "hidden");
+    await expect(page.locator('header a[href="/market"] [role="img"]')).toHaveCount(0);
   });
 
   test("the countdown falls as the clock does", async ({ page }) => {

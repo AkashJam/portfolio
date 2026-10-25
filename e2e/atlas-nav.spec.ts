@@ -37,7 +37,8 @@ test.describe("at 1440px", () => {
     await page.goto("/about");
     const parts = await page
       .getByRole("navigation", { name: "Primary" })
-      .locator("a, span[aria-hidden]")
+      // The nav's own children: the Market tab holds an invisible dot slot (a span[aria-hidden]) too.
+      .locator(":scope > a, :scope > span[aria-hidden]")
       .evaluateAll((els) =>
         els.map((e) => (e.tagName === "A" ? e.textContent?.trim() : "|")),
       );
