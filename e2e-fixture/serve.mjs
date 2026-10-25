@@ -1,5 +1,10 @@
 // Starts the two copies of the built site the fixture suite reads, one per ledger
-// state, each against its own real ticker. Playwright runs this as its web server
+// state, each against its own real ticker, and each from its own copy of the build
+// directory: a prerendered page's route cache is on disk under .next/ and is keyed by
+// route, not by the ticker it was fetched from, so two processes in one directory
+// would serve each other's pages once a route has `revalidate` (the record page has,
+// since phase18.md step 3, M21) and the tripped site would show the quiet site's
+// Japan, with no event. Playwright runs this as its web server
 // (playwright.fixture.config.ts).
 //
 // The tickers are not started here: they are the real ticker on the simulator, each
@@ -21,7 +26,7 @@
 // runs it. It is built here only if it is missing; run `npm run build` first to pick
 // up a code change.
 import { spawn, spawnSync } from "node:child_process";
-import { cpSync, existsSync } from "node:fs";
+import { cpSync, existsSync, rmSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -45,10 +50,15 @@ if (!existsSync(join(root, ".next/standalone/server.js"))) {
 cpSync(join(root, "public"), join(root, ".next/standalone/public"), { recursive: true });
 cpSync(join(root, ".next/static"), join(root, ".next/standalone/.next/static"), { recursive: true });
 
-for (const [site, ticker] of Object.values(SITES)) {
+for (const [mode, [site, ticker]] of Object.entries(SITES)) {
+  // server.js changes into its own directory, so the copy's .next/server and .next/cache
+  // are this site's alone.
+  const dir = join(root, `.next/standalone-${mode}`);
+  rmSync(dir, { recursive: true, force: true });
+  cpSync(join(root, ".next/standalone"), dir, { recursive: true });
   children.push(
-    spawn("node", [".next/standalone/server.js"], {
-      cwd: root,
+    spawn("node", ["server.js"], {
+      cwd: dir,
       stdio: "inherit",
       env: { ...process.env, PORT: String(site), HOSTNAME: "127.0.0.1", TICKER_API_URL: `http://127.0.0.1:${ticker}` },
     }),
