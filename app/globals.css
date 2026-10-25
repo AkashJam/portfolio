@@ -238,8 +238,18 @@
   * {
     @apply border-border outline-ring/50;
   }
+  /* D9 (mockups/site-review/tokens.html): the page body is --read and headings are
+     --text, so a heading keeps its step above the text under it. --foreground stays
+     --text for shadcn's own text-foreground uses (the dialog, sheet and popover). */
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background;
+    color: var(--read);
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    color: var(--text);
   }
   /* Dark-only (§17), so say so to the browser: without color-scheme the
      native scrollbars, form controls and overscroll stay light, which on

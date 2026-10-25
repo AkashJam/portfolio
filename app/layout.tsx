@@ -37,7 +37,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       className={`${GeistSans.variable} ${GeistMono.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col bg-canvas text-text">
+      <body className="flex min-h-full flex-col bg-canvas text-read">
         <AppShell>{children}</AppShell>
       </body>
     </html>
