@@ -85,7 +85,7 @@ export default async function Home() {
   // projects to show, so a future fifth project still resolves correctly.
   const homeProjects = allProjects
     .filter((p) => (isDev || !p.draft) && p.status !== "This site")
-    .sort((a, b) => Number(b.featured) - Number(a.featured) || b.year - a.year)
+    .sort((a, b) => a.order - b.order)
     .slice(0, 3);
 
   return (

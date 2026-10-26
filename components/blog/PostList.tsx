@@ -23,11 +23,11 @@ export function PostList({ posts }: { posts: Blog[] }) {
   const domain = searchParams.get("tag");
 
   const domains = React.useMemo(
-    () => Array.from(new Set(posts.flatMap((p) => p.category.split(" · ")))).sort(),
+    () => Array.from(new Set(posts.map((p) => p.topic))).sort(),
     [posts]
   );
 
-  const filtered = domain ? posts.filter((p) => p.category.split(" · ").includes(domain)) : posts;
+  const filtered = domain ? posts.filter((p) => p.topic === domain) : posts;
 
   function setDomain(d: string | null) {
     router.replace(d ? `${pathname}?tag=${encodeURIComponent(d)}` : pathname, { scroll: false });
@@ -70,7 +70,7 @@ export function PostList({ posts }: { posts: Blog[] }) {
             href={`/blog/${post._meta.path}`}
             className="group flex max-w-measure flex-col gap-1.5 py-6 first:pt-0"
           >
-            <span className="text-meta text-text-muted">{post.category}</span>
+            <span className="text-meta text-text-muted">{post.topic}</span>
             <span className="text-lead text-text group-hover:text-brand-hover">{post.title}</span>
             <span className="text-small text-text-muted">{post.summary}</span>
             <span className="mt-1 font-mono text-meta text-text-muted">

@@ -17,7 +17,7 @@ const isDev = process.env.NODE_ENV !== "production";
 export default function ProjectsPage() {
   const projects = allProjects
     .filter((p) => isDev || !p.draft)
-    .sort((a, b) => b.year - a.year);
+    .sort((a, b) => a.order - b.order);
 
   return (
     <Container className="py-16">

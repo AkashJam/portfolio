@@ -2,7 +2,6 @@ import Link from "next/link";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
 import type { Project } from "content-collections";
 
 // Exported for reuse by the case-study fact grid (app/projects/[project]/page.tsx).
@@ -20,20 +19,9 @@ const STATUS_MARK: Record<Project["status"], string> = {
 
 export function ProjectCard({ project }: { project: Project }) {
   return (
-    <article
-      className={cn(
-        "flex flex-col gap-4 rounded-2xl border border-hairline bg-panel p-6",
-        project.featured &&
-          "bg-[linear-gradient(180deg,rgba(255,255,255,0.03),transparent_130px),var(--panel)]"
-      )}
-    >
+    <article className="flex flex-col gap-4 rounded-2xl border border-hairline bg-panel p-6">
       <div className="flex items-center justify-between font-mono text-meta text-text-muted">
-        <span className="flex items-center gap-2.5">
-          <span>{project.year}</span>
-          {project.featured && (
-            <span className="tracking-widest text-read uppercase">Featured</span>
-          )}
-        </span>
+        <span>{project.year}</span>
         <span className={STATUS_COLOR[project.status]}>
           {STATUS_MARK[project.status]} {project.status}
         </span>

@@ -31,7 +31,7 @@ describe("blogPostingLd", () => {
     summary: "Summary",
     date: "2026-07-02",
     tags: ["Go"],
-    category: "Performance",
+    topic: "Backend and distributed systems",
   } as unknown as Parameters<typeof blogPostingLd>[0];
 
   it("falls back to the publish date when there is no update", () => {

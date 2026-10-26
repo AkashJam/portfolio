@@ -41,7 +41,7 @@ export async function generateMetadata({
   return project
     ? pageMetadata({
         path: `/projects/${slug}`,
-        title: `${project.title} — Projects — Akash James`,
+        title: `${project.title} — Akash James`,
         description: project.summary,
         article: { tags: project.tags },
       })

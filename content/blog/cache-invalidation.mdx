@@ -1,7 +1,8 @@
 ---
 title: "Five-minute queries behind a sixty-second timeout: unwinding a cache cascade"
 summary: A client-facing analytics dashboard cached its subqueries to stay fast, and that's precisely why it got slow — every write to a base table invalidated everything stacked above it. Fixing it meant preloading, splitting the fetch, and warming the cache before anyone asked.
-category: Performance
+topic: Backend and distributed systems
+order: 1
 date: "2026-07-02"
 tags: [Vue, Go, Redash, Caching, Performance]
 draft: false

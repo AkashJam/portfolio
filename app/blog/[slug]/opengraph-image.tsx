@@ -32,7 +32,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
   return new ImageResponse(
     (
       <OgCard
-        eyebrow={`Blog · ${post.category} · ${formatOgDate(post.date)} · ${post.readingMinutes} min read`}
+        eyebrow={`Blog · ${post.topic} · ${formatOgDate(post.date)} · ${post.readingMinutes} min read`}
         headline={post.title}
         summary={post.summary}
         chips={post.tags.slice(0, MAX_CHIPS)}

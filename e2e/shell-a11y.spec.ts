@@ -57,7 +57,7 @@ test("the blog is called Blog on its index and its posts", async ({ page }) => {
   await expect(page.getByText("Writing", { exact: true })).toHaveCount(0);
   await page.goto("/blog/cache-invalidation");
   await expect(page.getByRole("link", { name: "Blog", exact: true }).first()).toBeVisible();
-  await expect(page).toHaveTitle(/— Blog — Akash James$/);
+  await expect(page).toHaveTitle(/— Akash James$/);
 });
 
 test("the drawer marks the current section, as the desktop nav does (I7)", async ({ page }) => {

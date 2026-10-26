@@ -31,8 +31,8 @@ export async function generateMetadata({
   return post
     ? pageMetadata({
         path: `/blog/${slug}`,
-        title: `${post.title} — Blog — Akash James`,
-        description: post.summary,
+        title: `${post.title} — Akash James`,
+        description: post.description ?? post.summary,
         article: { publishedTime: post.date, modifiedTime: post.updated, tags: post.tags },
       })
     : {};
@@ -49,12 +49,12 @@ export default async function BlogPostPage({ params }: PageProps<"/blog/[slug]">
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start lg:gap-12">
         <article className="min-w-0">
           {/* Only the link is link-coloured — colouring the whole crumb made
-              the category, which isn't a link, look clickable. */}
+              the topic, which isn't a link, look clickable. */}
           <p className="text-meta text-text-muted">
             <Link href="/blog" className="text-brand-hover underline underline-offset-2">
               Blog
             </Link>{" "}
-            / {post.category}
+            / {post.topic}
           </p>
           {post.draft && (
             <Badge variant="outline" className="mt-3 border-hairline bg-panel-2 text-text-muted">

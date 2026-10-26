@@ -100,7 +100,7 @@ export function blogPostingLd(post: Post): WithContext<BlogPosting> {
     // The post's own share card (app/blog/[slug]/opengraph-image.tsx).
     image: `${url}/opengraph-image/card`,
     keywords: post.tags,
-    articleSection: post.category,
+    articleSection: post.topic,
     url,
     mainEntityOfPage: url,
   };

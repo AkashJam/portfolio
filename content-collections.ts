@@ -27,7 +27,13 @@ const projectFrontmatter = base.extend({
   focus: z.string(),
   status: z.enum(["Live", "Research", "This site"]),
   tags: z.array(z.string()),
-  featured: z.boolean().default(false),
+  // One explicit order for Home and /projects (D6); lower comes first.
+  order: z.number(),
+  // The one-line card text and the three tags a card shows (D6, I18); `summary`
+  // and the full `tags` stay for the case study. Wording is a draft until the
+  // content pass (Phase 23).
+  tagline: z.string(),
+  cardTags: z.array(z.string()).length(3),
   links: z.object({ live: z.string().optional(), repo: z.string().optional() }).default({}),
   // One picture per project (I25), shared by the case-study header, the
   // /projects preview and the Home showcase row — so it lives on the project,
@@ -46,8 +52,29 @@ const projectFrontmatter = base.extend({
   draft: z.boolean().default(false),
 });
 
+// Five topics replace the eleven categories (I30); the blog index's chips
+// filter on them in `?tag=`.
+export const topics = [
+  "Frontend",
+  "Backend and distributed systems",
+  "Infrastructure",
+  "Architecture",
+  "Engineering practice",
+] as const;
+
+const DESCRIPTION_MAX = 155;
+const DESCRIPTION_WARN = 160;
+
 const blogFrontmatter = base.extend({
-  category: z.string(),
+  topic: z.enum(topics),
+  // A case-study slug, or absent for a post that belongs to none (I28).
+  project: z.string().optional(),
+  // The meta description (I29), written in the content pass: at most 155
+  // characters, and the build warns over 160. Falls back to `summary`.
+  description: z.string().optional(),
+  // Ranks the featured three on the blog index (I30); absent for every other
+  // post, which is "Latest", newest first.
+  order: z.number().optional(),
   date: isoDate,
   updated: isoDate.optional(),
   tags: z.array(z.string()),
@@ -104,6 +131,11 @@ const blog = defineCollection({
   include: "**/*.mdx",
   schema: blogFrontmatter,
   transform: async (document, context) => {
+    if (document.description && document.description.length > DESCRIPTION_WARN) {
+      console.warn(
+        `[content] ${document._meta.path}: description is ${document.description.length} characters (limit ${DESCRIPTION_MAX})`,
+      );
+    }
     const mdx = await compileMDX(context, document, mdxOptions);
     const readingMinutes = Math.max(1, Math.round(document.content.split(/\s+/).length / 200));
     const headings = extractHeadings(document.content);
