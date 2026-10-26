@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { allProjects } from "content-collections";
 
-import { ProjectGrid } from "@/components/projects/ProjectGrid";
+import { ProjectIndex } from "@/components/projects/ProjectIndex";
 import { Container } from "@/components/shell/Container";
 import { pageMetadata } from "@/lib/metadata";
 
@@ -28,8 +28,8 @@ export default function ProjectsPage() {
         and what I&apos;d do differently next time.
       </p>
 
-      <div className="reveal mt-10">
-        <ProjectGrid projects={projects} />
+      <div className="reveal">
+        <ProjectIndex projects={projects} />
       </div>
     </Container>
   );

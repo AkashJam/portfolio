@@ -18,7 +18,7 @@ function placeholderReason(stats: LatencyStats | undefined): string | null {
 
 /**
  * Stat tiles + a one-tick sequence diagram for project case studies
- * (phase6.md Step 5) — the sequence itself (Finnhub →
+ * (phase6.md Step 5; labels and the 1 s coalescing step, phase18.md I23 and M27) — the sequence itself (Finnhub →
  * Ingest → Redis → SSE hub → Browser) is Market Ticker's own pipeline,
  * not a generic diagram type, so unlike ArchFlow it isn't parameterized
  * beyond the tiles/caption: a case study with a different pipeline shape
@@ -59,13 +59,22 @@ export function LatencyTrace({ stats, caption }: LatencyTraceProps) {
         ))}
       </div>
 
-      <div className="mt-3 overflow-x-auto rounded-xl border border-hairline bg-canvas p-4.5">
+      {/* The diagram is wider than the prose measure: from xl it takes the article column's full
+          53.25rem (the page's container less the rail), which renders its labels at 12px or more;
+          below that it keeps its drawn size and scrolls sideways, so the labels never shrink with the
+          screen. The region is focusable so a keyboard can scroll it. */}
+      <div
+        role="region"
+        aria-label="Sequence diagram"
+        tabIndex={0}
+        className="mt-3 overflow-x-auto rounded-xl border border-hairline bg-canvas p-4.5 xl:w-213 focus-visible:outline-2 focus-visible:outline-brand-hover"
+      >
         <svg
           viewBox="0 0 900 350"
           preserveAspectRatio="xMidYMid meet"
           role="img"
           aria-label={`Sequence for one live tick: Finnhub to Ingest to Redis to SSE hub to Browser. ${endToEnd}.`}
-          className="block h-auto w-full min-w-130"
+          className="block h-auto w-full min-w-225 xl:min-w-0"
         >
           <defs>
             <marker id="lt-ah" markerWidth="9" markerHeight="9" refX="7.5" refY="4" orient="auto">
@@ -87,53 +96,53 @@ export function LatencyTrace({ stats, caption }: LatencyTraceProps) {
           ).map(([x, label, cx]) => (
             <g key={label}>
               <rect x={x} y={10} width={112} height={30} rx={7} fill="var(--panel-2)" stroke="var(--hairline)" />
-              <text x={cx} y={30} textAnchor="middle" fill="var(--text)" fontSize={12} fontWeight={500} fontFamily="var(--font-mono)">
+              <text x={cx} y={30} textAnchor="middle" fill="var(--text)" fontSize={15} fontWeight={500} fontFamily="var(--font-sans)">
                 {label}
               </text>
               <line x1={cx} y1={40} x2={cx} y2={332} stroke="var(--hairline)" strokeWidth={1} strokeDasharray="3 4" />
             </g>
           ))}
 
-          <text x={170} y={70} textAnchor="middle" fill="var(--read)" fontSize={11.5} fontFamily="var(--font-mono)">
+          <text x={170} y={70} textAnchor="middle" fill="var(--read)" fontSize={14} fontFamily="var(--font-sans)">
             tick
           </text>
           <line x1={80} y1={76} x2={258} y2={76} stroke="var(--text-muted)" strokeWidth={1.5} markerEnd="url(#lt-ah)" />
 
           <rect x={254} y={98} width={12} height={24} rx={2} fill="var(--text-faint)" stroke="var(--text-muted)" />
-          <text x={274} y={107} textAnchor="start" fill="var(--read)" fontSize={11.5} fontFamily="var(--font-mono)">
-            normalize + Redis lease
+          <text x={274} y={107} textAnchor="start" fill="var(--read)" fontSize={14} fontFamily="var(--font-sans)">
+            coalesce 1 s + Redis lease
           </text>
 
-          <text x={350} y={144} textAnchor="middle" fill="var(--read)" fontSize={11.5} fontFamily="var(--font-mono)">
+          <text x={350} y={144} textAnchor="middle" fill="var(--read)" fontSize={14} fontFamily="var(--font-sans)">
             XADD + PUBLISH
           </text>
           <line x1={260} y1={150} x2={438} y2={150} stroke="var(--text-muted)" strokeWidth={1.5} markerEnd="url(#lt-ah)" />
 
           <line x1={260} y1={184} x2={360} y2={184} stroke="var(--text-muted)" strokeWidth={1.3} strokeDasharray="5 4" markerEnd="url(#lt-aha)" />
-          <rect x={366} y={172} width={200} height={26} rx={4} fill="var(--panel-2)" stroke="var(--hairline)" />
-          <text x={376} y={189} textAnchor="start" fill="var(--text-muted)" fontSize={11} fontFamily="var(--font-mono)">
+          <rect x={366} y={172} width={220} height={26} rx={4} fill="var(--panel-2)" stroke="var(--hairline)" />
+          <text x={376} y={189} textAnchor="start" fill="var(--text-muted)" fontSize={14} fontFamily="var(--font-sans)">
             async · candle → TimescaleDB
           </text>
 
-          <text x={530} y={214} textAnchor="middle" fill="var(--read)" fontSize={11.5} fontFamily="var(--font-mono)">
+          <text x={530} y={214} textAnchor="middle" fill="var(--read)" fontSize={14} fontFamily="var(--font-sans)">
             consume + build event
           </text>
           <line x1={440} y1={220} x2={618} y2={220} stroke="var(--text-muted)" strokeWidth={1.5} markerEnd="url(#lt-ah)" />
 
-          <text x={710} y={250} textAnchor="middle" fill="var(--read)" fontSize={11.5} fontFamily="var(--font-mono)">
+          <text x={710} y={250} textAnchor="middle" fill="var(--read)" fontSize={14} fontFamily="var(--font-sans)">
             event: quote · SSE
           </text>
           <line x1={620} y1={256} x2={798} y2={256} stroke="var(--text-muted)" strokeWidth={1.5} markerEnd="url(#lt-ah)" />
 
           <rect x={794} y={278} width={12} height={24} rx={2} fill="var(--text-faint)" stroke="var(--text-muted)" />
-          <text x={786} y={287} textAnchor="end" fill="var(--read)" fontSize={11.5} fontFamily="var(--font-mono)">
+          <text x={786} y={287} textAnchor="end" fill="var(--text-muted)" fontSize={14} fontFamily="var(--font-sans)">
             parse + paint · not measured
           </text>
 
           {/* The measured span ends at the hub's write, not the browser's paint:
               a server can't time a network hop and a repaint it never sees. */}
           <line x1={80} y1={320} x2={710} y2={320} stroke="var(--brand-hover)" strokeWidth={2} />
-          <text x={395} y={340} textAnchor="middle" fill="var(--brand-hover)" fontSize={12.5} fontWeight={600} fontFamily="var(--font-mono)">
+          <text x={395} y={340} textAnchor="middle" fill="var(--brand-hover)" fontSize={14} fontWeight={600} fontFamily="var(--font-mono)">
             {endToEnd}
           </text>
         </svg>

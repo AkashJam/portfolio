@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
 
 import { ProjectPicture } from "@/components/projects/ProjectPicture";
-import { STATUS_COLOR } from "@/components/projects/ProjectCard";
+import { STATUS_COLOR } from "@/components/projects/status";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { Project } from "content-collections";

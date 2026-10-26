@@ -39,3 +39,35 @@ for (const [path, last] of [
     });
   });
 }
+
+// Phase 20 step 3, I8 and I24: a case study's breadcrumb is "Projects / {title}", and below 1024px
+// the rail is replaced by a closed "On this page" disclosure of real links.
+test.describe("a case study's header", () => {
+  test("the breadcrumb is Projects / {title}, with no Overview", async ({ page }) => {
+    await page.goto("/projects/market-ticker");
+    await expect(page.locator("main p").filter({ hasText: "Projects /" }).first()).toHaveText("Projects / Market (Ticker)");
+  });
+
+  test("at 1440 the rail shows and the disclosure does not", async ({ page }) => {
+    await page.goto("/projects/market-ticker");
+    await expect(page.locator("nav[aria-label='On this page']")).toBeVisible();
+    await expect(page.locator("details", { hasText: "On this page" })).toBeHidden();
+  });
+
+  test.describe("at 390px", () => {
+    test.use({ viewport: { width: 390, height: 844 } });
+
+    test("a closed disclosure whose links reach the headings, with the rail gone", async ({ page }) => {
+      await page.goto("/projects/market-ticker");
+      await expect(page.locator("nav[aria-label='On this page']")).toBeHidden();
+      const disclosure = page.locator("details", { hasText: "On this page" });
+      await expect(disclosure).toBeVisible();
+      await expect(disclosure).not.toHaveAttribute("open", "");
+      await disclosure.getByText("On this page").click();
+      await expect(disclosure.getByRole("link")).toHaveText(["Problem", "Approach", "Latency", "Results", "Lessons", "Go deeper"]);
+      await disclosure.getByRole("link", { name: "Lessons" }).click();
+      await expect(page).toHaveURL(/#lessons$/);
+      await expect(page.getByRole("heading", { name: "Lessons" })).toBeInViewport();
+    });
+  });
+});

@@ -9,7 +9,7 @@ export const heroHeadline = "I build production-grade streaming systems on AWS."
 
 // Home's "Built with" line and the root OG card (app/opengraph-image.tsx).
 // Tools built with this site itself (Next.js/React/Go/etc.) aren't sourced
-// dynamically the way ProjectGrid's tag filters are — there's exactly one
+// dynamically from a project's tags — there's exactly one
 // "Built with" line and it describes the two repos behind akjames.dev, not
 // a taxonomy that grows with content. Deliberately excludes Node.js: this
 // site's own stack is Next.js + Go, no separate Node backend service (see

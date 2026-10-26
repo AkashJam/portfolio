@@ -7,8 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/shell/Container";
 import { MDXRenderer } from "@/components/mdx/MDXRenderer";
+import { ContentsDisclosure } from "@/components/blog/ContentsDisclosure";
 import { TableOfContents } from "@/components/blog/TableOfContents";
-import { STATUS_COLOR } from "@/components/projects/ProjectCard";
+import { STATUS_COLOR } from "@/components/projects/status";
 import { ProjectPicture } from "@/components/projects/ProjectPicture";
 import { JsonLd, caseStudyLd } from "@/lib/json-ld";
 import { pageMetadata } from "@/lib/metadata";
@@ -70,7 +71,7 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[proj
             <Link href="/projects" className="text-brand-hover underline underline-offset-2">
               Projects
             </Link>{" "}
-            / {project.title} / Overview
+            / {project.title}
           </p>
 
           {project.draft && (
@@ -126,6 +127,8 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[proj
               </Badge>
             ))}
           </div>
+
+          <ContentsDisclosure headings={project.headings} />
 
           <div className="mt-9 max-w-measure">
             <MDXRenderer code={project.mdx} latencyStats={latencyStats} />
