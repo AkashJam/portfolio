@@ -309,17 +309,25 @@
   vector-effect: non-scaling-stroke;
 }
 
-/* HeroLiveBand's mover chips (Step 10) — the active chip's border/background
-   are composited against --brand rather than a flat token, so they can't be
-   expressed as plain Tailwind utilities without fighting arbitrary-value
-   escaping; same reasoning as LatencyTrace's marker fills. Applies to both
-   the >=md chip row's pressed state and the <md popover trigger, which is
-   always "active" (it shows whichever symbol is charted, not a toggle). */
-.hero-chip[aria-pressed="true"],
-.hero-chip.is-active {
-  border-color: color-mix(in oklab, var(--brand) 55%, var(--hairline));
-  background: color-mix(in oklab, var(--brand) 14%, var(--canvas));
-  color: var(--text);
+/* The band's end point pulses while the feed is live (D4): a ring that grows
+   and fades from the point. Under reduced motion there is no ring at all. */
+@keyframes band-ring {
+  0% {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(3.5);
+  }
+}
+.band-ring {
+  opacity: 0;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .band-ring {
+    animation: band-ring 1.6s ease-out infinite;
+  }
 }
 
 /* One-shot scroll reveal (portfolio.md §17, Phase 6 step 14) — replaces

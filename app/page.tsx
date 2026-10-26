@@ -6,12 +6,11 @@ import { ContactCTA } from "@/components/site/ContactCTA";
 import { Hero } from "@/components/site/Hero";
 import { HeroLiveBand } from "@/components/site/HeroLiveBand";
 import { Container } from "@/components/shell/Container";
-import { ProjectCard } from "@/components/projects/ProjectCard";
+import { ProjectShowcase } from "@/components/site/ProjectShowcase";
 import { getMarketState, getSensors, getSymbolSnapshot } from "@/lib/ticker-client";
 import type { PriceEntry } from "@/components/market/PricesTable";
 import { fetchBandSeries } from "@/lib/band-fetch";
 import { seedFromResponse } from "@/lib/market-session";
-import { builtWith } from "@/data/profile";
 import { JsonLd, homeLd } from "@/lib/json-ld";
 import { pageMetadata } from "@/lib/metadata";
 
@@ -35,18 +34,17 @@ const HERO_REVALIDATE_SECONDS = 300;
 // NVDA, the most-traded sensor, so its line visibly moves in US hours. It replaced
 // RY on 2026-10-20: on the real feed RY made no trade in 90 seconds at 09:45 ET
 // while NVDA trades several times a second (phase14.md finding 3, phase15.md). RY
-// stays in the picker. If the default is missing the first sensor stands in.
+// is no longer shown anywhere on Home. If the default is missing the first sensor stands in.
 const HERO_DEFAULT_SYMBOL = "NVDA";
 
 const isDev = process.env.NODE_ENV !== "production";
 
 export default async function Home() {
-  const renderedAt = new Date().toISOString();
   const [sensors, marketState] = await Promise.all([
     getSensors({ revalidateSeconds: HERO_REVALIDATE_SECONDS }),
     getMarketState({ revalidateSeconds: HERO_REVALIDATE_SECONDS }),
   ]);
-  // One snapshot per sensor: the picker's change column, and the quote beside it.
+  // One snapshot per sensor, so the default can fall back to the first with a price.
   const entries: PriceEntry[] = await Promise.all(
     (sensors ?? []).map(async (sensor): Promise<PriceEntry> => {
       const snap = await getSymbolSnapshot(sensor.symbol, { revalidateSeconds: HERO_REVALIDATE_SECONDS });
@@ -91,42 +89,28 @@ export default async function Home() {
   return (
     <>
       <JsonLd data={homeLd()} />
-      <Hero hasLiveBand={hasLiveBand} />
-      {hasLiveBand && defaultEntry && initialSeries && (
-        <HeroLiveBand
-          entries={entries}
-          defaultSymbol={defaultEntry.sensor.symbol}
-          initialSeries={initialSeries}
-          initialState={initialState}
-          renderedAt={renderedAt}
-        />
-      )}
+      <Hero hasLiveBand={hasLiveBand}>
+        {hasLiveBand && defaultEntry && initialSeries && (
+          <HeroLiveBand entry={defaultEntry} initialSeries={initialSeries} initialState={initialState} />
+        )}
+      </Hero>
 
       {homeProjects.length > 0 && (
-        <section className="reveal py-16">
-          <Container>
+        <section className="reveal flex min-h-[calc(100svh-56px)] items-center border-b border-hairline py-18">
+          <Container className="w-full">
             <div className="flex flex-wrap items-baseline justify-between gap-4">
               <div>
-                <p className="mb-4 text-meta tracking-[0.2em] text-text-muted uppercase">Work</p>
-                <h2 className="text-h2 font-medium text-text">Three systems, end to end</h2>
+                <p className="text-meta tracking-[0.2em] text-text-muted uppercase">Work</p>
+                <h2 className="mt-3.5 text-h2 font-medium text-text">Three systems, end to end</h2>
               </div>
-              <Link
-                href="/projects"
-                className="inline-flex items-center gap-1.5 text-small text-text-muted hover:text-text"
-              >
+              <Link href="/projects" className="text-small text-brand-hover underline-offset-3 hover:underline">
                 All projects →
               </Link>
             </div>
-            <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {homeProjects.map((project) => (
-                <ProjectCard key={project.slug} project={project} />
+            <div className="mt-8 flex flex-col gap-5">
+              {homeProjects.map((project, i) => (
+                <ProjectShowcase key={project.slug} project={project} flip={i % 2 === 1} />
               ))}
-            </div>
-            <div className="mt-12 flex flex-col items-baseline gap-2 border-t border-hairline pt-6 md:flex-row md:gap-6">
-              <span className="flex-none text-meta tracking-[0.18em] text-text-muted uppercase">
-                Built with
-              </span>
-              <p className="font-mono text-meta text-text-muted">{builtWith.join(" · ")}</p>
             </div>
           </Container>
         </section>

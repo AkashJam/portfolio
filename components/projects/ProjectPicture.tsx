@@ -1,7 +1,11 @@
 import { cn } from "@/lib/utils";
-import type { Project } from "content-collections";
 
-type Picture = NonNullable<Project["picture"]>;
+/**
+ * A project's `picture` field, or just a label for one whose capture does not exist
+ * yet: with no `src` the frame is drawn with an empty panel, so Home's rows still
+ * line up (Market and Portfolio wait for Phase 23's captures).
+ */
+type Picture = { src?: string; label?: string };
 
 /**
  * A project's one picture (I25) in its frame — a window chrome bar over a 16:9
@@ -26,17 +30,23 @@ export function ProjectPicture({ picture, className }: { picture: Picture; class
           <span key={dot} className="block size-2 rounded-full bg-text-faint/35" />
         ))}
         {picture.label && (
-          <span className="ml-2.5 font-mono text-meta leading-none text-text-faint">
+          <span className="ml-2.5 font-mono text-meta leading-none text-text-muted">
             {picture.label}
           </span>
         )}
       </div>
-      {/* A plain <img>: the site ships no next/image anywhere, and a pre-sized
-          file keeps the lean standalone runtime free of the image optimizer.
-          Whether that stays true once Lighthouse has run on the built page is
-          step 3's call (phase20.md). */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={picture.src} alt="" className="block aspect-video w-full object-cover" />
+      {picture.src ? (
+        <>
+          {/* A plain <img>: the site ships no next/image anywhere, and a pre-sized
+              file keeps the lean standalone runtime free of the image optimizer.
+              Whether that stays true once Lighthouse has run on the built page is
+              step 3's call (phase20.md). */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={picture.src} alt="" className="block aspect-video w-full object-cover" />
+        </>
+      ) : (
+        <div aria-hidden="true" className="aspect-video w-full bg-panel-2" />
+      )}
     </figure>
   );
 }

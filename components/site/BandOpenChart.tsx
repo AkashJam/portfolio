@@ -3,6 +3,8 @@
 import * as React from "react";
 import { Area, AreaChart, YAxis } from "recharts";
 
+import { cn } from "@/lib/utils";
+
 // Internal coordinate space for the chart's viewBox only — stretched to the
 // real box via preserveAspectRatio="none" below, so the actual numbers don't
 // matter beyond being a consistent aspect ratio.
@@ -34,8 +36,23 @@ function prefersNoMotion(): boolean {
  * gliding left. The parent keys it by sensor and mode, so a new sensor starts a
  * clean line. `latest` is the sensor's newest price, which updates the next slot
  * and the vertical scale; it deliberately does not trigger a glide itself.
+ *
+ * The line is neutral and only its end point is green, pulsing while the feed is live
+ * (D4, `site-review/home.html`). There is no status text: a stale feed shows as a
+ * still, dimmed line, the closed band's look.
  */
-export function BandOpenChart({ seed, latest, label }: { seed: number[]; latest: number | null; label: string }) {
+export function BandOpenChart({
+  seed,
+  latest,
+  label,
+  stale = false,
+}: {
+  seed: number[];
+  latest: number | null;
+  label: string;
+  /** The feed has gone quiet: the end point stops pulsing and the line dims to the closed look. */
+  stale?: boolean;
+}) {
   const visible = seed.length;
   // One point beyond the visible window is kept off-screen (clipped by
   // overflow-hidden) as a "lookahead" that glides into view on each cycle.
@@ -90,11 +107,18 @@ export function BandOpenChart({ seed, latest, label }: { seed: number[]; latest:
     return [min - padding, max + padding];
   }, [domainHistory]);
 
-  const up = points[visible - 1] >= points[0];
-  const color = up ? "var(--color-market-up)" : "var(--color-market-down)";
+  // The end point sits where the line meets the right edge, at the newest price on the
+  // same scale as the line. Its x is a few pixels in so it is not clipped.
+  const endY = latest === null ? null : ((domain[1] - latest) / (domain[1] - domain[0])) * 100;
 
   return (
-    <div className="h-56 w-full md:h-64" role="img" aria-label={label} data-testid="band-chart-open">
+    <div
+      className={cn("relative size-full", stale && "opacity-50 transition-opacity")}
+      role="img"
+      aria-label={label}
+      data-testid="band-chart-open"
+      data-stale={stale ? "true" : undefined}
+    >
       <div className="hero-chart-clip h-full w-full overflow-hidden">
         <div
           ref={trackRef}
@@ -105,6 +129,7 @@ export function BandOpenChart({ seed, latest, label }: { seed: number[]; latest:
             width={VIEWBOX_WIDTH}
             height={VIEWBOX_HEIGHT}
             data={points.map((value) => ({ value }))}
+            margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
             style={{ width: "100%", height: "100%" }}
             // @ts-expect-error — Recharts 3.10.1 forwards preserveAspectRatio to
             // the rendered <svg> at runtime (svgPropertiesNoEvents.js's allowlist
@@ -114,22 +139,34 @@ export function BandOpenChart({ seed, latest, label }: { seed: number[]; latest:
           >
             <defs>
               <linearGradient id="hero-chart-fill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor={color} stopOpacity={0.22} />
-                <stop offset="100%" stopColor={color} stopOpacity={0} />
+                <stop offset="0%" stopColor="var(--color-text-muted)" stopOpacity={0.16} />
+                <stop offset="100%" stopColor="var(--color-text-muted)" stopOpacity={0} />
               </linearGradient>
             </defs>
             <YAxis domain={domain} hide />
             <Area
               type="monotone"
               dataKey="value"
-              stroke={color}
-              strokeWidth={1.75}
+              stroke="var(--color-text)"
+              strokeOpacity={0.65}
+              strokeWidth={1.6}
               fill="url(#hero-chart-fill)"
               isAnimationActive={false}
             />
           </AreaChart>
         </div>
       </div>
+      {endY !== null && (
+        <span
+          aria-hidden="true"
+          data-testid="band-end-point"
+          className="absolute right-1 size-2 -translate-y-1/2"
+          style={{ top: `${endY}%` }}
+        >
+          <span className="absolute inset-0 rounded-full bg-market-up" />
+          {!stale && <span className="band-ring absolute inset-0 rounded-full border-[1.5px] border-market-up" />}
+        </span>
+      )}
     </div>
   );
 }

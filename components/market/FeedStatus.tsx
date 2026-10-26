@@ -53,11 +53,14 @@ export function FeedStatus({
   tracker: trackerProp,
   fresh,
   className,
+  onStaleChange,
 }: {
   tracker?: FeedTracker;
   fresh?: React.ReactNode;
   /** Size/shape classes for the stale pill, to match the pill it replaces. */
   className?: string;
+  /** Called when the feed goes stale or recovers, for a surface that shows it without a pill. */
+  onStaleChange?: (stale: boolean) => void;
 }) {
   const contextTracker = React.useContext(FeedTrackerContext);
   const tracker = trackerProp ?? contextTracker;
@@ -80,6 +83,11 @@ export function FeedStatus({
     const id = window.setInterval(check, 1000);
     return () => window.clearInterval(id);
   }, [tracker]);
+
+  const stale = staleAge !== null;
+  React.useEffect(() => {
+    onStaleChange?.(stale);
+  }, [stale, onStaleChange]);
 
   return (
     <span

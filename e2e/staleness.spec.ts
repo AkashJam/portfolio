@@ -45,3 +45,22 @@ for (const { path, name } of SURFACES) {
     await expect(page.getByTestId("feed-stale")).toHaveCount(0, { timeout: 10_000 });
   });
 }
+
+// Home's band has no pill (phase18.md D4), so a dead feed shows as a still, dimmed line:
+// the end point stops pulsing. The tracker's wording is for screen readers only.
+test("the home band stops pulsing and dims when the feed dies, and recovers with it", async ({ page }) => {
+  await page.route("**/api/stream*", (route) => route.abort());
+  await page.clock.install();
+  await page.goto("/");
+  await expect(page.locator('[data-feed-status="fresh"]')).toBeAttached();
+  await expect(page.getByTestId("band-chart-open")).not.toHaveAttribute("data-stale", "true");
+  await expect(page.locator(".band-ring")).toHaveCount(1);
+  await page.clock.fastForward(31_000);
+  await expect(page.getByTestId("band-chart-open")).toHaveAttribute("data-stale", "true");
+  await expect(page.locator(".band-ring")).toHaveCount(0);
+  await expect(page.getByTestId("feed-stale")).toBeVisible();
+
+  await page.unroute("**/api/stream*");
+  await page.clock.fastForward(31_000);
+  await expect(page.getByTestId("band-chart-open")).not.toHaveAttribute("data-stale", "true", { timeout: 10_000 });
+});

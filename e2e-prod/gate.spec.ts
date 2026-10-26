@@ -77,8 +77,8 @@ test("the Prices table row ticks and is dated", async ({ page }) => {
 test("the home band is live on the fixed default", async ({ page }) => {
   await page.goto("/");
   await expect(page.locator("section[data-session]")).toHaveAttribute("data-session", "open");
-  await expect(page.getByTestId("band-picker")).toContainText(BAND_DEFAULT);
-  await expect(page.getByText("LIVE", { exact: true })).toBeVisible();
+  await expect(page.getByTestId("band-chart-open")).toHaveAttribute("aria-label", `Live price series, ${BAND_DEFAULT}`);
+  await expect(page.getByTestId("band-end-point")).toBeVisible();
 });
 
 test("no simulator reaches a visitor", async ({ page, request }) => {
