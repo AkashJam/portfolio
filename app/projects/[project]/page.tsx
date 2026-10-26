@@ -9,6 +9,7 @@ import { Container } from "@/components/shell/Container";
 import { MDXRenderer } from "@/components/mdx/MDXRenderer";
 import { TableOfContents } from "@/components/blog/TableOfContents";
 import { STATUS_COLOR } from "@/components/projects/ProjectCard";
+import { ProjectPicture } from "@/components/projects/ProjectPicture";
 import { JsonLd, caseStudyLd } from "@/lib/json-ld";
 import { pageMetadata } from "@/lib/metadata";
 import { getLatencyStats } from "@/lib/prometheus-client";
@@ -98,6 +99,8 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[proj
               </Button>
             )}
           </div>
+
+          {project.picture && <ProjectPicture picture={project.picture} className="mt-7" />}
 
           <dl className="mt-7 grid grid-cols-2 gap-px overflow-hidden rounded-[14px] border border-hairline bg-hairline md:grid-cols-4">
             {FACTS.map((fact) => (

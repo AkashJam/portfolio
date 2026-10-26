@@ -29,6 +29,17 @@ const projectFrontmatter = base.extend({
   tags: z.array(z.string()),
   featured: z.boolean().default(false),
   links: z.object({ live: z.string().optional(), repo: z.string().optional() }).default({}),
+  // One picture per project (I25), shared by the case-study header, the
+  // /projects preview and the Home showcase row — so it lives on the project,
+  // not on the page that draws it. `src` is a path under public/ and the file
+  // is 16:9; the frame pins that ratio, so a picture of another shape is
+  // cropped rather than shifting the layout. `label` is what the frame's
+  // chrome bar reads: the live URL where there is one (`akjames.dev/market`),
+  // and otherwise a plain description of where the screen lives, since an
+  // internal tool has no address to show. Optional while Market's and
+  // Portfolio's captures wait for Phase 23: a project without one draws no
+  // frame at all rather than an empty one.
+  picture: z.object({ src: z.string(), label: z.string().optional() }).optional(),
   // Draft case studies render in `next dev` but are filtered out of
   // production builds (app/projects/{page,[project]}.tsx) — same mechanism
   // as blog's `draft` below.
