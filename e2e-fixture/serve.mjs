@@ -26,7 +26,7 @@
 // runs it. It is built here only if it is missing; run `npm run build` first to pick
 // up a code change.
 import { spawn, spawnSync } from "node:child_process";
-import { cpSync, existsSync, rmSync } from "node:fs";
+import { cpSync, existsSync, readdirSync, rmSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -56,6 +56,15 @@ for (const [mode, [site, ticker]] of Object.entries(SITES)) {
   const dir = join(root, `.next/standalone-${mode}`);
   rmSync(dir, { recursive: true, force: true });
   cpSync(join(root, ".next/standalone"), dir, { recursive: true });
+  // The build reaches whatever ticker TICKER_API_URL names (CI's: the simulator, with no
+  // events), so generateStaticParams prerendered every record from it, and a record page
+  // is served as built for `revalidate`. Drop those pages and the build's fetch cache so
+  // each site renders its records, on first request, from its own fixture ticker.
+  const market = join(dir, ".next/server/app/market");
+  for (const f of readdirSync(market)) {
+    if (/\.(html|rsc|meta|segments)$/.test(f)) rmSync(join(market, f), { recursive: true, force: true });
+  }
+  rmSync(join(dir, ".next/cache"), { recursive: true, force: true });
   children.push(
     spawn("node", ["server.js"], {
       cwd: dir,
