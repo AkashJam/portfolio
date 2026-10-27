@@ -5,6 +5,8 @@ import rehypePrettyCode from "rehype-pretty-code";
 import rehypeSlug from "rehype-slug";
 import { z } from "zod";
 
+import { topics } from "./lib/topics";
+
 // `content` is a reserved field — @content-collections/core auto-populates
 // it with the raw MDX body text (everything after the frontmatter), not
 // something authors write. `mdx` (below) holds the compiled component.
@@ -51,16 +53,6 @@ const projectFrontmatter = base.extend({
   // as blog's `draft` below.
   draft: z.boolean().default(false),
 });
-
-// Five topics replace the eleven categories (I30); the blog index's chips
-// filter on them in `?tag=`.
-export const topics = [
-  "Frontend",
-  "Backend and distributed systems",
-  "Infrastructure",
-  "Architecture",
-  "Engineering practice",
-] as const;
 
 const DESCRIPTION_MAX = 155;
 const DESCRIPTION_WARN = 160;
