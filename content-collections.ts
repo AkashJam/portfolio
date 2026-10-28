@@ -42,11 +42,16 @@ const projectFrontmatter = base.extend({
   // not on the page that draws it. `src` is a path under public/ and the file
   // is 16:9; the frame pins that ratio, so a picture of another shape is
   // cropped rather than shifting the layout. `label` is what the frame's
-  // chrome bar reads: the live URL where there is one (`akjames.dev/market`),
-  // and otherwise a plain description of where the screen lives, since an
-  // internal tool has no address to show. Optional while Market's and
-  // Portfolio's captures wait for Phase 23: a project without one draws no
-  // frame at all rather than an empty one.
+  // chrome bar reads — a plain description of where the screen lives, since an
+  // internal tool has no address to show. A live project needs none: Home's
+  // rows and the /projects index fall back to `links.live`, which is where the
+  // mock's `akjames.dev/market` comes from. That fallback is
+  // `project.picture ?? { label }`, so the day Market gains a `src` it needs a
+  // `label` written here as well, or its frame loses the address silently.
+  // Optional while Market's and Portfolio's captures wait for Phase 23, and
+  // the consumers differ on what a project without one shows: the case-study
+  // header draws no frame, while Home's rows and the /projects preview draw
+  // the frame with an empty panel, so the rows keep their alignment.
   picture: z.object({ src: z.string(), label: z.string().optional() }).optional(),
   // Draft case studies render in `next dev` but are filtered out of
   // production builds (app/projects/{page,[project]}.tsx) — same mechanism
