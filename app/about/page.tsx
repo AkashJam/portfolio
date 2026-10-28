@@ -7,13 +7,14 @@ import { ExperienceCard } from "@/components/site/ExperienceCard";
 import { SkillsCapabilities } from "@/components/site/SkillsCapabilities";
 import { Timeline } from "@/components/site/Timeline";
 import { Container } from "@/components/shell/Container";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { education, type EducationEntry } from "@/data/education";
 import { experience, type ExperienceEntry } from "@/data/experience";
 import { bio, statement, workAuthorization } from "@/data/profile";
 import { RESUME_HREF } from "@/lib/contact";
 import { JsonLd, profilePageLd } from "@/lib/json-ld";
 import { pageMetadata } from "@/lib/metadata";
+import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = pageMetadata({
   path: "/about",
@@ -53,20 +54,19 @@ export default function AboutPage() {
 
         <AboutStats />
 
-        <p className="mt-11 max-w-measure text-lead leading-relaxed text-pretty text-read">{bio[0]}</p>
-
-        <div className="mt-8 grid items-stretch gap-7 lg:grid-cols-[1.62fr_1fr] lg:gap-14">
-          <p className="text-body text-pretty text-text-muted">{bio[1]}</p>
-          <div className="flex flex-col justify-end gap-3.5 border-t border-hairline pt-5 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-6">
-            <Button
-              variant="brand"
-              render={<a href={RESUME_HREF} />}
-              nativeButton={false}
-              className="h-auto w-fit gap-2 px-4 py-2 text-small"
+        <div className="mt-11 grid items-end gap-6 lg:grid-cols-[1.62fr_1fr] lg:gap-12">
+          <div className="max-w-[72ch] text-pretty text-read">
+            <p className="text-lead">{bio[0]}</p>
+            <p className="mt-4 text-body">{bio[1]}</p>
+          </div>
+          <div className="flex flex-col gap-3 border-t border-hairline pt-5 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-6">
+            <a
+              href={RESUME_HREF}
+              className={cn(buttonVariants({ variant: "brand" }), "h-auto w-fit gap-2 px-4 py-2 text-small")}
             >
-              <Download className="size-4" />
-              Download Résumé (PDF)
-            </Button>
+              <Download aria-hidden="true" className="size-4" />
+              Download résumé
+            </a>
             <span className="text-small leading-normal text-text-muted">{workAuthorization}</span>
           </div>
         </div>

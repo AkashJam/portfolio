@@ -8,12 +8,14 @@ export interface ExperienceEntry {
   summary: string;
   responsibilities: string[];
   achievements: string[];
-  /** "Key Decisions" — arrived from the user as a list, not a paragraph. */
+  /** "Key decisions" — a list, not a paragraph. */
   decisions: string[];
 }
 
 // Most-recent-first, author-controlled order (no sort logic — only 2
 // entries, not worth the machinery `sortSkills` earns for a larger list).
+// The bullets are the wording agreed at the About mock (phase18.md D7, trimmed 41 → 16);
+// they are provisional until Phase 23's content pass (portfolio-discrepancies.md F1).
 export const experience: ExperienceEntry[] = [
   {
     company: "Lifeed",
@@ -23,34 +25,21 @@ export const experience: ExperienceEntry[] = [
     summary:
       "Full-Stack Engineer on a Go + Vue/TypeScript eLearning platform serving 50,000+ learners — responsible for the learner PWA's frontend, and for the internal admin platform end-to-end, from domain model and interface design through to implementation.",
     responsibilities: [
-      "Owned the learner-facing Vue/TypeScript PWA and the Go Backend-for-Frontend in front of it — the single trust boundary between the browser and the platform's internal services.",
-      "Designed and maintained that BFF: aggregating a request across roughly eight internal services, verifying auth per request, and owning the session and token lifecycle so no credential ever reached the client.",
-      "Led frontend development of the progressive web app (Vue, Quasar, GraphQL, Strapi CMS), including push notifications and reusable content.",
-      "Independently built and operated an internal admin platform giving Customer Success self-serve tooling for previously manual operations.",
-      "Worked across cloud infrastructure on AWS — EC2, RDS, ALB, and Docker.",
-      "Owned observability, testing, and CI/CD across the stack (Prometheus, Grafana, Go testing, Jest, Vitest, GitLab).",
-      "Partnered with Product, Design, Content, and Customer Success to turn requirements into shipped features.",
-      "Managed third-party integrations — Intercom, Typeform, Wistia — and localization workflows via Ditto and Figma.",
-      "Reviewed PRs, set coding standards, and contributed to architecture and roadmap decisions in technical planning.",
+      "Own the learner PWA (Vue, Quasar, GraphQL, Strapi) and the Go BFF in front of it, which aggregates about eight internal services, checks auth on every request and keeps every credential out of the browser.",
+      "Built a new internal admin platform to replace the old tool, with more services and new features such as user invitations and registration validation, and run it end to end for Customer Success.",
+      "Own observability, testing and CI/CD across the stack on AWS (Prometheus, Grafana, Go tests, Vitest, GitLab).",
+      "Review PRs, set coding standards, and take part in architecture and roadmap planning.",
     ],
     achievements: [
-      "Rescued a client-facing analytics dashboard that had stopped loading — main queries had drifted to roughly five minutes against a 60-second timeout. Query preloading, splitting the data fetch so rendering no longer waited on the slowest result, and a cache-warming job brought p95 load time to around 30 seconds.",
-      "Held 99.9% uptime by introducing Prometheus and Grafana monitoring across the platform.",
-      "Made a real Postgres the merge gate for anything touching the data layer, with test coverage aimed at the functionality where failure is costly rather than spread evenly to hit a percentage.",
-      "Improved user retention and course completion by 12% through a rebuilt Intercom workflow with event tracking and email notifications.",
-      "Built the learner-facing frontend to WCAG 2.1 AA standards through semantic HTML and dynamic ARIA attributes.",
-      "Shipped an internal admin platform from scratch, automating operations that were previously manual.",
-      "Took engineers off the critical path for copy changes — localized text moved from per-locale database rows, which required an engineer and a content creator working together, into Ditto connected to Figma frames, with a BFF-side script fetching and caching the published result.",
-      "Migrated the platform's data hosting from the US to the EU, auditing every integration and workflow along the way — the audit is what surfaced the idle event-tracking capability that became the retention work.",
+      "Rescued a client analytics dashboard that had stopped loading: p95 went from about five minutes to about 30 seconds.",
+      "Held 99.9% uptime after introducing Prometheus and Grafana.",
+      "Took engineers off copy changes by moving localized text into Ditto, connected to Figma.",
+      "Built the learner frontend to WCAG 2.1 AA.",
     ],
     decisions: [
-      "Build an internal admin platform in-house rather than patch manual processes — traded upfront effort for lasting operational flexibility and self-serve tooling for non-engineers.",
-      "Warm the analytics cache on a schedule rather than scale the database — the root cause was a subquery cache whose invalidation cascaded through every query layered above it, so the fix moved the expensive recomputation off the user's request instead of buying hardware to absorb it.",
-      "Invest early in observability (Prometheus + Grafana) — made reliability measurable and turned 99.9% uptime into a defended target rather than a hope.",
-      "Use the tool already paid for rather than buy another — the support platform already in the stack had event tracking and workflow automation sitting unused, which turned a procurement question into a configuration one.",
-      "Adopt Quasar + Strapi CMS + GraphQL for the learning experience — decoupled content from code so non-technical teams could author dynamic material.",
-      "Test against a real database rather than mocks where correctness lives in the schema — a mocked database validates your assumptions, and the bugs worth catching are the ones where those assumptions are wrong.",
-      "Establish shared coding standards and drive API architecture in planning — prioritized long-term consistency and maintainability over short-term speed.",
+      "Warm the cache on a schedule rather than scale the database, since the cost was a cascading invalidation, not missing hardware.",
+      "Treat the US→EU hosting migration as an audit of every integration. It turned up event tracking already paid for in the support platform, and rebuilding the Intercom workflow on it was followed by a 12% rise in retention and course completion.",
+      "Rebuild the admin tool on a new domain model rather than extend the old one.",
     ],
   },
   {
@@ -61,41 +50,29 @@ export const experience: ExperienceEntry[] = [
     summary:
       "Early-career full-stack role building document management and approval-workflow applications across web and mobile, using Angular and .NET Core on a MySQL backend.",
     responsibilities: [
-      "Developed Angular applications and responsive interfaces for document management and approval workflows.",
-      "Built and maintained .NET Core REST APIs powering those workflows.",
-      "Optimized MySQL schemas and queries to improve backend performance.",
-      "Created reusable UI components, data-visualization interfaces, animations, and responsive layouts.",
-      "Maintained frontend performance, accessibility, and cross-browser compatibility.",
-      "Delivered Android applications from the existing web codebase using Cordova.",
-      "Contributed to AWS deployments and Jenkins CI/CD pipelines.",
+      "Built Angular apps and .NET Core REST APIs for document management and approval workflows, on MySQL.",
+      "Contributed to AWS deployments and Jenkins CI/CD.",
     ],
     achievements: [
-      "Shipped document management and approval-workflow applications end-to-end, across Angular frontends and .NET Core APIs.",
-      "Improved backend performance by restructuring MySQL schemas and queries.",
-      "Extended the product to Android without a separate native codebase by integrating Cordova.",
-      "Built a library of reusable components and data-visualization interfaces that accelerated UI development.",
-      "Broadened reach by improving accessibility and cross-browser compatibility across the frontend.",
-      "Helped automate releases by contributing to Jenkins CI/CD on AWS.",
+      "Completed the product's Android support from the existing web codebase with Cordova.",
+      "Built a shared component library that sped up UI work.",
     ],
     decisions: [
-      "Extend to mobile with Cordova instead of a native rebuild — reused the existing web codebase to ship Android quickly, with a single codebase to maintain.",
-      "Optimize MySQL at the schema level, not just the query level — addressed performance at its source rather than patching slow queries one by one.",
-      "Invest in a shared component library — traded a little upfront effort for UI consistency and faster feature delivery.",
-      "Contribute to CI/CD automation — favored a repeatable Jenkins pipeline over manual, error-prone deployments.",
+      "Fix MySQL performance at the schema level rather than one query at a time.",
     ],
   },
 ];
 
 /**
- * The proof strip's figures on the home page (Phase 14 step 9), typed once, here,
- * next to the roles they come from. They are the same ones /about's impact ledger
- * tells the story of. "4+ yrs" is not among them: `fullStackYears` sums it from the
- * role dates below, so it cannot drift from them.
+ * The headline figures of Home's three stats and /about's row (phase18.md D4, D7), typed
+ * once, here, next to the roles they come from. `label` is Home's short word under the
+ * figure; `about` is the fuller line under it on /about. "4+ yrs" is not among them:
+ * `fullStackYears` sums it from the role dates below, so it cannot drift from them.
  */
 export const proofFigures = [
-  { value: "50,000+", label: "learners" },
-  { value: "99.9%", label: "uptime" },
-  { value: "5m\u219230s", label: "dashboard rescue" },
+  { value: "50,000+", label: "learners", about: "learners on the platform" },
+  { value: "99.9%", label: "uptime", about: "uptime, held with Prometheus and Grafana" },
+  { value: "5m\u219230s", label: "dashboard rescue", about: "p95 on the rescued dashboard" },
 ] as const;
 
 const MONTHS = [

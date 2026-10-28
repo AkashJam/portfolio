@@ -25,4 +25,20 @@ describe("proofFigures", () => {
   it("are the three typed figures, beside the derived years", () => {
     expect(proofFigures.map((f) => f.value)).toEqual(["50,000+", "99.9%", "5m→30s"]);
   });
+
+  it("each carries Home's short label and /about's fuller one", () => {
+    for (const figure of proofFigures) {
+      expect(figure.label.length).toBeGreaterThan(0);
+      expect(figure.about.length).toBeGreaterThan(figure.label.length);
+    }
+  });
+});
+
+describe("experience", () => {
+  it("is trimmed to the agreed 4/4/3 and 2/2/1 bullets (phase18.md D7)", () => {
+    expect(experience.map((e) => [e.responsibilities.length, e.achievements.length, e.decisions.length])).toEqual([
+      [4, 4, 3],
+      [2, 2, 1],
+    ]);
+  });
 });

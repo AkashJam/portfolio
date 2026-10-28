@@ -1,29 +1,24 @@
-interface Stat {
-  value: string;
-  label: string;
-}
+import { proofFigures } from "@/data/experience";
 
-// Every figure here is already stated in data/experience.ts's Lifeed
-// entry (phase6.md Step 4) — this just extracts the
-// headline numbers into a scannable row rather than leaving them buried
-// in prose.
-const STATS: Stat[] = [
-  { value: "50,000+", label: "learners on the platform" },
-  { value: "99.9%", label: "uptime, held with Prometheus and Grafana" },
-  { value: "~8", label: "internal services behind one BFF" },
-  { value: "5m→30s", label: "p95 on the rescued dashboard" },
-  { value: "+12%", label: "retention and course completion" },
-];
-
+/**
+ * /about's row of three figures (phase18.md D7; `site-review/about.html`): one row at every
+ * width, the figures set larger than their labels. They are Home's own figures, typed once in
+ * data/experience.ts, with the fuller label that reads under them here. `#impact` stays on
+ * the row as an anchor (the impact ledger it once led to is retired).
+ */
 export function AboutStats() {
   return (
-    <div id="impact" className="mt-10 grid scroll-mt-24 grid-cols-2 gap-x-8 gap-y-5 md:grid-cols-3 lg:grid-cols-5">
-      {STATS.map((stat) => (
-        <div key={stat.label} className="flex flex-col gap-0.5">
-          <b className="font-mono text-xl font-semibold text-text tabular-nums md:text-2xl">
-            {stat.value}
+    <div
+      id="impact"
+      aria-label="At a glance"
+      className="mt-10 grid max-w-190 scroll-mt-24 grid-cols-3 gap-2.5 border-t border-hairline pt-5.5 md:gap-4"
+    >
+      {proofFigures.map((figure) => (
+        <div key={figure.value}>
+          <b className="block font-mono text-[24px] leading-none font-medium text-text tabular-nums md:text-[32px]">
+            {figure.value}
           </b>
-          <span className="text-meta leading-snug text-text-muted">{stat.label}</span>
+          <span className="mt-2 block text-small text-text-muted">{figure.about}</span>
         </div>
       ))}
     </div>

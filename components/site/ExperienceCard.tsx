@@ -22,7 +22,7 @@ export function ExperienceCard({ entry }: { entry: ExperienceEntry }) {
             {entry.responsibilities.map((item, i) => (
               <li
                 key={i}
-                className="relative pl-4 text-read before:absolute before:left-0 before:text-brand before:content-['–']"
+                className="relative pl-4 text-read before:absolute before:left-0 before:text-text-faint before:content-['–']"
               >
                 {item}
               </li>
@@ -37,7 +37,7 @@ export function ExperienceCard({ entry }: { entry: ExperienceEntry }) {
             {entry.achievements.map((item, i) => (
               <li
                 key={i}
-                className="relative pl-4 text-read before:absolute before:top-0.5 before:left-0 before:text-meta before:text-market-up before:content-['✦']"
+                className="relative pl-4 text-read before:absolute before:top-0.5 before:left-0 before:text-[11px] before:text-market-up before:content-['✦']"
               >
                 {item}
               </li>
@@ -48,13 +48,13 @@ export function ExperienceCard({ entry }: { entry: ExperienceEntry }) {
 
       <div className="mt-8">
         <h4 className="mb-3 text-meta tracking-[0.2em] text-text-muted uppercase">
-          Key Decisions
+          Key decisions
         </h4>
         <ul className="space-y-2 text-small">
           {entry.decisions.map((item, i) => (
             <li
               key={i}
-              className="relative pl-5 text-read before:absolute before:left-0 before:text-brand before:content-['→']"
+              className="relative pl-5 text-read before:absolute before:left-0 before:text-text-faint before:content-['→']"
             >
               {item}
             </li>

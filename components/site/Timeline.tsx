@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
  * Shared rail layout for /about's Experience and Education sections
  * (phase6.md Step 4) — a 190px date column, a 32px rail
  * with a line and a dot, and a content column, collapsing to a 20px rail
- * beside stacked content below `lg` (1024px). Skills & Capabilities
+ * beside stacked content below `lg` (1024px). The dots are neutral, and only the current role's is green (D9: indigo marks actions). Skills & Capabilities
  * reuses the same 190px column directly in its own markup so the two
  * sections share one spine, rather than through this component.
  */
@@ -45,7 +45,7 @@ function TimelineRow({
         <b
           className={cn(
             "absolute top-[30px] left-1/2 size-[9px] -translate-x-1/2 rounded-full shadow-[0_0_0_4px_var(--canvas)]",
-            current ? "bg-brand" : "bg-hairline"
+            current ? "bg-market-up" : "bg-hairline"
           )}
         />
       </div>
