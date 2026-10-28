@@ -1,15 +1,18 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { allBlogs } from "content-collections";
+import { allBlogs, allProjects } from "content-collections";
 
 import { Badge } from "@/components/ui/badge";
 import { Container } from "@/components/shell/Container";
 import { MDXRenderer } from "@/components/mdx/MDXRenderer";
+import { ContentsDisclosure } from "@/components/blog/ContentsDisclosure";
+import { PostFooter } from "@/components/blog/PostFooter";
 import { TableOfContents } from "@/components/blog/TableOfContents";
 import { dayMonth, dayMonthYear } from "@/lib/dates";
 import { JsonLd, blogPostingLd } from "@/lib/json-ld";
 import { pageMetadata } from "@/lib/metadata";
+import { neighbours, relatedPosts } from "@/lib/related-posts";
 
 const isDev = process.env.NODE_ENV !== "production";
 
@@ -42,6 +45,15 @@ export default async function BlogPostPage({ params }: PageProps<"/blog/[slug]">
   const { slug } = await params;
   const post = findPost(slug);
   if (!post) notFound();
+
+  const visible = allBlogs
+    .filter((p) => isDev || !p.draft)
+    .map((p) => ({ slug: p._meta.path, title: p.title, date: p.date, tags: p.tags, project: p.project }));
+  const here = visible.find((p) => p.slug === slug)!;
+  const related = relatedPosts(here, visible);
+  const { previous, next } = neighbours(here, visible);
+  // A post's case study, or none: a standalone post, or a slug that names no project.
+  const caseStudy = allProjects.find((p) => p.slug === post.project);
 
   return (
     <Container className="py-14">
@@ -87,9 +99,18 @@ export default async function BlogPostPage({ params }: PageProps<"/blog/[slug]">
             ))}
           </div>
 
+          <ContentsDisclosure headings={post.headings} />
+
           <div className="mt-7 max-w-measure">
             <MDXRenderer code={post.mdx} />
           </div>
+
+          <PostFooter
+            project={caseStudy && { slug: caseStudy.slug, title: caseStudy.title }}
+            related={related}
+            previous={previous}
+            next={next}
+          />
         </article>
 
         <TableOfContents headings={post.headings} />

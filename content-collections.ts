@@ -5,6 +5,7 @@ import rehypePrettyCode from "rehype-pretty-code";
 import rehypeSlug from "rehype-slug";
 import { z } from "zod";
 
+import { rehypeLead } from "./lib/rehype-lead";
 import { topics } from "./lib/topics";
 
 // `content` is a reserved field — @content-collections/core auto-populates
@@ -93,6 +94,11 @@ const mdxOptions = {
   rehypePlugins: [rehypeSlug, [rehypePrettyCode, { theme: "github-dark" }]] as any[],
 };
 
+// A post's opening paragraph is its lead (I28, D9); a case study's is not.
+const postMdxOptions = {
+  rehypePlugins: [rehypeLead, ...mdxOptions.rehypePlugins] as any[], // eslint-disable-line @typescript-eslint/no-explicit-any
+};
+
 /** h2 headings + slugged ids, matching rehype-slug's ids exactly (same
  * slugger) — feeds components/blog/TableOfContents.tsx (blog posts and,
  * since phase6.md Step 5, project case studies too). */
@@ -133,7 +139,7 @@ const blog = defineCollection({
         `[content] ${document._meta.path}: description is ${document.description.length} characters (limit ${DESCRIPTION_MAX})`,
       );
     }
-    const mdx = await compileMDX(context, document, mdxOptions);
+    const mdx = await compileMDX(context, document, postMdxOptions);
     const readingMinutes = Math.max(1, Math.round(document.content.split(/\s+/).length / 200));
     const headings = extractHeadings(document.content);
     return { ...document, mdx, readingMinutes, headings };
