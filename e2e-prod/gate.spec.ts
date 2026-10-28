@@ -14,8 +14,9 @@ import { expect, test } from "@playwright/test";
 // busy name; GATE_SYMBOL overrides it.
 
 const SYMBOL = process.env.GATE_SYMBOL ?? "NVDA";
-// The home band's fixed default (bearing.md #75): checked for being live, not for ticking.
-const BAND_DEFAULT = "RY";
+// The home band's fixed default: NVDA since 2026-10-20 (bearing.md #118; RY moved out), checked for
+// being live, not for ticking.
+const BAND_DEFAULT = "NVDA";
 
 test.describe.configure({ mode: "serial" });
 
