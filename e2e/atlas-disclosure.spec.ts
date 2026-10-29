@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
-import { gotoAtlas, openBuild } from "./atlas-hydrated";
+import { gotoAtlas, openBuild, openMoreColumns } from "./atlas-hydrated";
 
 // Phase 11 step 7: the three disclosure tiers. Needs the ticker (real /atlas/cities).
 
@@ -50,6 +50,7 @@ test.describe("at 1440px", () => {
     page,
   }) => {
     await gotoAtlas(page, "countries");
+    await openMoreColumns(page);
     const icon = colInfo(page, "stock market");
     await expect(icon).toHaveAttribute("aria-expanded", "false");
     await icon.click();
@@ -68,6 +69,7 @@ test.describe("at 1440px", () => {
     page,
   }) => {
     await gotoAtlas(page, "countries");
+    await openMoreColumns(page);
     await colInfo(page, "income").focus();
     await page.keyboard.press("Enter");
     await expect(dialog(page)).toContainText("NY.GNP.PCAP.PP.CD");
@@ -95,6 +97,7 @@ test.describe("at 1440px", () => {
       .getByRole("radio", { name: "2016–24" })
       .click();
     await page.getByRole("tab", { name: "Countries" }).click();
+    await openMoreColumns(page);
     await colInfo(page, "stock market").click();
     await expect(dialog(page)).toContainText("January 2016 to December 2024");
   });
@@ -128,6 +131,7 @@ test.describe("at 1440px", () => {
     page,
   }) => {
     await gotoAtlas(page, "countries");
+    await openMoreColumns(page);
     await expect(
       page.locator("tr#ireland td").nth(6).getByRole("button"),
     ).toHaveCount(1);
@@ -143,7 +147,8 @@ test.describe("at 1440px", () => {
     page,
   }) => {
     await gotoAtlas(page, "countries");
-    await cell(page, "turkiye", 1).click();
+    await openMoreColumns(page);
+    await cell(page, "turkiye", 4).click();
     await expect(dialog(page)).toContainText(
       "prices rose +1,223% over the same years",
     );
@@ -159,7 +164,8 @@ test.describe("at 1440px", () => {
       .getByRole("radio", { name: "2021–24" })
       .click();
     await page.getByRole("tab", { name: "Countries" }).click();
-    await cell(page, "turkiye", 1).click();
+    await openMoreColumns(page);
+    await cell(page, "turkiye", 4).click();
     await expect(dialog(page)).not.toContainText("+1,223%");
     await expect(dialog(page)).toContainText("after inflation");
   });
@@ -168,7 +174,8 @@ test.describe("at 1440px", () => {
     page,
   }) => {
     await gotoAtlas(page, "countries");
-    await cell(page, "chile", 4).click();
+    await openMoreColumns(page);
+    await cell(page, "chile", 5).click();
     await expect(dialog(page)).toContainText("goes via the dollar");
     await expect(dialog(page)).toContainText("CCUSMA02CLM618N");
   });
@@ -177,8 +184,9 @@ test.describe("at 1440px", () => {
     page,
   }) => {
     await gotoAtlas(page, "countries");
+    // The city cell's own info button (the market sensor) is Tier 2, not a cell note.
     await expect(
-      page.locator("#countries tbody td button[aria-haspopup=dialog]"),
+      page.locator("#countries tbody td:not(:first-child) button[aria-haspopup=dialog]"),
     ).toHaveCount(3);
   });
 
@@ -213,7 +221,8 @@ test.describe("at 1440px", () => {
     page,
   }) => {
     await gotoAtlas(page, "countries");
-    await cell(page, "turkiye", 1).click();
+    await openMoreColumns(page);
+    await cell(page, "turkiye", 4).click();
     await expect(dialog(page)).toBeVisible();
     const results = await new AxeBuilder({ page })
       .withTags(["wcag2a", "wcag2aa"])
@@ -232,6 +241,7 @@ test.describe("at 390px", () => {
     page,
   }) => {
     await gotoAtlas(page, "countries");
+    await openMoreColumns(page);
     for (const name of ["stock market", "currency", "life expectancy"]) {
       const icon = colInfo(page, name);
       await icon.scrollIntoViewIfNeeded();
@@ -246,7 +256,8 @@ test.describe("at 390px", () => {
 
   test("a cell note stays inside the viewport", async ({ page }) => {
     await gotoAtlas(page, "countries");
-    const c = cell(page, "turkiye", 1);
+    await openMoreColumns(page);
+    const c = cell(page, "turkiye", 4);
     await c.scrollIntoViewIfNeeded();
     await c.click();
     const box = await dialog(page).boundingBox();

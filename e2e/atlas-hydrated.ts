@@ -25,3 +25,9 @@ export async function openBuild(page: Page) {
 
 /** The desktop drawing of the scatter; the phone drawing is a second SVG in the same markup, hidden by CSS. */
 export const desktopScatter = (page: Page) => page.locator("svg[data-drawing=desktop]");
+
+/** Opens the Countries table's extra columns ("More columns", phase18.md I56). */
+export async function openMoreColumns(page: Page) {
+  const toggle = page.getByRole("button", { name: /More columns/ });
+  if (await toggle.count()) await toggle.click();
+}

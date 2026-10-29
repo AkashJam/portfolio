@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
-import { gotoAtlas } from "./atlas-hydrated";
+import { gotoAtlas, openMoreColumns } from "./atlas-hydrated";
 
 // Phase 16 step 6: the home city. One control, four effects: the crosshairs, the pinned
 // row, the comparison line under every other cited figure, and the display currency.
@@ -56,8 +56,9 @@ test.describe("at 1440px", () => {
   test("the currency column stays against the euro and gets no comparison line", async ({ page }) => {
     await gotoAtlas(page, "countries");
     await pick(page, "japan");
-    // Brazil's currency cell is the fifth cell in its row: city, shares, housing, prices, currency.
-    const cell = page.locator("#countries tbody tr#brazil td:nth-child(5)");
+    // Brazil's currency cell is the sixth in its row (city, housing, inflation, spending, stock market, currency), behind More columns.
+    await openMoreColumns(page);
+    const cell = page.locator("#countries tbody tr#brazil td:nth-child(6)");
     await expect(cell).not.toBeEmpty();
     await expect(cell.getByTestId("home-delta")).toHaveCount(0);
     await expect(page.locator("#countries thead").getByText("no Δ")).toHaveCount(1);

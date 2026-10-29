@@ -2,7 +2,7 @@
 
 import { LABEL } from "@/lib/atlas-labels";
 import Link from "next/link";
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useId, useMemo, useState, type ReactNode } from "react";
 
 import { useAtlasHome } from "@/components/atlas/AtlasHome";
 import { useAtlasWindow } from "@/components/atlas/AtlasWindow";
@@ -21,7 +21,6 @@ import {
 } from "@/components/ui/table";
 import {
   type ColumnKey,
-  type SortDir,
   formatChange,
   formatEur,
   formatPercent,
@@ -34,16 +33,19 @@ import {
 import { SwipeHint } from "@/components/atlas/SwipeHint";
 import { useScrollEdges } from "@/components/atlas/useScrollEdges";
 import { useTargetSlug } from "@/components/atlas/useTargetSlug";
-import { cityHref, noCityPageNote } from "@/lib/atlas-absences";
+import { cityCountLine, cityHref } from "@/lib/atlas-absences";
 import { computedLine, deltaUnit, homeDelta, homeMoney } from "@/lib/atlas-home";
 import { cellNote } from "@/lib/atlas-notes";
+import { DEFAULT_SORT, parseTable, tableSearch, type TableState } from "@/lib/atlas-url";
 import { columnInfo, vintageOf } from "@/lib/atlas-provenance";
 import type { AtlasRow, DisplayRate, WindowStart } from "@/lib/market-schemas";
 import { cn } from "@/lib/utils";
 
 /**
  * The /atlas countries table (Phase 11 step 1; mockups/atlas-v1/atlas.html
- * #countries). Twenty-three rows, eight measures, sortable on every column.
+ * #countries; Phase 22 I56). Twenty-three rows, four columns to start and four
+ * more behind "More columns", sortable on every column; both choices live in the
+ * address (`?cols=`, `?sort=`).
  * The window comes from the shared context (step 3), so the scatter and the
  * table always read the same years.
  */
@@ -52,21 +54,25 @@ interface Column {
   key: ColumnKey;
   label: string;
   sub: (end: string) => string;
+  /** Behind "More columns". */
+  more?: boolean;
+  /** A rise is a gain and a fall a loss, so the figure is coloured; inflation is not. */
+  tone?: boolean;
 }
 
 const COLUMNS: Column[] = [
-  { key: "shares", label: LABEL.shares.short, sub: () => "change · before inflation" },
-  { key: "housing", label: LABEL.housing.short, sub: () => "change · after inflation" },
+  { key: "housing", label: LABEL.housing.short, sub: () => "change · after inflation", tone: true },
   { key: "prices", label: LABEL.prices.short, sub: (end) => `change · to ${end}` },
-  { key: "currency", label: LABEL.currency.short, sub: () => "against the euro · change" },
   {
     key: "everydaySpendingEur",
     label: LABEL.everydaySpendingEur.short,
     sub: () => "€ per person",
   },
-  { key: "gniPpp", label: LABEL.gniPpp.short, sub: () => "$ per person · local prices" },
-  { key: "unemployment", label: LABEL.unemployment.short, sub: () => "%" },
-  { key: "lifeExpectancy", label: LABEL.lifeExpectancy.short, sub: () => "years" },
+  { key: "shares", label: LABEL.shares.short, sub: () => "change · before inflation", more: true, tone: true },
+  { key: "currency", label: LABEL.currency.short, sub: () => "against the euro · change", more: true, tone: true },
+  { key: "gniPpp", label: LABEL.gniPpp.short, sub: () => "$ per person · local prices", more: true },
+  { key: "unemployment", label: LABEL.unemployment.short, sub: () => "%", more: true },
+  { key: "lifeExpectancy", label: LABEL.lifeExpectancy.short, sub: () => "years", more: true },
 ];
 
 /** Tells the scroll cue the first column is pinned, so its left cue is a shadow, not a mask. */
@@ -169,10 +175,14 @@ function ChangeCell({
   row,
   k,
   ctx,
+  tone,
+  className: extra,
 }: {
   row: AtlasRow;
   k: "shares" | "housing" | "prices" | "currency";
   ctx: ColumnCtx;
+  tone: boolean;
+  className?: string;
 }) {
   const m = row[k];
   const value = m.change?.[ctx.window] ?? null;
@@ -184,7 +194,7 @@ function ChangeCell({
         ctx={ctx}
         source={m.source}
         asOf={m.asOf}
-        className="text-text-muted"
+        className={cn("text-text-muted", extra)}
       >
         {"—"}
         {m.reason && (
@@ -204,8 +214,9 @@ function ChangeCell({
       source={m.source}
       asOf={m.asOf}
       className={cn(
-        rounded > 0 && "text-market-up",
-        rounded < 0 && "text-market-down",
+        tone && rounded > 0 && "text-market-up",
+        tone && rounded < 0 && "text-market-down",
+        extra,
       )}
     >
       {formatChange(value)}
@@ -221,11 +232,13 @@ function LevelCell({
   k,
   ctx,
   format,
+  className,
 }: {
   row: AtlasRow;
   k: "everydaySpendingEur" | "gniPpp" | "unemployment" | "lifeExpectancy";
   ctx: ColumnCtx;
   format: (v: number) => string;
+  className?: string;
 }) {
   const m = row[k];
   return (
@@ -235,7 +248,7 @@ function LevelCell({
       ctx={ctx}
       source={m.source}
       asOf={m.asOf}
-      className={cn(m.value === null && "text-text-muted")}
+      className={cn(m.value === null && "text-text-muted", className)}
     >
       {m.value === null ? "—" : format(m.value)}
     </DataCell>
@@ -284,10 +297,23 @@ function ColumnPanel({
 export function CountriesTable({ rows }: { rows: AtlasRow[] }) {
   const { window, end } = useAtlasWindow();
   const { home, rate } = useAtlasHome();
-  const [sort, setSort] = useState<{ key: ColumnKey; dir: SortDir }>({
-    key: "everydaySpendingEur",
-    dir: "asc",
-  });
+  const [table, setTable] = useState<TableState>({ more: false, ...DEFAULT_SORT });
+  const panelId = useId();
+  // The address names the columns and the order; it is read after hydration, because
+  // the page is static and cannot see the query string on the server. (`window` here is
+  // the shared year window, so the browser's is reached as `globalThis`.)
+  useEffect(() => {
+    const read = () => setTable(parseTable(globalThis.location.search));
+    read();
+    globalThis.addEventListener("popstate", read);
+    return () => globalThis.removeEventListener("popstate", read);
+  }, []);
+  function update(next: TableState) {
+    setTable(next);
+    const { pathname, search, hash } = globalThis.location;
+    globalThis.history.replaceState(null, "", `${pathname}${tableSearch(search, next)}${hash}`);
+  }
+  const sort = table;
   const target = useTargetSlug();
   const edges = useScrollEdges();
   // The home row is pinned above the sort; the rest keep their order.
@@ -312,17 +338,30 @@ export function CountriesTable({ rows }: { rows: AtlasRow[] }) {
   // First press on a column sorts it high-to-low for change measures, since
   // the question is "who rose most"; a repeat press flips it.
   function onSort(key: ColumnKey) {
-    setSort((s) =>
-      s.key === key
-        ? { key, dir: s.dir === "asc" ? "desc" : "asc" }
-        : { key, dir: "desc" },
-    );
+    update({
+      ...table,
+      key,
+      dir: table.key === key ? (table.dir === "asc" ? "desc" : "asc") : "desc",
+    });
   }
+  const hiddenWhenClosed = (c: Column) => (c.more && !table.more ? "hidden" : undefined);
 
   return (
     <DisclosureGroup>
+      <div className="mb-3 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2">
+        <p className="text-small text-read">{cityCountLine(rows)}</p>
+        <button
+          type="button"
+          aria-expanded={table.more}
+          aria-controls={panelId}
+          onClick={() => update({ ...table, more: !table.more })}
+          className="rounded-sm text-small text-brand-hover hover:text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+        >
+          {table.more ? "Fewer columns ▴" : "More columns ▾"}
+        </button>
+      </div>
       <SwipeHint />
-      <div className="panel-elevated overflow-hidden rounded-2xl">
+      <div id={panelId} className="panel-elevated overflow-hidden rounded-2xl">
         <Table
           containerClassName="atlas-edge-cue"
           containerProps={{ ref: edges.attach, ...PINNED_ATTR, ...edges.attrs }}
@@ -335,7 +374,7 @@ export function CountriesTable({ rows }: { rows: AtlasRow[] }) {
                 return (
                   <TableHead
                     key={c.key}
-                    className="px-2 text-right"
+                    className={cn("px-2 text-right", hiddenWhenClosed(c))}
                     aria-sort={
                       active
                         ? sort.dir === "asc"
@@ -412,69 +451,68 @@ export function CountriesTable({ rows }: { rows: AtlasRow[] }) {
                   )}
                 >
                   <span className="flex min-w-[10rem] flex-col">
-                    {cityHref(r) ? (
-                      <Link
-                        href={cityHref(r)!}
-                        className="font-medium underline-offset-4 hover:text-brand-hover hover:underline"
+                    <span className="flex items-center gap-1.5">
+                      {cityHref(r) ? (
+                        <Link
+                          href={cityHref(r)!}
+                          className="font-medium underline-offset-4 hover:text-brand-hover hover:underline"
+                        >
+                          {r.city}
+                        </Link>
+                      ) : (
+                        <span className="font-medium">{r.city}</span>
+                      )}
+                      <InfoButton
+                        label={`About ${r.city}`}
+                        title={`${r.city}, ${r.country}`}
                       >
-                        {r.city}
-                      </Link>
-                    ) : (
-                      <span className="font-medium">{r.city}</span>
-                    )}
+                        <p data-testid="sensor-note">
+                          {r.sensor ? (
+                            <>
+                              Market sensor{" "}
+                              <Link
+                                href={`/market/${r.slug}`}
+                                className="font-mono underline underline-offset-4 hover:text-brand-hover"
+                              >
+                                {r.sensor}
+                              </Link>
+                              , a US-listed company. The link opens its price page; this page shows no market figure.
+                            </>
+                          ) : (
+                            "No market sensor: no US-listed bank or telecom stands in for this country."
+                          )}
+                        </p>
+                      </InfoButton>
+                    </span>
                     {r.slug === home?.slug && (
                       <span data-testid="home-tag" className="text-meta uppercase tracking-wider text-brand-hover">
                         home
                       </span>
                     )}
-                    <small className="text-meta text-text-muted">
-                      {r.country} {"·"}{" "}
-                      {r.sensor ? (
-                        <>
-                          market sensor{" "}
-                          <Link
-                            href={`/market/${r.slug}`}
-                            className="font-mono underline-offset-4 hover:text-brand-hover hover:underline"
-                          >
-                            {r.sensor}
-                          </Link>
-                        </>
-                      ) : (
-                        "no market sensor"
-                      )}
-                      {noCityPageNote(r, rows) &&
-                        ` · ${noCityPageNote(r, rows)}`}
-                    </small>
+                    <small className="text-meta text-text-muted">{r.country}</small>
                   </span>
                 </TableCell>
-                <ChangeCell row={r} k="shares" ctx={ctxs.shares} />
-                <ChangeCell row={r} k="housing" ctx={ctxs.housing} />
-                <ChangeCell row={r} k="prices" ctx={ctxs.prices} />
-                <ChangeCell row={r} k="currency" ctx={ctxs.currency} />
-                <LevelCell
-                  row={r}
-                  k="everydaySpendingEur"
-                  ctx={ctxs.everydaySpendingEur}
-                  format={spendFormat}
-                />
-                <LevelCell
-                  row={r}
-                  k="gniPpp"
-                  ctx={ctxs.gniPpp}
-                  format={formatUsd}
-                />
-                <LevelCell
-                  row={r}
-                  k="unemployment"
-                  ctx={ctxs.unemployment}
-                  format={formatPercent}
-                />
-                <LevelCell
-                  row={r}
-                  k="lifeExpectancy"
-                  ctx={ctxs.lifeExpectancy}
-                  format={formatYears}
-                />
+                {COLUMNS.map((c) => {
+                  const className = hiddenWhenClosed(c);
+                  const ctx = ctxs[c.key];
+                  switch (c.key) {
+                    case "shares":
+                    case "housing":
+                    case "prices":
+                    case "currency":
+                      return (
+                        <ChangeCell key={c.key} row={r} k={c.key} ctx={ctx} tone={!!c.tone} className={className} />
+                      );
+                    case "everydaySpendingEur":
+                      return <LevelCell key={c.key} row={r} k={c.key} ctx={ctx} format={spendFormat} className={className} />;
+                    case "gniPpp":
+                      return <LevelCell key={c.key} row={r} k={c.key} ctx={ctx} format={formatUsd} className={className} />;
+                    case "unemployment":
+                      return <LevelCell key={c.key} row={r} k={c.key} ctx={ctx} format={formatPercent} className={className} />;
+                    case "lifeExpectancy":
+                      return <LevelCell key={c.key} row={r} k={c.key} ctx={ctx} format={formatYears} className={className} />;
+                  }
+                })}
               </TableRow>
             ))}
           </TableBody>

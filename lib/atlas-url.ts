@@ -4,7 +4,7 @@
 // scroll target: a section (`#map`) or a country row (`#italy`). Pure, so the
 // rules are testable; the components read window.location and call these.
 
-import type { ColumnKey } from "@/lib/atlas";
+import type { ColumnKey, SortDir } from "@/lib/atlas";
 import { MEASURES } from "@/lib/atlas-plot";
 import { CHIPS, type ChipId } from "@/lib/atlas-readings";
 import type { WindowStart } from "@/lib/market-schemas";
@@ -111,4 +111,39 @@ export function compareSearch(search: string, state: CompareState, defaultWindow
   s = withParam(s, "x", state.chip ? null : state.x);
   s = withParam(s, "y", state.chip ? null : state.y);
   return withParam(s, "window", state.window && state.window !== defaultWindow ? state.window : null);
+}
+
+// ---- Countries (phase18.md I51, I56) --------------------------------------------
+// `?cols=more` opens the five extra columns; `?sort=<column>` or `?sort=<column>.desc`
+// orders the rows. The defaults (four columns, average spending ascending) are omitted.
+
+export interface TableState {
+  more: boolean;
+  key: ColumnKey;
+  dir: SortDir;
+}
+
+export const DEFAULT_SORT: { key: ColumnKey; dir: SortDir } = { key: "everydaySpendingEur", dir: "asc" };
+
+const COLUMN_KEYS: ColumnKey[] = [
+  "housing", "prices", "everydaySpendingEur", "shares", "currency", "gniPpp", "unemployment", "lifeExpectancy",
+];
+
+/** Reads `?cols=` and `?sort=`; anything unreadable falls back to the defaults. */
+export function parseTable(search: string): TableState {
+  const q = new URLSearchParams(search);
+  const [name, suffix] = (q.get("sort") ?? "").split(".");
+  const key = COLUMN_KEYS.find((k) => k === name);
+  const dir: SortDir = suffix === "desc" ? "desc" : suffix === "asc" ? "asc" : DEFAULT_SORT.dir;
+  return {
+    more: q.get("cols") === "more",
+    ...(key ? { key, dir } : DEFAULT_SORT),
+  };
+}
+
+/** The query after a table change; the other parameters (view, home, compare) are untouched. */
+export function tableSearch(search: string, state: TableState): string {
+  const isDefault = state.key === DEFAULT_SORT.key && state.dir === DEFAULT_SORT.dir;
+  const s = withParam(search, "cols", state.more ? "more" : null);
+  return withParam(s, "sort", isDefault ? null : `${state.key}${state.dir === "desc" ? ".desc" : ""}`);
 }

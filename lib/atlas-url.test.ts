@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { compareSearch, homeAddress, parseCompare, parseHashParts, readHome, resolveView, viewAddress, withParam } from "@/lib/atlas-url";
+import { compareSearch, homeAddress, parseCompare, parseHashParts, parseTable, tableSearch, readHome, resolveView, viewAddress, withParam } from "@/lib/atlas-url";
 
 describe("parseHashParts", () => {
   it("reads sections, rows and the legacy home apart", () => {
@@ -67,5 +67,24 @@ describe("compare in the address", () => {
     expect(compareSearch("", { ...first, chip: "spend-life", x: "everydaySpendingEur", y: "lifeExpectancy" }, "2010" as never)).toBe("?q=spend-life");
     expect(compareSearch("?q=spend-life", { chip: null, x: "shares", y: "prices", window: "2016" as never }, "2010" as never)).toBe("?x=shares&y=prices&window=2016");
     expect(compareSearch("?x=shares&y=prices&home=japan", first, "2010" as never)).toBe("?home=japan");
+  });
+});
+
+describe("the countries table address", () => {
+  it("reads the defaults from a plain address", () => {
+    expect(parseTable("")).toEqual({ more: false, key: "everydaySpendingEur", dir: "asc" });
+  });
+
+  it("reads columns and sort, and ignores what it cannot read", () => {
+    expect(parseTable("?cols=more&sort=housing.desc")).toEqual({ more: true, key: "housing", dir: "desc" });
+    expect(parseTable("?sort=housing")).toEqual({ more: false, key: "housing", dir: "asc" });
+    expect(parseTable("?cols=all&sort=bogus.desc")).toEqual({ more: false, key: "everydaySpendingEur", dir: "asc" });
+  });
+
+  it("writes only what differs from the defaults and leaves the other parameters", () => {
+    const d = { more: false, key: "everydaySpendingEur", dir: "asc" } as const;
+    expect(tableSearch("?view=countries", d)).toBe("?view=countries");
+    expect(tableSearch("?view=countries", { more: true, key: "housing", dir: "desc" })).toBe("?view=countries&cols=more&sort=housing.desc");
+    expect(tableSearch("?cols=more&sort=housing.desc&home=japan", d)).toBe("?home=japan");
   });
 });

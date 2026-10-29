@@ -1,5 +1,5 @@
 import AxeBuilder from "@axe-core/playwright";
-import { gotoAtlas } from "./atlas-hydrated";
+import { gotoAtlas, openMoreColumns } from "./atlas-hydrated";
 import { expect, test, type Page } from "@playwright/test";
 
 // Phase 11 step 9: the responsive pass (bearing.md #107, "The responsive
@@ -56,6 +56,7 @@ test.describe("at 390px", () => {
     page,
   }) => {
     await gotoAtlas(page, "countries");
+    await openMoreColumns(page); // nine columns, so there is room to scroll through all three states
     const box = tableBox(page);
     const edges = () =>
       box.evaluate((e) => [e.dataset.moreLeft, e.dataset.moreRight]);
@@ -196,52 +197,75 @@ test.describe("at 1440px", () => {
     }
   });
 
-  test("eleven rows name a market sensor and twelve say they have none", async ({
+  test("the table opens on four columns and More columns reveals the rest, in the address", async ({
     page,
   }) => {
     await gotoAtlas(page, "countries");
-    const lines = await page
-      .locator("#countries tbody tr td:first-child small")
-      .allInnerTexts();
-    expect(lines).toHaveLength(23);
-    expect(lines.filter((t) => /no market sensor/.test(t))).toHaveLength(12);
-    expect(lines.filter((t) => /market sensor [A-Z]/.test(t))).toHaveLength(11);
-    // The symbol is a link to its price page (Phase 14 step 8).
-    await expect(
-      page.locator("#countries tbody tr td:first-child small a[href^='/market/']"),
-    ).toHaveCount(11);
+    const heads = page.locator("#countries thead th:visible");
+    await expect(heads).toHaveCount(4);
+    await expect(heads.nth(1)).toContainText("House prices");
+    await expect(heads.nth(2)).toContainText("Inflation");
+    await expect(heads.nth(3)).toContainText("Average spending a month");
+    const toggle = page.getByRole("button", { name: /More columns/ });
+    await expect(toggle).toHaveAttribute("aria-expanded", "false");
+    await toggle.click();
+    await expect(heads).toHaveCount(9);
+    await expect(page).toHaveURL(/\?view=countries&cols=more$/);
+    await page.reload();
+    await expect(page.locator("#countries thead th:visible")).toHaveCount(9);
+    await page.getByRole("button", { name: /Fewer columns/ }).click();
+    await expect(heads).toHaveCount(4);
+    expect(new URL(page.url()).search).toBe("?view=countries");
   });
 
-  test("the stated absences read with the counts from the data", async ({
-    page,
-  }) => {
+  test("the sort is in the address and survives a reload", async ({ page }) => {
     await gotoAtlas(page, "countries");
-    const notes = page.locator("#countries");
-    await expect(
-      notes.getByText(
-        /Eleven of these rows name a US-listed bank or telecom as their market sensor; the other twelve have none\./,
-      ),
-    ).toBeVisible();
-    await expect(
-      notes.getByText(
-        /The symbol links to its price page; this page itself shows no market figure/,
-      ),
-    ).toBeVisible();
-    await expect(
-      notes.getByText("Where a city has a page its name is a link; the rest say no city page yet."),
-    ).toBeVisible();
+    await page.getByRole("button", { name: "House prices", exact: true }).click();
+    await expect(page).toHaveURL(/sort=housing\.desc$/);
+    await page.reload();
+    await expect(page.locator("th[aria-sort=descending]")).toContainText("House prices");
+    await page.goto("/atlas?view=countries&sort=bogus");
+    await expect(page.locator("th[aria-sort=ascending]")).toContainText("Average spending a month");
   });
 
-  test("a city name is a link where its page exists, and the other six rows say so", async ({
+  test("only the gain and loss columns are coloured; inflation is not", async ({
     page,
   }) => {
     await gotoAtlas(page, "countries");
-    // Seventeen verified surveys have a page; the four unverified ones and the three
-    // newcomers (Indonesia, Chile, New Zealand) do not, and say "no city page yet".
+    const colour = (n: number) =>
+      page.locator("tr#united-states td").nth(n).evaluate((e) => getComputedStyle(e).color);
+    const read = await colour(2); // inflation: a rise of +44%, still the text colour
+    expect(read).not.toBe(await colour(1)); // house prices (+59%) carry the gain colour
+    await openMoreColumns(page);
+    expect(await colour(4)).toBe(await colour(1)); // so does the stock market
+    const plain = await page.locator("tr#united-states td").nth(3).evaluate((e) => getComputedStyle(e).color);
+    expect(read).toBe(plain); // inflation reads like any uncoloured figure
+  });
+
+  test("the city count is said once, from the data, and no row says it has no page", async ({
+    page,
+  }) => {
+    await gotoAtlas(page, "countries");
+    await expect(page.getByText("17 of 23 countries have a city page.")).toHaveCount(1);
+    await expect(page.getByText("no city page yet")).toHaveCount(0);
     const links = page.locator("#countries tbody td:first-child a[href^='/atlas/']");
     await expect(links).toHaveCount(17);
     await expect(page.locator("#countries tbody a[href='/atlas/japan']")).toHaveText("Tokyo");
-    await expect(page.locator("#countries tbody").getByText("no city page yet")).toHaveCount(6);
+  });
+
+  test("the sensor is in the city's popover: a symbol linking to its price page, or none", async ({
+    page,
+  }) => {
+    await gotoAtlas(page, "countries");
+    await expect(page.locator("#countries tbody td:first-child small")).toHaveCount(23);
+    await expect(page.locator("#countries").getByText(/market sensor/i)).toHaveCount(0);
+    await page.getByRole("button", { name: "About Tokyo" }).click();
+    const d = page.getByRole("dialog");
+    await expect(d.getByTestId("sensor-note")).toContainText("Market sensor");
+    await expect(d.locator("a[href^='/market/']")).toHaveCount(1);
+    await page.keyboard.press("Escape");
+    await page.getByRole("button", { name: "About Dijon" }).click();
+    await expect(page.getByRole("dialog").getByTestId("sensor-note")).toContainText("No market sensor");
   });
 
   test("the page shows no market figure: no price, no feed badge", async ({

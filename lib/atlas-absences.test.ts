@@ -1,12 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  anyCityPage,
-  cityHref,
-  cityPageLine,
-  noCityPageNote,
-  sensorLine,
-} from "@/lib/atlas-absences";
+import { cityCountLine, cityHref } from "@/lib/atlas-absences";
 import type { AtlasRow } from "@/lib/market-schemas";
 
 const ch = {
@@ -41,51 +35,15 @@ const REAL = [
   ...Array.from({ length: 12 }, (_, i) => row(`n${i}`)),
 ];
 
-describe("sensorLine", () => {
-  it("counts the rows from the data, in words", () => {
-    expect(sensorLine(REAL)).toBe(
-      "Eleven of these rows name a US-listed bank or telecom as their market sensor; the other twelve have none. The symbol links to its price page; this page itself shows no market figure, so it never depends on a market feed.",
-    );
-  });
-
-  it("follows the data when the split changes", () => {
-    expect(sensorLine(REAL.slice(0, 20))).toContain("Eleven of these rows");
-    expect(sensorLine(REAL.slice(0, 20))).toContain("the other nine have none");
-  });
-
-  it("handles none and all", () => {
-    expect(sensorLine([row("a"), row("b")])).toMatch(
-      /^No row names a market sensor\./,
-    );
-    expect(sensorLine([row("a", { sensor: "X" })])).toMatch(/^Every row names/);
-  });
-
-  it("makes no promise about a later release", () => {
-    expect(sensorLine(REAL)).not.toMatch(
-      /\b(later|soon|will|planned|release|phase)\b/i,
-    );
-  });
-});
-
-describe("city pages (#101)", () => {
-  it("says no city has a page, once, while none does", () => {
-    expect(anyCityPage(REAL)).toBe(false);
-    expect(cityPageLine(REAL)).toBe(
-      "No city has a page yet, so no name is a link.",
-    );
-    for (const r of REAL) expect(noCityPageNote(r, REAL)).toBeNull();
+describe("city pages (I59)", () => {
+  it("counts the rows with a page, from the data", () => {
+    expect(cityCountLine(REAL)).toBe("0 of 23 countries have a city page.");
+    const some = [row("japan", { hasCityPage: true }), row("italy"), row("peru")];
+    expect(cityCountLine(some)).toBe("1 of 3 countries have a city page.");
   });
 
   it("links a name only where its page exists", () => {
     expect(cityHref(row("japan", { hasCityPage: true }))).toBe("/atlas/japan");
     expect(cityHref(row("italy"))).toBeNull();
-  });
-
-  it("once one city has a page, each row without one says so", () => {
-    const some = [row("japan", { hasCityPage: true }), row("italy")];
-    expect(anyCityPage(some)).toBe(true);
-    expect(cityPageLine(some)).toContain("the rest say no city page yet");
-    expect(noCityPageNote(some[0], some)).toBeNull();
-    expect(noCityPageNote(some[1], some)).toBe("no city page yet");
   });
 });

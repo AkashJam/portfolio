@@ -11,7 +11,6 @@ import { AtlasHomeProvider, HomePicker } from "@/components/atlas/AtlasHome";
 import { AtlasExplorer } from "@/components/atlas/AtlasExplorer";
 import { WorldMap } from "@/components/atlas/WorldMap";
 import { CountriesTable } from "@/components/atlas/CountriesTable";
-import { cityPageLine, sensorLine } from "@/lib/atlas-absences";
 import { getAtlasCities } from "@/lib/ticker-client";
 import { pageMetadata } from "@/lib/metadata";
 
@@ -56,15 +55,6 @@ export default async function AtlasPage() {
             {ok ? (
               <>
                 <CountriesTable rows={atlas.rows} />
-                <div className="mt-4 max-w-measure space-y-2 text-small leading-relaxed text-text-muted">
-                  <p>
-                    <b className="font-medium text-read">
-                      Market answers a different question about the same countries.
-                    </b>{" "}
-                    {sensorLine(atlas.rows)}
-                  </p>
-                  <p>{cityPageLine(atlas.rows)}</p>
-                </div>
               </>
             ) : (
               unavailable
