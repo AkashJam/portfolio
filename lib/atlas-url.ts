@@ -4,6 +4,11 @@
 // scroll target: a section (`#map`) or a country row (`#italy`). Pure, so the
 // rules are testable; the components read window.location and call these.
 
+import type { ColumnKey } from "@/lib/atlas";
+import { MEASURES } from "@/lib/atlas-plot";
+import { CHIPS, type ChipId } from "@/lib/atlas-readings";
+import type { WindowStart } from "@/lib/market-schemas";
+
 export const VIEWS = ["compare", "map", "countries"] as const;
 export type View = (typeof VIEWS)[number];
 
@@ -70,4 +75,40 @@ export function homeAddress(search: string, hash: string, home: string | null): 
 /** The home city an address names: `?home=`, else the legacy `#home=`. */
 export function readHome(search: string, hash: string): string | null {
   return new URLSearchParams(search).get("home") || parseHashParts(hash).legacyHome;
+}
+
+// ---- Compare (phase18.md I51) -------------------------------------------------
+// `?q=` names a question tab; `?x=&y=` a built comparison; `?window=` the shared
+// window. Defaults are omitted, so a plain /atlas stays plain.
+
+export interface CompareState {
+  /** The question tab, or null for a built comparison. */
+  chip: ChipId | null;
+  x: ColumnKey;
+  y: ColumnKey;
+  /** The window the address names, or null for the default. */
+  window: WindowStart | null;
+}
+
+const MEASURE_KEYS = MEASURES.map((m) => m.key);
+
+/** Reads `?q=`, `?x=&y=` and `?window=`; anything unreadable falls back to the first question. */
+export function parseCompare(search: string, windows: WindowStart[]): CompareState {
+  const q = new URLSearchParams(search);
+  const w = q.get("window");
+  const window = windows.find((x) => x === w) ?? null;
+  const asked = CHIPS.find((c) => c.id === q.get("q"));
+  if (asked) return { chip: asked.id, x: asked.x, y: asked.y, window };
+  const x = MEASURE_KEYS.find((k) => k === q.get("x"));
+  const y = MEASURE_KEYS.find((k) => k === q.get("y"));
+  if (x && y && x !== y) return { chip: null, x, y, window };
+  return { chip: CHIPS[0].id, x: CHIPS[0].x, y: CHIPS[0].y, window };
+}
+
+/** The query after a Compare change; the other parameters (view, home, map) are untouched. */
+export function compareSearch(search: string, state: CompareState, defaultWindow: WindowStart): string {
+  let s = withParam(search, "q", state.chip && state.chip !== CHIPS[0].id ? state.chip : null);
+  s = withParam(s, "x", state.chip ? null : state.x);
+  s = withParam(s, "y", state.chip ? null : state.y);
+  return withParam(s, "window", state.window && state.window !== defaultWindow ? state.window : null);
 }

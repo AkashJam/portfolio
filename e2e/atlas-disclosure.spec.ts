@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
-import { gotoAtlas } from "./atlas-hydrated";
+import { gotoAtlas, openBuild } from "./atlas-hydrated";
 
 // Phase 11 step 7: the three disclosure tiers. Needs the ticker (real /atlas/cities).
 
@@ -89,6 +89,7 @@ test.describe("at 1440px", () => {
   test("the popover follows the shared window", async ({ page }) => {
     await gotoAtlas(page, "countries");
     await page.getByRole("tab", { name: "Compare" }).click();
+    await openBuild(page);
     await page
       .locator("#compare")
       .getByRole("radio", { name: "2016–24" })
@@ -152,6 +153,7 @@ test.describe("at 1440px", () => {
     );
     await page.keyboard.press("Escape");
     await page.getByRole("tab", { name: "Compare" }).click();
+    await openBuild(page);
     await page
       .locator("#compare")
       .getByRole("radio", { name: "2021–24" })

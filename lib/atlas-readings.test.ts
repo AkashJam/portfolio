@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { CHIPS, buildReading, generatedReading } from "@/lib/atlas-readings";
+import { CHIPS, buildReading, describePair, generatedReading } from "@/lib/atlas-readings";
 import type { AtlasRow, WindowChange } from "@/lib/market-schemas";
 
 // Fixtures carry the real 2010-24 figures the mocks quote (atlas.html and
@@ -287,5 +287,23 @@ describe("generatedReading", () => {
   it("says so plainly when fewer than two countries have both figures", () => {
     const one = [ROWS[0]];
     expect(generatedReading(one, "shares", "housing", "2010").figs).toEqual([]);
+  });
+});
+
+describe("the question tabs (phase18.md I50)", () => {
+  it("each question has a short tab and a full question, in the mock's order", () => {
+    expect(CHIPS.map((c) => c.tab)).toEqual(["Spending & housing", "Stocks & housing", "Stocks vs inflation", "Spending & lifespan", "Currency & stocks"]);
+    expect(CHIPS.map((c) => c.question)).toEqual([
+      "Where people spend more, have house prices risen more?",
+      "Did stock markets and house prices rise together?",
+      "Did stock markets grow faster than inflation?",
+      "Do people live longer where they spend more?",
+      "Did a weaker currency eat into stock market gains?",
+    ]);
+  });
+  it("describes the pair, with the span only where a change measure is on an axis", () => {
+    expect(describePair("everydaySpendingEur", "housing", "2010–24")).toBe("Average spending per person against house prices after inflation, 2010–24");
+    expect(describePair("everydaySpendingEur", "lifeExpectancy", "2010–24")).toBe("Average spending per person against life expectancy");
+    expect(describePair("shares", "currency", "2010–24")).toBe("Stock market before inflation against the currency against the euro, 2010–24");
   });
 });

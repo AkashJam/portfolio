@@ -29,10 +29,10 @@ test.describe("at 1440px, with a mouse", () => {
     const errors = collectErrors(page);
     await gotoAtlas(page);
 
-    const chip = page.getByRole("button", { name: /Did savings and housing/ });
+    const chip = page.getByRole("tab", { name: "Stocks & housing" });
     const b = (await chip.boundingBox())!;
     await page.mouse.click(b.x + b.width / 2, b.y + b.height / 2);
-    await expect(chip).toHaveAttribute("aria-pressed", "true");
+    await expect(chip).toHaveAttribute("aria-selected", "true");
 
     await page.getByRole("tab", { name: "Countries" }).click();
     const sort = page.getByRole("button", { name: /^Stock market/ }).first();
@@ -60,10 +60,10 @@ test.describe("at 390px, with touch", () => {
     const errors = collectErrors(page);
     await gotoAtlas(page);
 
-    const chip = page.getByRole("button", { name: /Did savings and housing/ });
-    await chip.scrollIntoViewIfNeeded();
-    await chip.tap();
-    await expect(chip).toHaveAttribute("aria-pressed", "true");
+    // On a phone the questions are a dropdown.
+    const question = page.getByLabel("Question");
+    await question.selectOption("shares-housing");
+    await expect(question).toHaveValue("shares-housing");
 
     await page.getByRole("tab", { name: "Countries" }).tap();
     const sort = page.getByRole("button", { name: /^Stock market/ }).first();
@@ -93,7 +93,7 @@ test("is just as alive when opened at 127.0.0.1 as at localhost", async ({
   url.hostname = "127.0.0.1";
   await page.goto(url.toString());
   await atlasHydrated(page);
-  const chip = page.getByRole("button", { name: /Did savings and housing/ });
+  const chip = page.getByRole("tab", { name: "Stocks & housing" });
   await chip.click();
-  await expect(chip).toHaveAttribute("aria-pressed", "true");
+  await expect(chip).toHaveAttribute("aria-selected", "true");
 });

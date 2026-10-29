@@ -13,7 +13,25 @@ import type { AtlasRow, WindowStart } from "@/lib/market-schemas";
 // components/atlas/Scatter.tsx; everything that decides where a point goes,
 // which ones clip and which labels fit lives here so it can be tested.
 
-export const PLOT = { width: 900, height: 470, left: 62, right: 876, top: 20, bottom: 414 } as const;
+export interface Geometry {
+  width: number;
+  height: number;
+  left: number;
+  right: number;
+  top: number;
+  bottom: number;
+  /** Approximate width of one label character, for collision, at this drawing's label size. */
+  charW: number;
+}
+
+/** The desktop drawing. */
+export const PLOT: Geometry = { width: 900, height: 470, left: 62, right: 876, top: 20, bottom: 414, charW: 6.6 };
+
+/**
+ * The phone drawing (owner, 2026-10-24; phase18.md I50): its own 360-unit drawing with 11px
+ * labels rather than the desktop one squeezed or scrolled, so nothing slides sideways inside it.
+ */
+export const PLOT_PHONE: Geometry = { width: 360, height: 420, left: 50, right: 346, top: 14, bottom: 356, charW: 5.8 };
 
 export interface Measure {
   key: ColumnKey;
@@ -153,6 +171,8 @@ export interface PlotPoint {
   /** Each axis the point was clipped on, with its true value; null when it sits in range. */
   clip: { axis: "x" | "y"; value: number }[] | null;
   label: { x: number; y: number; anchor: "start" | "end"; text: string } | null;
+  /** The row has a city page, so the dot links to it (I55). */
+  hasCityPage: boolean;
 }
 
 export interface PlotModel {
@@ -167,8 +187,8 @@ export interface PlotModel {
 }
 
 const scale = (v: number, d: Domain, from: number, to: number) => from + ((v - d.min) / (d.max - d.min)) * (to - from);
-export const projectX = (v: number, d: Domain) => scale(v, d, PLOT.left, PLOT.right);
-export const projectY = (v: number, d: Domain) => scale(v, d, PLOT.bottom, PLOT.top);
+export const projectX = (v: number, d: Domain, g: Geometry = PLOT) => scale(v, d, g.left, g.right);
+export const projectY = (v: number, d: Domain, g: Geometry = PLOT) => scale(v, d, g.bottom, g.top);
 
 /** y = x is meaningful for exactly one pair: prices (x) against shares (y), same window. */
 export function showsDiagonal(xKey: ColumnKey, yKey: ColumnKey): boolean {
@@ -177,7 +197,6 @@ export function showsDiagonal(xKey: ColumnKey, yKey: ColumnKey): boolean {
 
 const DOT = 5.5;
 const LABEL_H = 14;
-const CHAR_W = 6.6;
 
 interface Rect {
   x1: number;
@@ -187,7 +206,7 @@ interface Rect {
 }
 const overlaps = (a: Rect, b: Rect) => a.x1 < b.x2 && b.x1 < a.x2 && a.y1 < b.y2 && b.y1 < a.y2;
 
-export function buildPlot(rows: AtlasRow[], xKey: ColumnKey, yKey: ColumnKey, window: WindowStart): PlotModel {
+export function buildPlot(rows: AtlasRow[], xKey: ColumnKey, yKey: ColumnKey, window: WindowStart, g: Geometry = PLOT, priority: string[] = []): PlotModel {
   const have = rows
     .map((r) => ({ r, x: columnValue(r, xKey, window), y: columnValue(r, yKey, window) }))
     .filter((p): p is { r: AtlasRow; x: number; y: number } => p.x !== null && p.y !== null);
@@ -203,8 +222,9 @@ export function buildPlot(rows: AtlasRow[], xKey: ColumnKey, yKey: ColumnKey, wi
       city: r.city,
       x,
       y,
-      cx: projectX(clipX ? xDomain.max : x, xDomain),
-      cy: projectY(clipY ? yDomain.max : y, yDomain),
+      cx: projectX(clipX ? xDomain.max : x, xDomain, g),
+      cy: projectY(clipY ? yDomain.max : y, yDomain, g),
+      hasCityPage: r.hasCityPage,
       clip: clipX || clipY ? [...(clipX ? [{ axis: "x" as const, value: x }] : []), ...(clipY ? [{ axis: "y" as const, value: y }] : [])] : null,
       label: null,
     };
@@ -214,15 +234,16 @@ export function buildPlot(rows: AtlasRow[], xKey: ColumnKey, yKey: ColumnKey, wi
   // on an earlier label or on any dot is left off and keeps its <title> instead.
   const mx = points.reduce((s, p) => s + p.cx, 0) / (points.length || 1);
   const my = points.reduce((s, p) => s + p.cy, 0) / (points.length || 1);
-  const order = [...points].sort((a, b) => Math.hypot(b.cx - mx, b.cy - my) - Math.hypot(a.cx - mx, a.cy - my));
+  // The question's reading pair is labelled first, so a crowded plot never drops its names.
+  const order = [...points].sort((a, b) => Number(priority.includes(b.slug)) - Number(priority.includes(a.slug)) || Math.hypot(b.cx - mx, b.cy - my) - Math.hypot(a.cx - mx, a.cy - my));
   const dots: Rect[] = points.map((p) => ({ x1: p.cx - DOT - 1, y1: p.cy - DOT - 1, x2: p.cx + DOT + 1, y2: p.cy + DOT + 1 }));
   const placed: Rect[] = [];
   for (const p of order) {
     const text = p.clip
       ? `${p.city} \u25b8 ${p.clip.map((c) => measureOf(c.axis === "x" ? xKey : yKey).tick(c.value)).join(" \u00b7 ")}`
       : p.city;
-    const w = text.length * CHAR_W;
-    const onRight = p.cx + 9 + w <= PLOT.width - 6;
+    const w = text.length * g.charW;
+    const onRight = p.cx + 9 + w <= g.width - 6;
     const x = onRight ? p.cx + 9 : p.cx - 9;
     const rect: Rect = { x1: onRight ? x : x - w, y1: p.cy - LABEL_H / 2 - 1, x2: onRight ? x + w : x, y2: p.cy + LABEL_H / 2 - 1 };
     const hitsDot = dots.some((d, i) => points[i] !== p && overlaps(rect, d));
@@ -237,10 +258,10 @@ export function buildPlot(rows: AtlasRow[], xKey: ColumnKey, yKey: ColumnKey, wi
     const hi = Math.min(xDomain.max, yDomain.max);
     if (hi > lo) {
       diagonal = {
-        x1: projectX(lo, xDomain),
-        y1: projectY(lo, yDomain),
-        x2: projectX(hi, xDomain),
-        y2: projectY(hi, yDomain),
+        x1: projectX(lo, xDomain, g),
+        y1: projectY(lo, yDomain, g),
+        x2: projectX(hi, xDomain, g),
+        y2: projectY(hi, yDomain, g),
       };
     }
   }
@@ -253,7 +274,7 @@ export function buildPlot(rows: AtlasRow[], xKey: ColumnKey, yKey: ColumnKey, wi
     points,
     skipped: rows.length - have.length,
     diagonal,
-    zeroX: zeroOn(xKey) && strict(xDomain) ? projectX(0, xDomain) : null,
-    zeroY: zeroOn(yKey) && strict(yDomain) ? projectY(0, yDomain) : null,
+    zeroX: zeroOn(xKey) && strict(xDomain) ? projectX(0, xDomain, g) : null,
+    zeroY: zeroOn(yKey) && strict(yDomain) ? projectY(0, yDomain, g) : null,
   };
 }

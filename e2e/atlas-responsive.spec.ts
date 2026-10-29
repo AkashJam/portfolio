@@ -91,37 +91,19 @@ test.describe("at 390px", () => {
     ).toBe(panel);
   });
 
-  test("the scatter takes the fade only: it scrolls at a 720px minimum and fades its edges, with no pinned column", async ({
+  test("the scatter is its own phone drawing: 360 units wide, nothing scrolls sideways inside it", async ({
     page,
   }) => {
     await gotoAtlas(page);
-    const scroller = page.locator("#compare .atlas-edge-cue");
-    const [sw, cw] = await scroller.evaluate((e) => [
-      e.scrollWidth,
-      e.clientWidth,
-    ]);
-    expect(sw).toBeGreaterThanOrEqual(720);
-    expect(sw).toBeGreaterThan(cw);
-    await expect
-      .poll(() =>
-        scroller.evaluate((e) => [e.dataset.moreLeft, e.dataset.moreRight]),
-      )
-      .toEqual(["false", "true"]);
-    expect(
-      await scroller.evaluate((e) => getComputedStyle(e).maskImage),
-    ).toContain("calc(100% - 40px)");
-    await scroller.evaluate((e) => (e.scrollLeft = 99999));
-    await expect
-      .poll(() =>
-        scroller.evaluate((e) => [e.dataset.moreLeft, e.dataset.moreRight]),
-      )
-      .toEqual(["true", "false"]);
-    expect(
-      await scroller.evaluate((e) => getComputedStyle(e).maskImage),
-    ).toContain("40px");
-    expect(await scroller.evaluate((e) => e.hasAttribute("data-pinned"))).toBe(
-      false,
-    );
+    const svg = page.locator("svg[data-drawing=phone]");
+    await expect(svg).toBeVisible();
+    await expect(page.locator("svg[data-drawing=desktop]")).toBeHidden();
+    expect(await svg.getAttribute("viewBox")).toBe("0 0 360 420");
+    const [sw, cw] = await svg.evaluate((e) => [e.parentElement!.scrollWidth, e.parentElement!.clientWidth]);
+    expect(sw).toBeLessThanOrEqual(cw + 1);
+    // its labels are 11px, not the desktop drawing's scaled-down text
+    const size = await svg.locator("g[data-slug] text").first().evaluate((e) => parseFloat(getComputedStyle(e).fontSize));
+    expect(size).toBeGreaterThanOrEqual(10);
   });
 
   test("the fade never runs along the top or bottom: its gradient is horizontal", async ({
@@ -130,7 +112,6 @@ test.describe("at 390px", () => {
     await gotoAtlas(page, "countries");
     for (const sel of [
       "#countries [data-slot=table-container]",
-      "#compare .atlas-edge-cue",
     ]) {
       const mask = await page
         .locator(sel)
@@ -196,9 +177,10 @@ test.describe("at 1440px", () => {
   test("a point whose label was suppressed for collision is drawn at 0.72, the others at full strength", async ({
     page,
   }) => {
-    await gotoAtlas(page);
-    const q = page.locator('#compare svg circle[data-q="true"]');
-    const plain = page.locator("#compare svg circle:not([data-q])");
+    // A built pair, so no reading pair is highlighted and no dot is muted.
+    await page.goto("/atlas?x=everydaySpendingEur&y=housing");
+    const q = page.locator('svg[data-drawing=desktop] circle[data-q="true"]');
+    const plain = page.locator("svg[data-drawing=desktop] circle:not([data-q])");
     expect(await q.count()).toBeGreaterThan(0);
     expect(await plain.count()).toBeGreaterThan(0);
     for (const c of await q.all())
@@ -207,9 +189,10 @@ test.describe("at 1440px", () => {
       expect(await c.evaluate((e) => getComputedStyle(e).opacity)).toBe("1");
     // and the suppression is the collision's, not the data's: every flagged point has no label of its own
     for (const g of await page
-      .locator('#compare svg g:has(circle[data-q="true"])')
+      .locator('svg[data-drawing=desktop] g[data-slug]:has(circle[data-q="true"])')
       .all()) {
-      expect(await g.locator("text").count()).toBe(0);
+      // the value readout is not a label
+      expect(await g.evaluate((e) => [...e.querySelectorAll("text")].filter((t) => !t.closest(".atlas-tip")).length)).toBe(0);
     }
   });
 

@@ -22,6 +22,11 @@ interface AtlasWindowValue {
 
 const AtlasWindowContext = createContext<AtlasWindowValue | null>(null);
 
+/** The longest window is the default; the API serves them in that order's reverse today, so pick by value, not position. */
+export function defaultWindow(windows: WindowStart[]): WindowStart {
+  return windows.includes("2010") ? "2010" : (windows[windows.length - 1] ?? "2010");
+}
+
 export function AtlasWindowProvider({
   windows,
   end,
@@ -31,11 +36,7 @@ export function AtlasWindowProvider({
   end: string;
   children: ReactNode;
 }) {
-  // The longest window is the default; the API serves them in that order's reverse
-  // today, so pick by value, not position.
-  const [window, setWindow] = useState<WindowStart>(
-    windows.includes("2010") ? "2010" : (windows[windows.length - 1] ?? "2010"),
-  );
+  const [window, setWindow] = useState<WindowStart>(defaultWindow(windows));
   return (
     <AtlasWindowContext value={{ window, setWindow, windows, end }}>
       {children}

@@ -14,3 +14,14 @@ export async function gotoAtlas(page: Page, view: "compare" | "map" | "countries
   await page.goto(view === "compare" ? "/atlas" : `/atlas?view=${view}`);
   await atlasHydrated(page);
 }
+
+/** Opens "Build your own comparison" (closed by default, phase18.md I50) so its axes and window can be driven. */
+export async function openBuild(page: Page) {
+  const details = page.locator("#compare details");
+  if (!(await details.evaluate((e) => (e as HTMLDetailsElement).open))) {
+    await details.locator("summary").click();
+  }
+}
+
+/** The desktop drawing of the scatter; the phone drawing is a second SVG in the same markup, hidden by CSS. */
+export const desktopScatter = (page: Page) => page.locator("svg[data-drawing=desktop]");

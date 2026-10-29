@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { PLOT, buildDomain, buildPlot, niceTicks, showsDiagonal, splitClipped } from "@/lib/atlas-plot";
+import { PLOT, PLOT_PHONE, buildDomain, buildPlot, niceTicks, showsDiagonal, splitClipped } from "@/lib/atlas-plot";
 import type { AtlasRow, WindowChange } from "@/lib/market-schemas";
 
 const change = (v: number | null): WindowChange => ({
@@ -154,5 +154,35 @@ describe("buildPlot", () => {
     const labelled = m.points.filter((p) => p.label).length;
     expect(labelled).toBeLessThan(m.points.length);
     expect(m.points.find((p) => p.slug === "c")!.label).not.toBeNull();
+  });
+});
+
+describe("the phone drawing and the question's pair (phase18.md I50, I55)", () => {
+  const rows = [
+    { ...row("a", { shares: 100, prices: 30 }), hasCityPage: true },
+    row("b", { shares: 300, prices: 40 }),
+    row("c", { shares: 250, prices: 60 }),
+    row("d", { shares: 200, prices: 50 }),
+  ];
+  it("lays the same points out inside its own 360-unit drawing", () => {
+    const m = buildPlot(rows, "prices", "shares", "2010", PLOT_PHONE);
+    expect(PLOT_PHONE.width).toBe(360);
+    for (const p of m.points) {
+      expect(p.cx).toBeGreaterThanOrEqual(PLOT_PHONE.left);
+      expect(p.cx).toBeLessThanOrEqual(PLOT_PHONE.right);
+      expect(p.cy).toBeGreaterThanOrEqual(PLOT_PHONE.top);
+      expect(p.cy).toBeLessThanOrEqual(PLOT_PHONE.bottom);
+      if (p.label) expect(p.label.anchor === "start" ? p.label.x : 0).toBeLessThan(PLOT_PHONE.width);
+    }
+    // The desktop drawing is untouched by the default.
+    expect(buildPlot(rows, "prices", "shares", "2010").points[0].cx).not.toBe(m.points[0].cx);
+  });
+  it("carries whether a dot links to a city page", () => {
+    const m = buildPlot(rows, "prices", "shares", "2010");
+    expect(m.points.map((p) => [p.slug, p.hasCityPage])).toEqual([["a", true], ["b", false], ["c", false], ["d", false]]);
+  });
+  it("labels the reading pair first", () => {
+    const m = buildPlot(rows, "prices", "shares", "2010", PLOT, ["d"]);
+    expect(m.points.find((p) => p.slug === "d")!.label).not.toBeNull();
   });
 });

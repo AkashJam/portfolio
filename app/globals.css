@@ -266,6 +266,26 @@
   }
 }
 
+/* The scatter's value readout (phase18.md I55): a dot shows its figures on hover and keyboard
+   focus, drawn in the SVG, no script. */
+.atlas-tip {
+  display: none;
+  pointer-events: none;
+}
+.atlas-dot:hover .atlas-tip,
+.atlas-dot:focus-within .atlas-tip {
+  display: block;
+}
+.atlas-dot a,
+.atlas-dot g[tabindex] {
+  outline: none;
+}
+.atlas-dot a:focus-visible circle,
+.atlas-dot g[tabindex]:focus-visible circle {
+  stroke: var(--brand-hover);
+  stroke-width: 3;
+}
+
 /* For scroll areas whose position is already obvious (the ⌘K list). */
 @utility no-scrollbar {
   scrollbar-width: none;

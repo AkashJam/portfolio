@@ -1,6 +1,8 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
+import { openBuild } from "./atlas-hydrated";
+
 // Phase 11 step 5: the map. World map at 768px and up, equal tiles below,
 // every country a link to its table row. Needs the ticker (real /atlas/cities).
 
@@ -59,6 +61,7 @@ test.describe("at 1024px", () => {
     const before = await fill();
     // The window control lives in Compare; the map follows it from its own tab.
     await page.getByRole("tab", { name: "Compare" }).click();
+    await openBuild(page);
     await page
       .locator("#compare")
       .getByRole("radio", { name: "2016–24" })

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { homeAddress, parseHashParts, readHome, resolveView, viewAddress, withParam } from "@/lib/atlas-url";
+import { compareSearch, homeAddress, parseCompare, parseHashParts, readHome, resolveView, viewAddress, withParam } from "@/lib/atlas-url";
 
 describe("parseHashParts", () => {
   it("reads sections, rows and the legacy home apart", () => {
@@ -49,5 +49,23 @@ describe("home in the address", () => {
     expect(readHome("", "")).toBeNull();
     expect(homeAddress("?view=map", "#italy&home=japan", "japan")).toEqual({ search: "?view=map&home=japan", hash: "#italy" });
     expect(homeAddress("?home=japan", "", null)).toEqual({ search: "", hash: "" });
+  });
+});
+
+describe("compare in the address", () => {
+  const WINDOWS = ["2010", "2016", "2021"] as never[];
+  it("reads a question, a built pair and a window, and falls back to the first question", () => {
+    expect(parseCompare("", WINDOWS)).toMatchObject({ chip: "spend-housing", window: null });
+    expect(parseCompare("?q=spend-life&window=2016", WINDOWS)).toMatchObject({ chip: "spend-life", x: "everydaySpendingEur", y: "lifeExpectancy", window: "2016" });
+    expect(parseCompare("?x=shares&y=prices", WINDOWS)).toMatchObject({ chip: null, x: "shares", y: "prices" });
+    expect(parseCompare("?x=shares&y=shares", WINDOWS).chip).toBe("spend-housing");
+    expect(parseCompare("?x=bogus&y=prices&window=1999", WINDOWS)).toMatchObject({ chip: "spend-housing", window: null });
+  });
+  it("writes only what differs from the defaults and keeps the other parameters", () => {
+    const first = parseCompare("", WINDOWS);
+    expect(compareSearch("?view=compare", first, "2010" as never)).toBe("?view=compare");
+    expect(compareSearch("", { ...first, chip: "spend-life", x: "everydaySpendingEur", y: "lifeExpectancy" }, "2010" as never)).toBe("?q=spend-life");
+    expect(compareSearch("?q=spend-life", { chip: null, x: "shares", y: "prices", window: "2016" as never }, "2010" as never)).toBe("?x=shares&y=prices&window=2016");
+    expect(compareSearch("?x=shares&y=prices&home=japan", first, "2010" as never)).toBe("?home=japan");
   });
 });

@@ -65,20 +65,20 @@ test.describe("at 1440px", () => {
 
   test("the scatter gains crosshairs through the home dot and nothing else moves", async ({ page }) => {
     await gotoAtlas(page);
-    const before = await page.locator("[data-slug=brazil] circle").getAttribute("cx");
+    const before = await page.locator("svg[data-drawing=desktop] [data-slug=brazil] circle").getAttribute("cx");
     // A euro-area home changes no unit, so no dot moves.
     await pick(page, "italy");
-    await expect(page.getByTestId("home-crosshairs")).toHaveAttribute("data-home", "italy");
-    await expect(page.locator("[data-slug=brazil] circle")).toHaveAttribute("cx", before!);
+    await expect(page.getByTestId("home-crosshairs").first()).toHaveAttribute("data-home", "italy");
+    await expect(page.locator("svg[data-drawing=desktop] [data-slug=brazil] circle")).toHaveAttribute("cx", before!);
     // A yen home re-expresses the spending axis in round yen, so dots shift with the new
     // tick range, but their order does not, and the crosshairs still cross the home dot.
     await pick(page, "japan");
-    const hair = page.getByTestId("home-crosshairs");
+    const hair = page.locator("svg[data-drawing=desktop]").getByTestId("home-crosshairs");
     await expect(hair).toHaveAttribute("data-home", "japan");
     await expect(hair.locator("line")).toHaveCount(2);
-    await expect(page.locator("[data-slug=japan]")).toHaveAttribute("data-home", "true");
-    const jx = Number(await page.locator("[data-slug=japan] circle").getAttribute("cx"));
-    const bx = Number(await page.locator("[data-slug=brazil] circle").getAttribute("cx"));
+    await expect(page.locator("svg[data-drawing=desktop] [data-slug=japan]")).toHaveAttribute("data-home", "true");
+    const jx = Number(await page.locator("svg[data-drawing=desktop] [data-slug=japan] circle").getAttribute("cx"));
+    const bx = Number(await page.locator("svg[data-drawing=desktop] [data-slug=brazil] circle").getAttribute("cx"));
     expect(bx).toBeLessThan(jx); // São Paulo spends less than Tokyo, as before
     await expect(hair.locator("line").first()).toHaveAttribute("x1", String(jx));
   });
@@ -136,7 +136,7 @@ test.describe("at 1440px", () => {
   test("with a home set the page has no WCAG 2.1 AA violations", async ({ page }) => {
     await gotoAtlas(page, "countries");
     await pick(page, "japan");
-    await expect(page.getByTestId("home-crosshairs")).toBeVisible();
+    await expect(page.getByTestId("home-crosshairs").first()).toBeVisible();
     await axe(page);
   });
 });

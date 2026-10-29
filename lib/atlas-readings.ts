@@ -29,7 +29,10 @@ export type ChipId =
 
 export interface Chip {
   id: ChipId;
-  label: string;
+  /** The short tab (phase18.md I50). */
+  tab: string;
+  /** The full question, which is the heading when the tab is selected. */
+  question: string;
   x: ColumnKey;
   y: ColumnKey;
   /** The two countries the reading is about (slugs), in reading order. */
@@ -43,7 +46,8 @@ export const CHIP_WINDOW: WindowStart = "2010";
 export const CHIPS: Chip[] = [
   {
     id: "spend-housing",
-    label: "What people spend · where housing is heading",
+    tab: "Spending & housing",
+    question: "Where people spend more, have house prices risen more?",
     x: "everydaySpendingEur",
     y: "housing",
     a: "italy",
@@ -51,7 +55,8 @@ export const CHIPS: Chip[] = [
   },
   {
     id: "shares-housing",
-    label: "Did savings and housing rise together?",
+    tab: "Stocks & housing",
+    question: "Did stock markets and house prices rise together?",
     x: "shares",
     y: "housing",
     a: "india",
@@ -59,7 +64,8 @@ export const CHIPS: Chip[] = [
   },
   {
     id: "prices-shares",
-    label: "Did savings outrun prices?",
+    tab: "Stocks vs inflation",
+    question: "Did stock markets grow faster than inflation?",
     x: "prices",
     y: "shares",
     a: "turkiye",
@@ -67,7 +73,8 @@ export const CHIPS: Chip[] = [
   },
   {
     id: "spend-life",
-    label: "Do people live longer where they spend more?",
+    tab: "Spending & lifespan",
+    question: "Do people live longer where they spend more?",
     x: "everydaySpendingEur",
     y: "lifeExpectancy",
     a: "japan",
@@ -75,13 +82,32 @@ export const CHIPS: Chip[] = [
   },
   {
     id: "shares-currency",
-    label: "What has currency done to savings?",
+    tab: "Currency & stocks",
+    question: "Did a weaker currency eat into stock market gains?",
     x: "shares",
     y: "currency",
     a: "japan",
     b: "turkiye",
   },
 ];
+
+const phrase: Record<ColumnKey, string> = {
+  everydaySpendingEur: "average spending per person",
+  shares: "stock market before inflation",
+  housing: "house prices after inflation",
+  prices: "inflation",
+  currency: "the currency against the euro",
+  gniPpp: "income per person, adjusted for local prices",
+  unemployment: "unemployment",
+  lifeExpectancy: "life expectancy",
+};
+
+/** The line under a question: `Average spending per person against house prices after inflation, 2010–24`; the span only where a change measure is on an axis. */
+export function describePair(x: ColumnKey, y: ColumnKey, span: string): string {
+  const base = `${phrase[x]} against ${phrase[y]}`;
+  const withSpan = measureOf(x).kind === "change" || measureOf(y).kind === "change" ? `${base}, ${span}` : base;
+  return withSpan.charAt(0).toUpperCase() + withSpan.slice(1);
+}
 
 export interface Fig {
   value: string;
