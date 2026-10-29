@@ -9,9 +9,7 @@ import {
   homeReading,
   isEuroArea,
   noRateLine,
-  parseHash,
   rateLine,
-  writeHash,
 } from "@/lib/atlas-home";
 import type { AtlasRow, DisplayRate } from "@/lib/market-schemas";
 
@@ -37,24 +35,6 @@ const row = (slug: string, o: Partial<AtlasRow> = {}): AtlasRow => ({
 });
 
 const JPY: DisplayRate = { currency: "JPY", perEur: 170, year: 2025, source: "ECB" };
-
-describe("the address", () => {
-  it("reads a row, a home, and both", () => {
-    expect(parseHash("#italy")).toEqual({ target: "italy", home: null });
-    expect(parseHash("#home=japan")).toEqual({ target: null, home: "japan" });
-    expect(parseHash("#italy&home=japan")).toEqual({ target: "italy", home: "japan" });
-    expect(parseHash("")).toEqual({ target: null, home: null });
-  });
-  it("never reads home= as a row", () => {
-    expect(parseHash("#home=japan").target).toBeNull();
-  });
-  it("writes the same thing back, and clears when both are empty", () => {
-    expect(writeHash({ target: "italy", home: "japan" })).toBe("#italy&home=japan");
-    expect(writeHash({ target: null, home: "japan" })).toBe("#home=japan");
-    expect(writeHash({ target: "italy", home: null })).toBe("#italy");
-    expect(writeHash({ target: null, home: null })).toBe("");
-  });
-});
 
 describe("display currency", () => {
   it("converts a euro figure at the one rate", () => {
@@ -119,7 +99,7 @@ describe("homeReading", () => {
     const r = homeReading(ny, home, "2010", (v) => `€${v}`)!;
     expect(r.title).toBe("New York against Italy");
     expect(r.figs[0]).toMatchObject({ value: "€4505", label: "United States, spend/mo · ×2.45 Italy" });
-    expect(r.figs.map((f) => f.label)).toContain("United States, housing, real · +85 Italy");
+    expect(r.figs.map((f) => f.label)).toContain("United States, house prices after inflation · +85 Italy");
     expect(r.sentence).toContain("Italy stands at €1839, −26% housing, 84.0 years.");
   });
   it("is null against itself", () => {

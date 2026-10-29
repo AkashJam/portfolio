@@ -14,7 +14,7 @@ test.describe("at 1024px", () => {
   test("draws the world map with twenty-three country links, and not the tiles", async ({
     page,
   }) => {
-    await page.goto("/atlas");
+    await page.goto("/atlas?view=map");
     await expect(links(page)).toHaveCount(23);
     await expect(map(page).locator("svg:visible")).toHaveCount(1);
     await expect(map(page).locator("svg:visible path")).not.toHaveCount(0);
@@ -22,7 +22,7 @@ test.describe("at 1024px", () => {
   });
 
   test("every link names its figure, measure and window", async ({ page }) => {
-    await page.goto("/atlas");
+    await page.goto("/atlas?view=map");
     await expect(links(page).filter({ hasText: /./ }).first()).toBeAttached();
     for (const l of await links(page).all()) {
       const name = await l.getAttribute("aria-label");
@@ -38,7 +38,7 @@ test.describe("at 1024px", () => {
   test("a country lands on its table row and rings its dot in the scatter", async ({
     page,
   }) => {
-    await page.goto("/atlas");
+    await page.goto("/atlas?view=map");
     // Keyboard, not a click: the centre of Japan's bounding box is sea, and a
     // country link has to be reachable without a pointer anyway.
     const japan = page.getByRole("link", { name: /^Japan: / });
@@ -53,14 +53,17 @@ test.describe("at 1024px", () => {
   });
 
   test("the colours follow the shared window", async ({ page }) => {
-    await page.goto("/atlas");
+    await page.goto("/atlas?view=map");
     const italy = page.getByRole("link", { name: /^Italy: / });
     const fill = () => italy.locator("path").getAttribute("fill");
     const before = await fill();
+    // The window control lives in Compare; the map follows it from its own tab.
+    await page.getByRole("tab", { name: "Compare" }).click();
     await page
       .locator("#compare")
       .getByRole("radio", { name: "2016–24" })
       .click();
+    await page.getByRole("tab", { name: "Map" }).click();
     await expect(italy).toHaveAttribute("aria-label", /−7%.*2016–24/);
     expect(await fill()).not.toBe(before);
     await expect(
@@ -71,7 +74,7 @@ test.describe("at 1024px", () => {
   });
 
   test("has no WCAG 2.1 AA violations", async ({ page }) => {
-    await page.goto("/atlas");
+    await page.goto("/atlas?view=map");
     const results = await new AxeBuilder({ page })
       .include("#map")
       .withTags(["wcag2a", "wcag2aa"])
@@ -89,7 +92,7 @@ test.describe("at 390px", () => {
   test("draws equal tiles with the same twenty-three links, and not the world map", async ({
     page,
   }) => {
-    await page.goto("/atlas");
+    await page.goto("/atlas?view=map");
     await expect(links(page)).toHaveCount(23);
     await expect(map(page).locator("svg:visible rect")).toHaveCount(23);
     await expect(map(page).locator("svg:visible path")).toHaveCount(0);
@@ -98,7 +101,7 @@ test.describe("at 390px", () => {
   test("a tile carries its code and figure and links to its row", async ({
     page,
   }) => {
-    await page.goto("/atlas");
+    await page.goto("/atlas?view=map");
     const link = page.getByRole("link", { name: /^Italy: / });
     await expect(link).toHaveAttribute("href", "#italy");
     // The code and figure are drawn over the link as siblings, in the same tile group.
@@ -112,7 +115,7 @@ test.describe("at 390px", () => {
   test("each tile's accessible name contains its visible text (label in name, WCAG 2.5.3)", async ({
     page,
   }) => {
-    await page.goto("/atlas");
+    await page.goto("/atlas?view=map");
     const results = await new AxeBuilder({ page })
       .include("#map")
       .withRules(["label-content-name-mismatch"])
@@ -126,7 +129,7 @@ test.describe("at 390px", () => {
   test("has no WCAG 2.1 AA violations, including text on every fill", async ({
     page,
   }) => {
-    await page.goto("/atlas");
+    await page.goto("/atlas?view=map");
     const results = await new AxeBuilder({ page })
       .include("#map")
       .withTags(["wcag2a", "wcag2aa"])
@@ -153,7 +156,7 @@ test.describe("controls at 1024px", () => {
   test.use({ viewport: { width: 1024, height: 800 } });
 
   test("opens on housing, whole window, with no slider", async ({ page }) => {
-    await page.goto("/atlas");
+    await page.goto("/atlas?view=map");
     await expect(measureBtn(page, "Housing")).toHaveAttribute(
       "aria-checked",
       "true",
@@ -169,7 +172,7 @@ test.describe("controls at 1024px", () => {
   test("a measure recolours the map, renames its links and, on currency, states the exceptions", async ({
     page,
   }) => {
-    await page.goto("/atlas");
+    await page.goto("/atlas?view=map");
     await expect(map(page).getByText(/^No figure:/)).toHaveCount(0);
     await measureBtn(page, "Currency").click();
     await expect(
@@ -203,7 +206,7 @@ test.describe("controls at 1024px", () => {
   test("One year reveals the slider and Whole window hides it again", async ({
     page,
   }) => {
-    await page.goto("/atlas");
+    await page.goto("/atlas?view=map");
     await periodBtn(page, /One year/).click();
     await expect(slider(page)).toBeVisible();
     await expect(slider(page)).toHaveAttribute("min", "2010");
@@ -215,7 +218,7 @@ test.describe("controls at 1024px", () => {
   test("the slider changes the year in the links and the address, without adding history", async ({
     page,
   }) => {
-    await page.goto("/atlas");
+    await page.goto("/atlas?view=map");
     await periodBtn(page, /One year/).click();
     const before = await historyLength(page);
     await slider(page).fill("2022");
@@ -229,7 +232,7 @@ test.describe("controls at 1024px", () => {
   });
 
   test("defaults are left out of the address", async ({ page }) => {
-    await page.goto("/atlas");
+    await page.goto("/atlas?view=map");
     await measureBtn(page, "Currency").click();
     await expect(page).toHaveURL(/\?measure=currency(#.*)?$/);
     await measureBtn(page, "Housing").click();

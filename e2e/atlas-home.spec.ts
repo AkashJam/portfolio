@@ -5,7 +5,7 @@ import { gotoAtlas } from "./atlas-hydrated";
 
 // Phase 16 step 6: the home city. One control, four effects: the crosshairs, the pinned
 // row, the comparison line under every other cited figure, and the display currency.
-// It is held in the address hash, so a reload keeps it and the page stays static.
+// It is held in the query (`?home=`), so a reload keeps it and the page stays static; the old `#home=` form is moved there.
 
 const pick = (page: Page, slug: string) => page.locator("#atlas-home").selectOption(slug);
 
@@ -18,7 +18,7 @@ test.describe("at 1440px", () => {
   test.use({ viewport: { width: 1440, height: 900 } });
 
   test("with no home nothing is added: no comparison line, no crosshairs, no rate line", async ({ page }) => {
-    await gotoAtlas(page);
+    await gotoAtlas(page, "countries");
     await expect(page.locator("#atlas-home")).toHaveValue("");
     await expect(page.getByTestId("home-delta")).toHaveCount(0);
     await expect(page.getByTestId("home-crosshairs")).toHaveCount(0);
@@ -27,9 +27,9 @@ test.describe("at 1440px", () => {
   });
 
   test("a non-euro home pins its row, adds the comparison line and states one dated rate", async ({ page }) => {
-    await gotoAtlas(page);
+    await gotoAtlas(page, "countries");
     await pick(page, "japan");
-    await expect(page).toHaveURL(/#home=japan$/);
+    await expect(page).toHaveURL(/\?view=countries&home=japan$/);
 
     const first = page.locator("#countries tbody tr").first();
     await expect(first).toHaveAttribute("id", "japan");
@@ -54,7 +54,7 @@ test.describe("at 1440px", () => {
   });
 
   test("the currency column stays against the euro and gets no comparison line", async ({ page }) => {
-    await gotoAtlas(page);
+    await gotoAtlas(page, "countries");
     await pick(page, "japan");
     // Brazil's currency cell is the fifth cell in its row: city, shares, housing, prices, currency.
     const cell = page.locator("#countries tbody tr#brazil td:nth-child(5)");
@@ -84,7 +84,7 @@ test.describe("at 1440px", () => {
   });
 
   test("a euro-area home needs no rate and shows euros", async ({ page }) => {
-    await gotoAtlas(page);
+    await gotoAtlas(page, "countries");
     await pick(page, "italy");
     await expect(page.getByTestId("home-rate")).toHaveCount(0);
     await expect(page.locator("#countries tbody tr#japan")).toContainText("€");
@@ -92,32 +92,32 @@ test.describe("at 1440px", () => {
   });
 
   test("a home with no ECB average stays in euros and says why", async ({ page }) => {
-    await gotoAtlas(page);
+    await gotoAtlas(page, "countries");
     await pick(page, "chile");
     await expect(page.getByTestId("home-rate")).toContainText("Shown in euros");
     await expect(page.locator("#countries tbody tr#japan")).toContainText("€");
   });
 
   test("the column popover gains a computed line naming both legs", async ({ page }) => {
-    await gotoAtlas(page);
+    await gotoAtlas(page, "countries");
     await pick(page, "japan");
-    await page.getByRole("button", { name: "About the housing column" }).click();
+    await page.getByRole("button", { name: "About the house prices column" }).click();
     await expect(page.getByTestId("computed-line")).toContainText("this row − Tokyo's, in percentage points over the same window");
   });
 
   test("a reload keeps the home, and None clears it", async ({ page }) => {
-    await gotoAtlas(page);
+    await gotoAtlas(page, "countries");
     await pick(page, "japan");
     await page.reload();
     await expect(page.locator("#atlas-home")).toHaveValue("japan");
     await expect(page.locator("#countries tbody tr").first()).toHaveAttribute("id", "japan");
     await pick(page, "");
     await expect(page.getByTestId("home-tag")).toHaveCount(0);
-    expect(new URL(page.url()).hash).toBe("");
+    expect(new URL(page.url()).search).toBe("?view=countries");
   });
 
-  test("a row address and a home share the hash, and the reading compares the row with home", async ({ page }) => {
-    await page.goto("/atlas#brazil&home=japan");
+  test("a row address and a home are read together, and the reading compares the row with home", async ({ page }) => {
+    await page.goto("/atlas?view=compare&home=japan#brazil");
     await expect(page.locator("#atlas-home")).toHaveValue("japan");
     await expect(page.locator("#countries tbody tr#brazil")).toHaveAttribute("data-target", "true");
     const cards = page.getByRole("complementary", { name: "Reading this view" });
@@ -126,8 +126,15 @@ test.describe("at 1440px", () => {
     await expect(cards.nth(1)).toContainText("Tokyo stands at ¥");
   });
 
+  test("an old #home= link is read once and moved to ?home=", async ({ page }) => {
+    await page.goto("/atlas#brazil&home=japan");
+    await expect(page.locator("#atlas-home")).toHaveValue("japan");
+    await expect(page).toHaveURL(/\/atlas\?home=japan#brazil$/);
+    await expect(page.getByRole("tab", { name: "Countries" })).toHaveAttribute("aria-selected", "true");
+  });
+
   test("with a home set the page has no WCAG 2.1 AA violations", async ({ page }) => {
-    await gotoAtlas(page);
+    await gotoAtlas(page, "countries");
     await pick(page, "japan");
     await expect(page.getByTestId("home-crosshairs")).toBeVisible();
     await axe(page);

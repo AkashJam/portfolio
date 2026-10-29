@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { atlasHydrated, gotoAtlas } from "./atlas-hydrated";
 
 // The atlas page's client JavaScript has to be alive, not just present. A
 // locator-driven test passes against a page that hydrated; this one also fails
@@ -19,13 +20,6 @@ function collectErrors(page: Page) {
   return errors;
 }
 
-/** The jump bar sets --atlas-jump in an effect, so it is the cheapest proof that /atlas hydrated. */
-const hydrated = (page: Page) =>
-  page.waitForFunction(
-    () =>
-      document.documentElement.style.getPropertyValue("--atlas-jump") !== "",
-  );
-
 test.describe("at 1440px, with a mouse", () => {
   test.use({ viewport: { width: 1440, height: 900 } });
 
@@ -33,24 +27,21 @@ test.describe("at 1440px, with a mouse", () => {
     page,
   }) => {
     const errors = collectErrors(page);
-    await page.goto("/atlas");
-    await hydrated(page);
+    await gotoAtlas(page);
 
     const chip = page.getByRole("button", { name: /Did savings and housing/ });
     const b = (await chip.boundingBox())!;
     await page.mouse.click(b.x + b.width / 2, b.y + b.height / 2);
     await expect(chip).toHaveAttribute("aria-pressed", "true");
 
-    const sort = page.getByRole("button", { name: /^Shares/ }).first();
+    await page.getByRole("tab", { name: "Countries" }).click();
+    const sort = page.getByRole("button", { name: /^Stock market/ }).first();
     await sort.scrollIntoViewIfNeeded();
     const s = (await sort.boundingBox())!;
     await page.mouse.click(s.x + s.width / 2, s.y + s.height / 2);
     await expect(page.locator("th[aria-sort=descending]")).toHaveCount(1);
 
-    await page.mouse.wheel(0, 2400);
-    await expect(
-      page.locator('nav[aria-label="On this page"] a[aria-current]'),
-    ).toHaveText("Countries");
+    await expect(page.getByRole("tab", { name: "Countries" })).toHaveAttribute("aria-selected", "true");
 
     expect(errors).toEqual([]);
   });
@@ -67,20 +58,20 @@ test.describe("at 390px, with touch", () => {
     page,
   }) => {
     const errors = collectErrors(page);
-    await page.goto("/atlas");
-    await hydrated(page);
+    await gotoAtlas(page);
 
     const chip = page.getByRole("button", { name: /Did savings and housing/ });
     await chip.scrollIntoViewIfNeeded();
     await chip.tap();
     await expect(chip).toHaveAttribute("aria-pressed", "true");
 
-    const sort = page.getByRole("button", { name: /^Shares/ }).first();
+    await page.getByRole("tab", { name: "Countries" }).tap();
+    const sort = page.getByRole("button", { name: /^Stock market/ }).first();
     await sort.scrollIntoViewIfNeeded();
     await sort.tap();
     await expect(page.locator("th[aria-sort=descending]")).toHaveCount(1);
 
-    const info = page.getByRole("button", { name: "About the shares column" });
+    const info = page.getByRole("button", { name: "About the stock market column" });
     await info.tap();
     await expect(page.getByRole("dialog")).toBeVisible();
 
@@ -101,7 +92,7 @@ test("is just as alive when opened at 127.0.0.1 as at localhost", async ({
   const url = new URL("/atlas", baseURL!);
   url.hostname = "127.0.0.1";
   await page.goto(url.toString());
-  await hydrated(page);
+  await atlasHydrated(page);
   const chip = page.getByRole("button", { name: /Did savings and housing/ });
   await chip.click();
   await expect(chip).toHaveAttribute("aria-pressed", "true");

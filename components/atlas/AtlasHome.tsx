@@ -2,12 +2,13 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 
-import { isEuroArea, noRateLine, parseHash, rateLine, writeHash } from "@/lib/atlas-home";
+import { isEuroArea, noRateLine, rateLine } from "@/lib/atlas-home";
+import { homeAddress, readHome } from "@/lib/atlas-url";
 import type { AtlasRow, DisplayRate } from "@/lib/market-schemas";
 
 /**
  * The home city (Phase 16 step 6): one control with four effects, held in memory and
- * mirrored to the address hash (`/atlas#home=japan`, or `#italy&home=japan` with a row),
+ * mirrored to the query (`/atlas?home=japan`; the old `#home=japan` is read once and moved there),
  * so a reload or a shared link keeps it and the page stays static. Setting a home
  * highlights its dot and draws the crosshairs, pins its row, adds the comparison line
  * under every other cited figure, and shows spending in its currency at one dated rate.
@@ -38,19 +39,23 @@ export function AtlasHomeProvider({
 
   useEffect(() => {
     const read = () => {
-      const h = parseHash(window.location.hash).home;
-      setSlug(h && rows.some((r) => r.slug === h) ? h : null);
+      const h = readHome(window.location.search, window.location.hash);
+      const known = h && rows.some((r) => r.slug === h) ? h : null;
+      setSlug(known);
+      // An old `#home=japan` link is moved to `?home=japan`; an unknown slug is dropped.
+      if (/home=/.test(window.location.hash) || (h && !known)) {
+        const next = homeAddress(window.location.search, window.location.hash, known);
+        window.history.replaceState(null, "", `${window.location.pathname}${next.search}${next.hash}`);
+      }
     };
     read();
-    window.addEventListener("hashchange", read);
-    return () => window.removeEventListener("hashchange", read);
   }, [rows]);
 
   const setHome = useCallback((next: string | null) => {
     setSlug(next);
-    const { target } = parseHash(window.location.hash);
     // replaceState, not an assignment: a home is a view setting, not a place to go back to.
-    window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}${writeHash({ target, home: next })}`);
+    const addr = homeAddress(window.location.search, window.location.hash, next);
+    window.history.replaceState(null, "", `${window.location.pathname}${addr.search}${addr.hash}`);
   }, []);
 
   const value = useMemo<AtlasHomeValue>(() => {

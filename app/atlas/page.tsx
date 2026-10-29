@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 
 import { Container } from "@/components/shell/Container";
-import { JumpBar } from "@/components/atlas/JumpBar";
+import { AtlasViews } from "@/components/atlas/AtlasViews";
+import { AtlasRules } from "@/components/atlas/AtlasRules";
 import {
   AtlasWindowProvider,
   WindowHint,
@@ -11,9 +12,6 @@ import { AtlasExplorer } from "@/components/atlas/AtlasExplorer";
 import { WorldMap } from "@/components/atlas/WorldMap";
 import { CountriesTable } from "@/components/atlas/CountriesTable";
 import { cityPageLine, sensorLine } from "@/lib/atlas-absences";
-import { TierOne } from "@/components/atlas/TierOne";
-import { MEASURES } from "@/lib/atlas-plot";
-import { count } from "@/lib/atlas-provenance";
 import { getAtlasCities } from "@/lib/ticker-client";
 import { pageMetadata } from "@/lib/metadata";
 
@@ -28,67 +26,58 @@ export const metadata: Metadata = pageMetadata({
 // not a freshness mechanism. Passing it keeps the page static/ISR.
 const ATLAS_REVALIDATE_SECONDS = 3600;
 
-const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
-
 export default async function AtlasPage() {
   const atlas = await getAtlasCities({
     revalidateSeconds: ATLAS_REVALIDATE_SECONDS,
   });
 
-  const sections = (
-    <>
-      <section id="compare" className="reveal">
-        <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className="text-lead font-medium">Compare</h2>
-          <span className="text-small text-text-muted">
-            any two of the eight measures
-          </span>
-        </div>
-        {atlas && atlas.rows.length > 0 ? (
-          <AtlasExplorer rows={atlas.rows} />
-        ) : (
-          <p className="text-small text-text-muted">
-            Atlas data is temporarily unavailable.
-          </p>
-        )}
-      </section>
+  const ok = atlas && atlas.rows.length > 0;
+  const unavailable = (
+    <p className="text-small text-text-muted">Atlas data is temporarily unavailable.</p>
+  );
 
-      {atlas && atlas.rows.length > 0 ? (
-        <WorldMap rows={atlas.rows} />
-      ) : (
-        <section id="map" className="reveal">
-          <h2 className="mb-4 text-lead font-medium">Where and when</h2>
-          <p className="text-small text-text-muted">
-            Atlas data is temporarily unavailable.
-          </p>
-        </section>
-      )}
-
-      <section id="countries" className="reveal">
-        <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className="text-lead font-medium">Countries</h2>
-          {atlas && <WindowHint />}
-        </div>
-        {atlas && atlas.rows.length > 0 ? (
+  const views = (
+    <AtlasViews
+      panels={{
+        compare: (
           <>
-            <TierOne />
-            <CountriesTable rows={atlas.rows} />
-            <div className="mt-4 max-w-measure space-y-2 text-small leading-relaxed text-text-muted">
-              <p>
-                <b className="font-medium text-read">
-                  Market answers a different question about the same countries.
-                </b>{" "}
-                {sensorLine(atlas.rows)}
-              </p>
-              <p>{cityPageLine(atlas.rows)}</p>
-            </div>
+            <h2 className="sr-only">Compare</h2>
+            {ok ? <AtlasExplorer rows={atlas.rows} /> : unavailable}
           </>
-        ) : (
-          <p className="text-small text-text-muted">
-            Atlas data is temporarily unavailable.
-          </p>
-        )}
-      </section>
+        ),
+        map: ok ? <WorldMap rows={atlas.rows} /> : unavailable,
+        countries: (
+          <>
+            <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
+              <h2 className="text-lead font-medium">Countries</h2>
+              {atlas && <WindowHint />}
+            </div>
+            {ok ? (
+              <>
+                <CountriesTable rows={atlas.rows} />
+                <div className="mt-4 max-w-measure space-y-2 text-small leading-relaxed text-text-muted">
+                  <p>
+                    <b className="font-medium text-read">
+                      Market answers a different question about the same countries.
+                    </b>{" "}
+                    {sensorLine(atlas.rows)}
+                  </p>
+                  <p>{cityPageLine(atlas.rows)}</p>
+                </div>
+              </>
+            ) : (
+              unavailable
+            )}
+          </>
+        ),
+      }}
+    />
+  );
+
+  const content = (
+    <>
+      {views}
+      {ok && <AtlasRules rows={atlas.rows} />}
     </>
   );
 
@@ -96,35 +85,25 @@ export default async function AtlasPage() {
     <Container className="space-y-10 py-16">
       <header>
         <h1 className="text-h1 font-light">Atlas</h1>
-        <p className="mt-3 max-w-measure text-body leading-relaxed text-read">
-          {atlas ? `${cap(count(atlas.rows.length))} countries` : "Countries"},
-          each labelled by a city, {count(MEASURES.length)} measures. What
-          living standards look like for the median person: what their savings,
-          their housing and their prices have done, what they earn, how long
-          they live, from sources that publish their methodology. Nothing here
-          is ranked and nothing is scored; put two measures on the axes and read
-          it yourself.
+        <p className="mt-4 max-w-measure text-lead text-text">
+          Fifteen years, country by country.
         </p>
-        <p className="mt-3.5 max-w-measure border-t border-hairline pt-3.5 font-mono text-meta leading-relaxed text-text-muted">
-          Every figure carries its source and the year it describes, one click
-          away in the column header. Measures that could not clear that bar for
-          all {atlas ? count(atlas.rows.length) : "the"} countries were left out
-          rather than shown with an empty cell; the euro-area currency cells are
-          blank by design, because the euro has no rate against itself.
+        <p className="mt-2.5 max-w-measure text-body leading-relaxed text-read">
+          {ok ? atlas.rows.length : "Twenty-three"} countries, each shown by one
+          of its cities; every figure is national, from a source that publishes
+          its method.
         </p>
       </header>
-
-      <JumpBar />
 
       {atlas ? (
         <AtlasWindowProvider windows={atlas.windows} end={atlas.end}>
           <AtlasHomeProvider rows={atlas.rows} rates={atlas.rates}>
             <HomePicker />
-            {sections}
+            {content}
           </AtlasHomeProvider>
         </AtlasWindowProvider>
       ) : (
-        sections
+        content
       )}
     </Container>
   );

@@ -1,8 +1,9 @@
 import AxeBuilder from "@axe-core/playwright";
+import { atlasHydrated, gotoAtlas } from "./atlas-hydrated";
 import { expect, test, type Page } from "@playwright/test";
 
 // Phase 11 step 8: navigation. The top bar, drawer, footer and palette all read
-// one list (lib/nav.ts); /atlas gets a jump bar and row highlighting on arrival.
+// one list (lib/nav.ts); /atlas gets its view tabs and row highlighting on arrival.
 // Needs the ticker for /atlas.
 
 // ⌘K before React has attached its listener does nothing. If the first press did
@@ -18,15 +19,7 @@ async function openPalette(page: Page) {
 }
 
 const SIX = ["Home", "Projects", "Blog", "About", "Market", "Atlas"];
-// The jump bar sets --atlas-jump once its scroll listener is attached, so waiting
-// for it avoids scrolling before hydration (the first scroll would be missed).
-const hydrated = (page: Page) =>
-  page.waitForFunction(
-    () =>
-      document.documentElement.style.getPropertyValue("--atlas-jump") !== "",
-  );
-const jump = (page: Page) =>
-  page.getByRole("navigation", { name: "On this page" });
+const tabs = (page: Page) => page.getByRole("tablist", { name: "Atlas views" });
 
 test.describe("at 1440px", () => {
   test.use({ viewport: { width: 1440, height: 900 } });
@@ -123,68 +116,74 @@ test.describe("at 1440px", () => {
     await expect(items.first().locator("svg").first()).toBeVisible();
   });
 
-  test("Atlas · map from the palette lands on the map section, clear of the bars", async ({
+  test("Atlas · map from the palette opens the Map tab, clear of the top bar", async ({
     page,
   }) => {
     await page.goto("/about");
     await openPalette(page);
     await page.getByRole("option", { name: /Atlas · map/ }).click();
     await expect(page).toHaveURL(/\/atlas#map$/);
+    await expect(page.getByRole("tab", { name: "Map" })).toHaveAttribute("aria-selected", "true");
+    await expect(page.locator("#map")).toBeVisible();
+    await expect(page.locator("#compare")).toBeHidden();
     await expect(page.locator("#map")).toBeInViewport();
     await expect
       .poll(async () => (await page.locator("#map").boundingBox())?.y ?? 0)
-      .toBeGreaterThanOrEqual(90);
+      .toBeGreaterThanOrEqual(56);
   });
 
-  test("the jump bar links the three sections and marks the one in view", async ({
+  test("the tabs are Compare, Map and Countries; one is selected and only its panel shows", async ({
     page,
   }) => {
-    await page.goto("/atlas");
-    await hydrated(page);
-    const links = jump(page).getByRole("link");
-    await expect(links).toHaveText(["Compare", "Map", "Countries"]);
-    await expect(links.nth(0)).toHaveAttribute("href", "#compare");
-    await expect(links.nth(1)).toHaveAttribute("href", "#map");
-    await expect(links.nth(2)).toHaveAttribute("href", "#countries");
-    await expect(links.nth(0)).toHaveAttribute("aria-current", "location");
-    await links.nth(2).click();
-    await expect(page).toHaveURL(/#countries$/);
-    await expect(links.nth(2)).toHaveAttribute("aria-current", "location");
-    await expect(links.nth(0)).not.toHaveAttribute("aria-current", "location");
+    await gotoAtlas(page);
+    const t = tabs(page).getByRole("tab");
+    await expect(t).toHaveText(["Compare", "Map", "Countries"]);
+    await expect(t.nth(0)).toHaveAttribute("aria-selected", "true");
+    await expect(page.locator("#compare")).toBeVisible();
+    await expect(page.locator("#map")).toBeHidden();
+    await expect(page.locator("#countries")).toBeHidden();
+    await t.nth(2).click();
+    await expect(page).toHaveURL(/\?view=countries$/);
+    await expect(t.nth(2)).toHaveAttribute("aria-selected", "true");
+    await expect(page.locator("#countries")).toBeVisible();
+    await expect(page.locator("#compare")).toBeHidden();
   });
 
-  test("the jump bar stays on screen while scrolling, up or down, on a desktop", async ({
+  test("all three views are in the server HTML, and the arrow keys move between tabs", async ({
     page,
+    request,
   }) => {
-    await page.goto("/atlas");
-    await hydrated(page);
-    await page.mouse.wheel(0, 1500);
-    await page.waitForTimeout(300);
-    await expect(jump(page)).toBeInViewport();
-    await expect(jump(page)).not.toHaveAttribute("inert", "");
-    expect(await jump(page).evaluate((e) => getComputedStyle(e).position)).toBe(
-      "sticky",
-    );
+    const html = await (await request.get("/atlas")).text();
+    for (const id of ["compare", "map", "countries"]) expect(html).toContain(`id="${id}"`);
+    await gotoAtlas(page);
+    await tabs(page).getByRole("tab", { name: "Compare" }).focus();
+    await page.keyboard.press("ArrowRight");
+    await expect(page.getByRole("tab", { name: "Map" })).toBeFocused();
+    await expect(page).toHaveURL(/\?view=map$/);
+    await page.keyboard.press("End");
+    await expect(page.getByRole("tab", { name: "Countries" })).toHaveAttribute("aria-selected", "true");
+    await page.keyboard.press("Home");
+    await expect(page).toHaveURL(/\/atlas$/);
   });
 
-  test("a section anchor lands clear of the top bar and the jump bar", async ({
+  test("a reload keeps the tab, and Back leaves the page rather than the tab", async ({
     page,
   }) => {
-    await page.goto("/atlas");
-    await hydrated(page);
-    await jump(page).getByRole("link", { name: "Map" }).click();
-    await expect
-      .poll(async () => (await page.locator("#map").boundingBox())?.y ?? 0)
-      .toBeGreaterThanOrEqual(90);
-    await expect
-      .poll(async () => (await page.locator("#map").boundingBox())?.y ?? 999)
-      .toBeLessThan(200);
+    await page.goto("/about");
+    await gotoAtlas(page);
+    await page.getByRole("tab", { name: "Map" }).click();
+    await page.reload();
+    await atlasHydrated(page);
+    await expect(page.getByRole("tab", { name: "Map" })).toHaveAttribute("aria-selected", "true");
+    await page.goBack();
+    await expect(page).toHaveURL(/\/about$/);
   });
 
   test("/atlas#japan highlights Tokyo's row and rings its dot together, and a hash change moves both", async ({
     page,
   }) => {
     await page.goto("/atlas#japan");
+    await expect(page.getByRole("tab", { name: "Countries" })).toHaveAttribute("aria-selected", "true");
     await expect(page.locator("tr#japan")).toHaveAttribute(
       "data-target",
       "true",
@@ -196,7 +195,7 @@ test.describe("at 1440px", () => {
     await expect(page.locator("tr#japan")).toBeInViewport();
     expect(
       (await page.locator("tr#japan").boundingBox())!.y,
-    ).toBeGreaterThanOrEqual(90);
+    ).toBeGreaterThanOrEqual(56);
     await page.evaluate(() => {
       window.location.hash = "#italy";
     });
@@ -211,10 +210,11 @@ test.describe("at 1440px", () => {
     await expect(page.locator("tr[data-target]")).toHaveCount(1);
   });
 
-  test("a map link highlights its row", async ({ page }) => {
-    await page.goto("/atlas");
+  test("a map link opens Countries and highlights its row", async ({ page }) => {
+    await gotoAtlas(page, "map");
     await page.getByRole("link", { name: /^Japan: / }).focus();
     await page.keyboard.press("Enter");
+    await expect(page.getByRole("tab", { name: "Countries" })).toHaveAttribute("aria-selected", "true");
     await expect(page.locator("tr#japan")).toHaveAttribute(
       "data-target",
       "true",
@@ -256,24 +256,11 @@ test.describe("at 1440px", () => {
 test.describe("at 390px", () => {
   test.use({ viewport: { width: 390, height: 844 } });
 
-  test("the jump bar hides on scroll down and returns on any scroll up", async ({
-    page,
-  }) => {
-    await page.goto("/atlas");
-    await hydrated(page);
-    await expect(jump(page)).not.toHaveAttribute("inert", "");
-    await page.mouse.wheel(0, 900);
-    await expect(jump(page)).toHaveAttribute("inert", "");
-    await page.mouse.wheel(0, -120);
-    await expect(jump(page)).not.toHaveAttribute("inert", "");
-  });
-
-  test("with reduced motion the jump bar does not slide", async ({ page }) => {
-    await page.emulateMedia({ reducedMotion: "reduce" });
-    await page.goto("/atlas");
-    expect(
-      await jump(page).evaluate((e) => getComputedStyle(e).transitionDuration),
-    ).toBe("0s");
+  test("the tabs fit the phone width with no sideways scroll", async ({ page }) => {
+    await gotoAtlas(page);
+    const fits = await tabs(page).evaluate((e) => e.scrollWidth <= e.clientWidth + 1);
+    expect(fits).toBe(true);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   });
 
   test("the drawer lists the same six with route hints, grouped between dividers, then Résumé and the social links", async ({

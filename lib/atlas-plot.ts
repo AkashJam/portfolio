@@ -1,3 +1,4 @@
+import { LABEL } from "@/lib/atlas-labels";
 import {
   type ColumnKey,
   columnValue,
@@ -32,52 +33,52 @@ const plainTick = (v: number) => formatYears(v);
 export const MEASURES: Measure[] = [
   {
     key: "everydaySpendingEur",
-    option: "Everyday spending · € per person, monthly",
-    title: "Everyday spending · € per person, per month",
+    option: LABEL.everydaySpendingEur.name,
+    title: LABEL.everydaySpendingEur.name,
     kind: "level",
     tick: formatEur,
   },
   {
     key: "shares",
-    option: "Shares · change before inflation",
-    title: "Shares · change before inflation",
+    option: LABEL.shares.name,
+    title: LABEL.shares.name,
     kind: "change",
     tick: formatChange,
     zeroLabel: "share prices unchanged",
   },
   {
     key: "housing",
-    option: "Housing · change after inflation",
-    title: "House prices · change after inflation",
+    option: LABEL.housing.name,
+    title: LABEL.housing.name,
     kind: "change",
     tick: formatChange,
     zeroLabel: "house prices kept pace with inflation",
   },
   {
     key: "prices",
-    option: "Prices · change",
-    title: "Prices · change",
+    option: LABEL.prices.name,
+    title: LABEL.prices.name,
     kind: "change",
     tick: formatChange,
     zeroLabel: "prices unchanged",
   },
   {
     key: "currency",
-    option: "Currency vs EUR · change",
-    title: "Currency vs EUR · change",
+    option: LABEL.currency.name,
+    title: LABEL.currency.name,
     kind: "change",
     tick: formatChange,
     zeroLabel: "unchanged against the euro",
   },
   {
     key: "gniPpp",
-    option: "Income · $ per person, price-adjusted",
-    title: "Income · $ per person, price-adjusted",
+    option: LABEL.gniPpp.name,
+    title: LABEL.gniPpp.name,
     kind: "level",
     tick: formatUsd,
   },
-  { key: "unemployment", option: "Unemployment", title: "Unemployment · %", kind: "level", tick: percentTick },
-  { key: "lifeExpectancy", option: "Life expectancy", title: "Life expectancy · years", kind: "level", tick: plainTick },
+  { key: "unemployment", option: LABEL.unemployment.name, title: "Unemployment · %", kind: "level", tick: percentTick },
+  { key: "lifeExpectancy", option: LABEL.lifeExpectancy.name, title: "Life expectancy · years", kind: "level", tick: plainTick },
 ];
 
 export function measureOf(key: ColumnKey): Measure {

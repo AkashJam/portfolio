@@ -1,3 +1,4 @@
+import { spendingName } from "@/lib/atlas-labels";
 import { cn } from "@/lib/utils";
 import { PLOT, type Measure, type PlotModel, measureOf } from "@/lib/atlas-plot";
 import type { ColumnKey } from "@/lib/atlas";
@@ -31,8 +32,8 @@ export function Scatter({
       ? {
           ...m,
           tick: spending.tick,
-          option: `Everyday spending · ${spending.code} per person, monthly`,
-          title: `Everyday spending · ${spending.code} per person, per month`,
+          option: spendingName(spending.code),
+          title: spendingName(spending.code),
         }
       : m;
   const xm = shown(measureOf(xKey));

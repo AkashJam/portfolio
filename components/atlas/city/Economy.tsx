@@ -1,3 +1,4 @@
+import { LABEL } from "@/lib/atlas-labels";
 import type { CityResponse, Sourced } from "@/lib/market-schemas";
 
 const MUTED = "text-meta leading-relaxed text-text-muted";
@@ -15,9 +16,9 @@ function figure(s: Sourced, digits = 1): string {
 export function Economy({ city }: { city: CityResponse }) {
   const m = city.macro;
   const rows: { key: string; label: string; s: Sourced; text: string }[] = [
-    { key: "inflation", label: "Inflation, one year", s: m.inflation, text: `${figure(m.inflation)}%` },
-    { key: "spending", label: "Everyday spending", s: m.everydaySpendingEur, text: `€${figure(m.everydaySpendingEur, 0)} a month per person` },
-    { key: "gni", label: "Income per person, PPP", s: m.gniPpp, text: `$${figure(m.gniPpp, 0)}` },
+    { key: "inflation", label: `${LABEL.prices.name}, one year`, s: m.inflation, text: `${figure(m.inflation)}%` },
+    { key: "spending", label: LABEL.everydaySpendingEur.short, s: m.everydaySpendingEur, text: `€${figure(m.everydaySpendingEur, 0)} a month per person` },
+    { key: "gni", label: LABEL.gniPpp.name, s: m.gniPpp, text: `$${figure(m.gniPpp, 0)}` },
     { key: "unemployment", label: "Unemployment", s: m.unemployment, text: `${figure(m.unemployment)}%` },
     { key: "life", label: "Life expectancy", s: m.lifeExpectancy, text: `${figure(m.lifeExpectancy)} years` },
   ];

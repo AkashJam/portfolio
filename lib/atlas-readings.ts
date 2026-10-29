@@ -1,3 +1,4 @@
+import { inSentence } from "@/lib/atlas-labels";
 import {
   type ColumnKey,
   columnValue,
@@ -103,7 +104,7 @@ const TAIL =
 const rounded = (v: number) => Math.round(v);
 
 /** A country as it reads in a sentence: "the United States", "Japan". */
-export function nm(r: AtlasRow, lead = false): string {
+export function nm(r: Pick<AtlasRow, "country">, lead = false): string {
   const the = r.country === "United States" || r.country === "United Kingdom";
   return the ? `${lead ? "The" : "the"} ${r.country}` : r.country;
 }
@@ -147,7 +148,7 @@ function upDown(v: number): string {
 const figLabel: Record<ColumnKey, string> = {
   everydaySpendingEur: "spend/mo",
   shares: "shares",
-  housing: "housing, real",
+  housing: inSentence("housing"),
   prices: "prices",
   currency: "currency vs EUR",
   gniPpp: "income",

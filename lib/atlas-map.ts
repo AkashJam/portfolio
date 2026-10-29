@@ -1,3 +1,4 @@
+import { LABEL, inSentence } from "@/lib/atlas-labels";
 import {
   MINUS,
   columnValue,
@@ -166,17 +167,17 @@ export const MAP_MEASURES: MapMeasure[] = [
 ];
 
 export const MEASURE_LABEL: Record<MapMeasure, string> = {
-  housing: "Housing",
-  shares: "Shares",
-  prices: "Prices",
-  currency: "Currency",
+  housing: LABEL.housing.short,
+  shares: LABEL.shares.short,
+  prices: LABEL.prices.short,
+  currency: LABEL.currency.short,
 };
 
 export const MEASURE_NAME: Record<MapMeasure, string> = {
-  housing: "house prices after inflation",
-  shares: "share prices before inflation",
+  housing: inSentence("housing"),
+  shares: inSentence("shares"),
   prices: "consumer prices",
-  currency: "currency against the euro",
+  currency: inSentence("currency"),
 };
 
 /** The whole shared window, or one calendar year (bearing.md #88). */

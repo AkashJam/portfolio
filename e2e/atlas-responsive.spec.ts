@@ -1,4 +1,5 @@
 import AxeBuilder from "@axe-core/playwright";
+import { gotoAtlas } from "./atlas-hydrated";
 import { expect, test, type Page } from "@playwright/test";
 
 // Phase 11 step 9: the responsive pass (bearing.md #107, "The responsive
@@ -15,7 +16,7 @@ for (const width of [390, 768, 1024, 1440]) {
     page,
   }) => {
     await page.setViewportSize({ width, height: 900 });
-    await page.goto("/atlas");
+    await gotoAtlas(page, "countries");
     await expect(page.locator("#countries tbody tr")).toHaveCount(23);
     const [sw, cw] = await page.evaluate(() => [
       document.documentElement.scrollWidth,
@@ -31,7 +32,7 @@ test.describe("at 390px", () => {
   test("the table scrolls sideways inside its container, with its first column pinned", async ({
     page,
   }) => {
-    await page.goto("/atlas");
+    await gotoAtlas(page, "countries");
     const box = tableBox(page);
     const [sw, cw] = await box.evaluate((e) => [e.scrollWidth, e.clientWidth]);
     expect(sw).toBeGreaterThan(cw);
@@ -54,7 +55,7 @@ test.describe("at 390px", () => {
   test("the table fades the edge that has more to show, and only that edge", async ({
     page,
   }) => {
-    await page.goto("/atlas");
+    await gotoAtlas(page, "countries");
     const box = tableBox(page);
     const edges = () =>
       box.evaluate((e) => [e.dataset.moreLeft, e.dataset.moreRight]);
@@ -82,7 +83,7 @@ test.describe("at 390px", () => {
   test("the pinned cell is opaque, so what scrolls under it does not show through", async ({
     page,
   }) => {
-    await page.goto("/atlas");
+    await gotoAtlas(page, "countries");
     expect(
       await firstCell(page, "japan").evaluate(
         (e) => getComputedStyle(e).backgroundColor,
@@ -93,7 +94,7 @@ test.describe("at 390px", () => {
   test("the scatter takes the fade only: it scrolls at a 720px minimum and fades its edges, with no pinned column", async ({
     page,
   }) => {
-    await page.goto("/atlas");
+    await gotoAtlas(page);
     const scroller = page.locator("#compare .atlas-edge-cue");
     const [sw, cw] = await scroller.evaluate((e) => [
       e.scrollWidth,
@@ -126,7 +127,7 @@ test.describe("at 390px", () => {
   test("the fade never runs along the top or bottom: its gradient is horizontal", async ({
     page,
   }) => {
-    await page.goto("/atlas");
+    await gotoAtlas(page, "countries");
     for (const sel of [
       "#countries [data-slot=table-container]",
       "#compare .atlas-edge-cue",
@@ -157,7 +158,7 @@ test.describe("at 390px", () => {
   test("has no WCAG 2.1 AA violations with the table scrolled", async ({
     page,
   }) => {
-    await page.goto("/atlas");
+    await gotoAtlas(page, "countries");
     await tableBox(page).evaluate((e) => (e.scrollLeft = 400));
     const results = await new AxeBuilder({ page })
       .include("#countries")
@@ -176,7 +177,7 @@ test.describe("at 1440px", () => {
   test("nothing is pinned and nothing fades: the whole table is on screen", async ({
     page,
   }) => {
-    await page.goto("/atlas");
+    await gotoAtlas(page, "countries");
     expect(
       await firstCell(page, "japan").evaluate(
         (e) => getComputedStyle(e).position,
@@ -195,7 +196,7 @@ test.describe("at 1440px", () => {
   test("a point whose label was suppressed for collision is drawn at 0.72, the others at full strength", async ({
     page,
   }) => {
-    await page.goto("/atlas");
+    await gotoAtlas(page);
     const q = page.locator('#compare svg circle[data-q="true"]');
     const plain = page.locator("#compare svg circle:not([data-q])");
     expect(await q.count()).toBeGreaterThan(0);
@@ -215,7 +216,7 @@ test.describe("at 1440px", () => {
   test("eleven rows name a market sensor and twelve say they have none", async ({
     page,
   }) => {
-    await page.goto("/atlas");
+    await gotoAtlas(page, "countries");
     const lines = await page
       .locator("#countries tbody tr td:first-child small")
       .allInnerTexts();
@@ -231,7 +232,7 @@ test.describe("at 1440px", () => {
   test("the stated absences read with the counts from the data", async ({
     page,
   }) => {
-    await page.goto("/atlas");
+    await gotoAtlas(page, "countries");
     const notes = page.locator("#countries");
     await expect(
       notes.getByText(
@@ -251,7 +252,7 @@ test.describe("at 1440px", () => {
   test("a city name is a link where its page exists, and the other six rows say so", async ({
     page,
   }) => {
-    await page.goto("/atlas");
+    await gotoAtlas(page, "countries");
     // Seventeen verified surveys have a page; the four unverified ones and the three
     // newcomers (Indonesia, Chile, New Zealand) do not, and say "no city page yet".
     const links = page.locator("#countries tbody td:first-child a[href^='/atlas/']");
@@ -263,7 +264,7 @@ test.describe("at 1440px", () => {
   test("the page shows no market figure: no price, no feed badge", async ({
     page,
   }) => {
-    await page.goto("/atlas");
+    await gotoAtlas(page, "countries");
     await expect(page.getByText(/SSE|live feed|●/)).toHaveCount(0);
   });
 });

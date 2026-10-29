@@ -1,3 +1,4 @@
+import { inSentence } from "@/lib/atlas-labels";
 import { MINUS, columnValue, formatChange, formatYears, windowLabel, type ColumnKey } from "@/lib/atlas";
 import type { Fig, Reading } from "@/lib/atlas-readings";
 import type { AtlasRow, DisplayRate, WindowStart } from "@/lib/market-schemas";
@@ -7,32 +8,6 @@ import type { AtlasRow, DisplayRate, WindowStart } from "@/lib/market-schemas";
 // cited figure, and the display currency. Every comparison is arithmetic over values
 // already on the page, drawn in the accent colour so it never impersonates a source.
 // Pure, so the arithmetic and the wording are testable.
-
-// ---- the address ------------------------------------------------------------
-
-export interface HashState {
-  /** The row an address names (`#italy`), which highlights it. */
-  target: string | null;
-  /** The home city (`home=japan`). */
-  home: string | null;
-}
-
-/** `#italy`, `#home=japan` and `#italy&home=japan` all read: parts joined by `&`, `home=` set apart from a row slug. */
-export function parseHash(hash: string): HashState {
-  let target: string | null = null;
-  let home: string | null = null;
-  for (const part of hash.replace(/^#/, "").split("&")) {
-    if (part.startsWith("home=")) home = decodeURIComponent(part.slice(5)) || null;
-    else if (part && target === null) target = decodeURIComponent(part);
-  }
-  return { target, home };
-}
-
-/** The address for a state; an empty string clears it. */
-export function writeHash({ target, home }: HashState): string {
-  const parts = [target, home ? `home=${encodeURIComponent(home)}` : null].filter(Boolean);
-  return parts.length ? `#${parts.join("&")}` : "";
-}
 
 // ---- display currency -------------------------------------------------------
 
@@ -163,7 +138,7 @@ export function homeReading(target: AtlasRow, home: AtlasRow, window: WindowStar
     figs.push({ value: text(v), label: `${target.country}, ${noun}${d ? ` · ${d} ${home.city}` : ""}`, tone: "plain" });
   };
   put("everydaySpendingEur", spend, "spend/mo");
-  put("housing", formatChange, "housing, real");
+  put("housing", formatChange, inSentence("housing"));
   put("unemployment", (v) => `${v.toFixed(1)}%`, "unemployment");
   put("lifeExpectancy", (v) => `${formatYears(v)} yrs`, "life exp.");
   const hs = columnValue(home, "everydaySpendingEur", window);

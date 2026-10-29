@@ -1,5 +1,6 @@
 "use client";
 
+import { LABEL } from "@/lib/atlas-labels";
 import Link from "next/link";
 import { useMemo, useState, type ReactNode } from "react";
 
@@ -54,18 +55,18 @@ interface Column {
 }
 
 const COLUMNS: Column[] = [
-  { key: "shares", label: "Shares", sub: () => "change · before inflation" },
-  { key: "housing", label: "Housing", sub: () => "change · after inflation" },
-  { key: "prices", label: "Prices", sub: (end) => `change · to ${end}` },
-  { key: "currency", label: "Currency", sub: () => "vs EUR · change" },
+  { key: "shares", label: LABEL.shares.short, sub: () => "change · before inflation" },
+  { key: "housing", label: LABEL.housing.short, sub: () => "change · after inflation" },
+  { key: "prices", label: LABEL.prices.short, sub: (end) => `change · to ${end}` },
+  { key: "currency", label: LABEL.currency.short, sub: () => "against the euro · change" },
   {
     key: "everydaySpendingEur",
-    label: "Spending",
-    sub: () => "€ / person / month",
+    label: LABEL.everydaySpendingEur.short,
+    sub: () => "€ per person",
   },
-  { key: "gniPpp", label: "Income", sub: () => "$ / person · price-adj." },
-  { key: "unemployment", label: "Unemp.", sub: () => "%" },
-  { key: "lifeExpectancy", label: "Life exp.", sub: () => "years" },
+  { key: "gniPpp", label: LABEL.gniPpp.short, sub: () => "$ per person · local prices" },
+  { key: "unemployment", label: LABEL.unemployment.short, sub: () => "%" },
+  { key: "lifeExpectancy", label: LABEL.lifeExpectancy.short, sub: () => "years" },
 ];
 
 /** Tells the scroll cue the first column is pinned, so its left cue is a shadow, not a mask. */

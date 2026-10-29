@@ -1,6 +1,8 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
+import { gotoAtlas } from "./atlas-hydrated";
+
 // Phase 11 step 7: the three disclosure tiers. Needs the ticker (real /atlas/cities).
 
 const countries = (page: Page) => page.locator("#countries");
@@ -13,58 +15,42 @@ const dialog = (page: Page) => page.getByRole("dialog");
 test.describe("at 1440px", () => {
   test.use({ viewport: { width: 1440, height: 900 } });
 
-  test("the reading rules are visible with no click, above the table and beside the reading", async ({
+  test("the reading rules show on every view with no click, and the example is computed", async ({
     page,
   }) => {
-    await page.goto("/atlas");
-    // Above the table: the short panel.
-    const panel = countries(page);
-    await expect(
-      panel.getByText(
-        "Shares, housing, prices and currency are change, not levels",
-      ),
-    ).toBeVisible();
-    await expect(
-      panel.getByText("Every figure here is national"),
-    ).toBeVisible();
-    await expect(
-      panel.getByText("Nothing is ranked and nothing is scored."),
-    ).toBeVisible();
-    // Beside the reading: the longer guide, with the data's own end year.
-    const guide = page.locator("#compare");
-    await expect(guide.getByText("How to read this")).toBeVisible();
-    await expect(
-      guide.getByText("every figure here is national"),
-    ).toBeVisible();
-    await expect(guide.getByText(/All four end in 2024/)).toBeVisible();
-    // Neither sits behind an icon.
-    await expect(
-      page.getByRole("button", { name: /reading rules|how to read/i }),
-    ).toHaveCount(0);
+    await gotoAtlas(page);
+    const rules = page.getByTestId("atlas-rules");
+    await expect(rules.getByText("How to read this")).toBeVisible();
+    await expect(rules.getByText("Compare changes, not amounts.")).toBeVisible();
+    await expect(rules.getByText("Every figure is national.")).toBeVisible();
+    await expect(rules.getByText("There’s no league table.")).toBeVisible();
+    await expect(rules.getByText(/Since 2010, house prices (fell|rose) \d+% in .* and (fell|rose) \d+% in /)).toBeVisible();
+    for (const tab of ["Map", "Countries"]) {
+      await page.getByRole("tab", { name: tab }).click();
+      await expect(rules).toBeVisible();
+    }
+    // Once, not three times: the old intro, the long guide and the table's panel are gone.
+    await expect(page.getByText("Reading rules")).toHaveCount(0);
+    await expect(page.getByRole("button", { name: /reading rules|how to read/i })).toHaveCount(0);
   });
 
-  test("the head frames living standards for the median person, with counts from the data", async ({
+  test("the head leads with the hook and the exact sentence, with the count from the data", async ({
     page,
   }) => {
-    await page.goto("/atlas");
+    await gotoAtlas(page);
+    await expect(page.getByRole("heading", { level: 1, name: "Atlas" })).toBeVisible();
+    await expect(page.getByText("Fifteen years, country by country.")).toBeVisible();
     await expect(
-      page.getByRole("heading", { level: 1, name: "Atlas" }),
+      page.getByText(/^\d+ countries, each shown by one of its cities; every figure is national, from a source that publishes its method\.$/),
     ).toBeVisible();
-    await expect(
-      page.getByText(
-        /Twenty-three countries, each labelled by a city, eight measures/,
-      ),
-    ).toBeVisible();
-    await expect(
-      page.getByText(/living standards look like for the median person/),
-    ).toBeVisible();
+    await expect(page.getByText(/median person/)).toHaveCount(0);
   });
 
   test("a column icon opens that column's source and series, then Esc closes it and returns focus", async ({
     page,
   }) => {
-    await page.goto("/atlas");
-    const icon = colInfo(page, "shares");
+    await gotoAtlas(page, "countries");
+    const icon = colInfo(page, "stock market");
     await expect(icon).toHaveAttribute("aria-expanded", "false");
     await icon.click();
     await expect(icon).toHaveAttribute("aria-expanded", "true");
@@ -81,7 +67,7 @@ test.describe("at 1440px", () => {
   test("opens from the keyboard and holds its content in the DOM", async ({
     page,
   }) => {
-    await page.goto("/atlas");
+    await gotoAtlas(page, "countries");
     await colInfo(page, "income").focus();
     await page.keyboard.press("Enter");
     await expect(dialog(page)).toContainText("NY.GNP.PCAP.PP.CD");
@@ -91,9 +77,9 @@ test.describe("at 1440px", () => {
   test("only one popover is open at a time, and a click outside closes it", async ({
     page,
   }) => {
-    await page.goto("/atlas");
-    await colInfo(page, "housing").click();
-    await colInfo(page, "prices").click();
+    await gotoAtlas(page, "countries");
+    await colInfo(page, "house prices").click();
+    await colInfo(page, "inflation").click();
     await expect(dialog(page)).toHaveCount(1);
     await expect(dialog(page)).toContainText("FP.CPI.TOTL");
     await page.getByRole("heading", { name: "Countries" }).click();
@@ -101,20 +87,22 @@ test.describe("at 1440px", () => {
   });
 
   test("the popover follows the shared window", async ({ page }) => {
-    await page.goto("/atlas");
+    await gotoAtlas(page, "countries");
+    await page.getByRole("tab", { name: "Compare" }).click();
     await page
       .locator("#compare")
       .getByRole("radio", { name: "2016–24" })
       .click();
-    await colInfo(page, "shares").click();
+    await page.getByRole("tab", { name: "Countries" }).click();
+    await colInfo(page, "stock market").click();
     await expect(dialog(page)).toContainText("January 2016 to December 2024");
   });
 
   test("Spending names the four older cells, and exactly those four carry the amber dot", async ({
     page,
   }) => {
-    await page.goto("/atlas");
-    await colInfo(page, "spending").click();
+    await gotoAtlas(page, "countries");
+    await colInfo(page, "average spending a month").click();
     await expect(dialog(page)).toContainText(
       "2025 for nineteen countries; 2024 for China, Japan, New Zealand and the United States",
     );
@@ -138,7 +126,7 @@ test.describe("at 1440px", () => {
   test("Ireland's income cell opens its note; its neighbours do not", async ({
     page,
   }) => {
-    await page.goto("/atlas");
+    await gotoAtlas(page, "countries");
     await expect(
       page.locator("tr#ireland td").nth(6).getByRole("button"),
     ).toHaveCount(1);
@@ -153,7 +141,7 @@ test.describe("at 1440px", () => {
   test("Türkiye's shares note computes its figures from the data and follows the window", async ({
     page,
   }) => {
-    await page.goto("/atlas");
+    await gotoAtlas(page, "countries");
     await cell(page, "turkiye", 1).click();
     await expect(dialog(page)).toContainText(
       "prices rose +1,223% over the same years",
@@ -163,10 +151,12 @@ test.describe("at 1440px", () => {
       "the lira moved −94% against the euro",
     );
     await page.keyboard.press("Escape");
+    await page.getByRole("tab", { name: "Compare" }).click();
     await page
       .locator("#compare")
       .getByRole("radio", { name: "2021–24" })
       .click();
+    await page.getByRole("tab", { name: "Countries" }).click();
     await cell(page, "turkiye", 1).click();
     await expect(dialog(page)).not.toContainText("+1,223%");
     await expect(dialog(page)).toContainText("after inflation");
@@ -175,7 +165,7 @@ test.describe("at 1440px", () => {
   test("Chile's currency is marked as derived via the dollar", async ({
     page,
   }) => {
-    await page.goto("/atlas");
+    await gotoAtlas(page, "countries");
     await cell(page, "chile", 4).click();
     await expect(dialog(page)).toContainText("goes via the dollar");
     await expect(dialog(page)).toContainText("CCUSMA02CLM618N");
@@ -184,7 +174,7 @@ test.describe("at 1440px", () => {
   test("exactly three cells in the table carry a Tier 3 marker", async ({
     page,
   }) => {
-    await page.goto("/atlas");
+    await gotoAtlas(page, "countries");
     await expect(
       page.locator("#countries tbody td button[aria-haspopup=dialog]"),
     ).toHaveCount(3);
@@ -193,7 +183,7 @@ test.describe("at 1440px", () => {
   test("every cell still carries its source and as-of for screen readers", async ({
     page,
   }) => {
-    await page.goto("/atlas");
+    await gotoAtlas(page, "countries");
     const row = page.locator("tr#japan");
     await expect(row).toContainText(
       "OECD via FRED SPASTT01JPM661N · as of 2024-12",
@@ -205,8 +195,8 @@ test.describe("at 1440px", () => {
   test("has no WCAG 2.1 AA violations with a column popover open", async ({
     page,
   }) => {
-    await page.goto("/atlas");
-    await colInfo(page, "spending").click();
+    await gotoAtlas(page, "countries");
+    await colInfo(page, "average spending a month").click();
     await expect(dialog(page)).toBeVisible();
     const results = await new AxeBuilder({ page })
       .withTags(["wcag2a", "wcag2aa"])
@@ -220,7 +210,7 @@ test.describe("at 1440px", () => {
   test("has no WCAG 2.1 AA violations with a cell note open", async ({
     page,
   }) => {
-    await page.goto("/atlas");
+    await gotoAtlas(page, "countries");
     await cell(page, "turkiye", 1).click();
     await expect(dialog(page)).toBeVisible();
     const results = await new AxeBuilder({ page })
@@ -239,8 +229,8 @@ test.describe("at 390px", () => {
   test("a popover stays inside the viewport, whichever column opens it", async ({
     page,
   }) => {
-    await page.goto("/atlas");
-    for (const name of ["shares", "currency", "life exp."]) {
+    await gotoAtlas(page, "countries");
+    for (const name of ["stock market", "currency", "life expectancy"]) {
       const icon = colInfo(page, name);
       await icon.scrollIntoViewIfNeeded();
       await icon.click();
@@ -253,7 +243,7 @@ test.describe("at 390px", () => {
   });
 
   test("a cell note stays inside the viewport", async ({ page }) => {
-    await page.goto("/atlas");
+    await gotoAtlas(page, "countries");
     const c = cell(page, "turkiye", 1);
     await c.scrollIntoViewIfNeeded();
     await c.click();

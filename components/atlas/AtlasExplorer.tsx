@@ -7,7 +7,6 @@ import { WindowSelect, useAtlasWindow } from "@/components/atlas/AtlasWindow";
 import { useScrollEdges } from "@/components/atlas/useScrollEdges";
 import { useTargetSlug } from "@/components/atlas/useTargetSlug";
 import { ReadingCard } from "@/components/atlas/ReadingCard";
-import { ReadingGuide } from "@/components/atlas/ReadingGuide";
 import { Scatter } from "@/components/atlas/Scatter";
 import { type ColumnKey, formatEur, windowLabel as labelOf } from "@/lib/atlas";
 import { convertRows, homeMoney, homeReading } from "@/lib/atlas-home";
@@ -134,9 +133,8 @@ export function AtlasExplorer({ rows }: { rows: AtlasRow[] }) {
         </p>
       </div>
 
-      <div className="grid items-start gap-7 border-b border-hairline py-5 lg:grid-cols-[1.15fr_1fr]">
-        <ReadingGuide />
-        <div className="space-y-5">
+      <div className="border-b border-hairline py-5">
+        <div className="grid max-w-3xl gap-5">
           <ReadingCard reading={reading} />
           {against && <ReadingCard reading={against} className="border-brand-hover/70" />}
         </div>

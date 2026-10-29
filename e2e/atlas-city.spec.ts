@@ -1,3 +1,4 @@
+import { gotoAtlas } from "./atlas-hydrated";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
@@ -192,7 +193,7 @@ test.describe("at 1440px", () => {
   });
 
   test("the atlas table links the name, and the palette finds the city", async ({ page }) => {
-    await page.goto("/atlas");
+    await gotoAtlas(page, "countries");
     await page.locator("#countries tbody a[href='/atlas/japan']").click();
     await expect(page).toHaveURL(/\/atlas\/japan$/);
     await page.keyboard.press("Control+k");

@@ -42,7 +42,7 @@ test("y = x is drawn for prices against shares and nowhere else", async ({
 test("a row address rings that row's dot, and a hash change moves the ring", async ({
   page,
 }) => {
-  await page.goto("/atlas#japan");
+  await page.goto("/atlas?view=compare#japan");
   await expect(page.locator('g[data-slug="japan"]')).toHaveAttribute(
     "data-target",
     "true",
@@ -69,7 +69,7 @@ test("a gap on the chosen pair is left off and counted", async ({ page }) => {
 test("the busiest state has no WCAG 2.1 AA violations: clipped point, y = x line, ringed dot", async ({
   page,
 }) => {
-  await page.goto("/atlas#japan");
+  await page.goto("/atlas?view=compare#japan");
   await page.getByLabel("Horizontal").selectOption("prices");
   await page.getByLabel("Vertical").selectOption("shares");
   await page
