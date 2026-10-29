@@ -29,7 +29,7 @@ test("production is in US hours with a live feed", async ({ request }) => {
 });
 
 test("a real quote reaches the browser and moves the symbol page without a reload", async ({ page }) => {
-  await page.goto(`/market/${SYMBOL}`);
+  await page.goto(`/market/${SYMBOL}/price`);
   const price = page.getByTestId("live-price");
   await expect(price).toBeVisible();
   const before = (await price.textContent())!;
