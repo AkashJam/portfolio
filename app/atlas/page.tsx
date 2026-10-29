@@ -38,6 +38,7 @@ export default async function AtlasPage() {
 
   const views = (
     <AtlasViews
+      bar={atlas ? <HomePicker /> : undefined}
       panels={{
         compare: (
           <>
@@ -98,7 +99,6 @@ export default async function AtlasPage() {
       {atlas ? (
         <AtlasWindowProvider windows={atlas.windows} end={atlas.end}>
           <AtlasHomeProvider rows={atlas.rows} rates={atlas.rates}>
-            <HomePicker />
             {content}
           </AtlasHomeProvider>
         </AtlasWindowProvider>

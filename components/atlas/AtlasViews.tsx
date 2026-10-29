@@ -68,8 +68,8 @@ export function AtlasViews({ panels, bar }: { panels: Record<View, ReactNode>; b
 
   return (
     <div>
-      <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-3 border-b border-hairline">
-        <div role="tablist" aria-label="Atlas views" data-ready={ready || undefined} className="flex gap-1">
+      <div className="grid grid-cols-1 items-end gap-x-4 md:grid-cols-[1fr_auto]">
+        <div role="tablist" aria-label="Atlas views" data-ready={ready || undefined} className="flex gap-1 border-b border-hairline">
           {VIEWS.map((v) => (
             <button
               key={v}

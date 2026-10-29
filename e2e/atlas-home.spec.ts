@@ -63,6 +63,22 @@ test.describe("at 1440px", () => {
     await expect(page.locator("#countries thead").getByText("no Δ")).toHaveCount(1);
   });
 
+  test("the picker is at the end of the view row on every view, with the rate line under it", async ({ page }) => {
+    await gotoAtlas(page);
+    const picker = page.locator("#atlas-home");
+    const tabs = page.getByRole("tablist", { name: "Atlas views" });
+    const [t, p] = await Promise.all([tabs.boundingBox(), picker.boundingBox()]);
+    expect(p!.x).toBeGreaterThan(t!.x + t!.width - 1); // beside the tabs, to their right
+    await pick(page, "japan");
+    for (const tab of ["Map", "Countries", "Compare"]) {
+      await page.getByRole("tab", { name: tab }).click();
+      await expect(picker).toBeVisible();
+      await expect(page.getByTestId("home-rate")).toBeVisible();
+    }
+    const rate = (await page.getByTestId("home-rate").boundingBox())!;
+    expect(rate.y).toBeGreaterThan(p!.y);
+  });
+
   test("the scatter gains crosshairs through the home dot and nothing else moves", async ({ page }) => {
     await gotoAtlas(page);
     const before = await page.locator("svg[data-drawing=desktop] [data-slug=brazil] circle").getAttribute("cx");
@@ -143,6 +159,14 @@ test.describe("at 1440px", () => {
 
 test.describe("at 390px", () => {
   test.use({ viewport: { width: 390, height: 844 } });
+
+  test("the picker is on its own full-width line under the tabs", async ({ page }) => {
+    await gotoAtlas(page);
+    const tabs = (await page.getByRole("tablist", { name: "Atlas views" }).boundingBox())!;
+    const picker = (await page.getByTestId("home-picker").boundingBox())!;
+    expect(picker.y).toBeGreaterThanOrEqual(tabs.y + tabs.height - 1);
+    expect(picker.width).toBeGreaterThan(390 - 40);
+  });
 
   test("nothing overflows the page and there are no violations with a home set", async ({ page }) => {
     await gotoAtlas(page);

@@ -74,35 +74,38 @@ export function useAtlasHome(): AtlasHomeValue {
   return v;
 }
 
-const SELECT =
-  "rounded-lg border border-hairline bg-panel-2 px-3 py-2 text-small text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand";
-
-/** The picker: a native select over the rows, and the one dated rate line beneath it. */
+/**
+ * The picker, in the end of the view row on every view (phase18.md I50; owner, 2026-10-24): a
+ * native select over the rows, and under it the one dated rate line. Its two parts sit in the
+ * row's own grid (`display: contents`), so the control is at the end of the tab row on a
+ * desktop and on its own full-width line under the tabs on a phone.
+ */
 export function HomePicker() {
   const { rows, home, setHome, note } = useAtlasHome();
   const sorted = [...rows].sort((a, b) => a.city.localeCompare(b.city));
   return (
-    <div data-testid="home-picker" className="panel-elevated rounded-2xl px-5 py-4">
-      <div className="flex flex-wrap items-end gap-x-5 gap-y-2">
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="atlas-home" className="text-meta font-semibold uppercase tracking-[0.18em] text-text-muted">
-            Home city
-          </label>
-          <select id="atlas-home" value={home?.slug ?? ""} onChange={(e) => setHome(e.target.value || null)} className={SELECT}>
-            <option value="">None</option>
-            {sorted.map((r) => (
-              <option key={r.slug} value={r.slug}>
-                {r.city} · {r.country}
-              </option>
-            ))}
-          </select>
-        </div>
-        <p className="max-w-measure pb-2 text-small leading-relaxed text-text-muted">
-          sets the crosshairs, the pinned row, the comparison line and the display currency: one control, not four
-        </p>
+    <div className="contents">
+      <div
+        data-testid="home-picker"
+        className="flex items-center gap-3 border-hairline pt-4 text-meta text-text-muted max-md:w-full md:items-end md:border-b md:pb-2 md:pt-0"
+      >
+        <label htmlFor="atlas-home">Home city</label>
+        <select
+          id="atlas-home"
+          value={home?.slug ?? ""}
+          onChange={(e) => setHome(e.target.value || null)}
+          className="rounded-lg border border-brand bg-panel px-3 py-2 text-small text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand max-md:flex-1 max-md:py-2.5"
+        >
+          <option value="">None</option>
+          {sorted.map((r) => (
+            <option key={r.slug} value={r.slug}>
+              {r.city} · {r.country}
+            </option>
+          ))}
+        </select>
       </div>
       {note && (
-        <p data-testid="home-rate" className="mt-3 max-w-measure font-mono text-meta leading-relaxed text-brand-hover">
+        <p data-testid="home-rate" className="col-span-full max-w-measure pt-2.5 font-mono text-meta leading-relaxed text-brand-hover">
           {note}
         </p>
       )}
