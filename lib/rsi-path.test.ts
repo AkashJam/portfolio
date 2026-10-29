@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { rsiPath, rsiY, RSI_HEIGHT } from "@/lib/rsi-path";
+import { rsiPath, rsiReading, rsiY, RSI_HEIGHT } from "@/lib/rsi-path";
 
 describe("rsiY", () => {
   it("puts 0 at the bottom and 100 at the top, and clamps", () => {
@@ -25,5 +25,14 @@ describe("rsiPath", () => {
   it("is empty for no points and a single move for one", () => {
     expect(rsiPath([])).toBe("");
     expect(rsiPath([50])).toBe("M0 80");
+  });
+});
+
+describe("rsiReading", () => {
+  it("words the three zones", () => {
+    expect(rsiReading(73.5)).toBe("above 70 is often read as stretched upward");
+    expect(rsiReading(24)).toBe("below 30 is often read as stretched downward");
+    expect(rsiReading(50)).toBe("between 30 and 70 is the usual range");
+    expect(rsiReading(70)).toBe("between 30 and 70 is the usual range");
   });
 });

@@ -8,6 +8,8 @@ import { PriceChart } from "@/components/market/PriceChart";
 import { useSessionState } from "@/components/market/useMarketSession";
 import type { Candle, IndicatorSeriesResponse } from "@/lib/market-schemas";
 import type { MarketState } from "@/lib/market-state";
+import { EMA_PERIOD, INTERVAL_TITLE, isInterval } from "@/lib/price-interval";
+import { RSI_PERIOD, rsiReading } from "@/lib/rsi-path";
 
 interface CandlesApiResponse {
   candles: Candle[];
@@ -43,6 +45,8 @@ export function SymbolChartPanel({
     (nextInterval: string) => {
       if (nextInterval === selectedInterval) return;
       setSelectedInterval(nextInterval);
+      // The view is in the address (I51): a reload or a shared link keeps it, and Back leaves the page.
+      window.history.replaceState(null, "", `?interval=${nextInterval}`);
       setLoading(true);
       fetch(`/api/market/${encodeURIComponent(symbol)}/candles?interval=${nextInterval}`)
         .then((res) => res.json())
@@ -59,16 +63,33 @@ export function SymbolChartPanel({
     [selectedInterval, symbol]
   );
 
+  const ema = indicators?.series.ema?.at(-1)?.value;
+  const rsi = indicators?.series.rsi?.at(-1)?.value;
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
-        <h2 className="text-lead font-medium">Price · candlesticks</h2>
+        <h2 className="text-lead font-medium">{isInterval(selectedInterval) ? INTERVAL_TITLE[selectedInterval] : "Candles"}</h2>
         <IntervalSwitcher value={selectedInterval} onChange={handleChange} />
       </div>
+      <p data-testid="chart-legend" className="flex flex-wrap gap-x-5 gap-y-1 text-meta text-text-muted">
+        {ema !== undefined && (
+          <span>
+            <i aria-hidden="true" className="mr-1.5 inline-block h-0.5 w-4 align-middle" style={{ background: "var(--brand-hover)" }} />
+            EMA {EMA_PERIOD} <b className="font-medium text-text">{ema.toFixed(2)}</b>
+          </span>
+        )}
+        <span>Hollow candles closed up, filled closed down</span>
+      </p>
       <div className={loading ? "opacity-60 transition-opacity" : "transition-opacity"}>
         <PriceChart symbol={symbol} interval={selectedInterval} initialCandles={candles} initialIndicators={indicators} frozen={frozen} />
       </div>
       <IndicatorPanel indicators={indicators} bars={candles.length} />
+      {rsi !== undefined && (
+        <p data-testid="rsi-reading" className="text-meta text-text-muted">
+          RSI {RSI_PERIOD} <b className="font-medium text-text">{rsi.toFixed(1)}</b> · {rsiReading(rsi)}
+        </p>
+      )}
     </div>
   );
 }

@@ -1,11 +1,5 @@
+import { INTERVALS } from "@/lib/price-interval";
 import { cn } from "@/lib/utils";
-
-// Only the 4 intervals aggregate/candles.go's fixedIntervals always
-// computes regardless of environment. The "finest" interval (--agg-window:
-// 10s dev / 1m prod) is deliberately excluded — its label isn't a fixed
-// constant the frontend can rely on, and offering a control whose value
-// differs by environment would mislabel itself in dev.
-const INTERVALS = ["5m", "15m", "1h", "1d"];
 
 export function IntervalSwitcher({
   value,

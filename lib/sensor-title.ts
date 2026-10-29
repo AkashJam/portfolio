@@ -10,17 +10,16 @@ export interface SensorTitle {
   place: string;
   /** `Japan · MUFG`: the h1, the breadcrumb's last item and the page title. */
   heading: string;
-  /** `Mitsubishi UFJ Financial Group · country sensor`, plus the sensor's note if it has one. */
+  /** `Mitsubishi UFJ Financial Group`, plus the company's note if it has one. */
   sub: string;
 }
 
 export function sensorTitle(sensor: Sensor): SensorTitle {
   const place = sensor.country ?? sensor.theme ?? sensor.name;
-  const kind = sensor.group === "country" ? "country sensor" : "global sensor";
   return {
     place,
     heading: `${place} · ${sensor.symbol}`,
-    sub: [sensor.name, kind, sensor.note].filter(Boolean).join(" · "),
+    sub: [sensor.name, sensor.note].filter(Boolean).join(" · "),
   };
 }
 

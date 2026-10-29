@@ -4,13 +4,10 @@ import * as React from "react";
 import Link from "next/link";
 
 import { DayRangeBar } from "@/components/market/DayRangeBar";
-import { FeedStatus, useLocalFeedTracker } from "@/components/market/FeedStatus";
-import { MarketStateLine } from "@/components/market/MarketStateLine";
-import { SessionPill } from "@/components/market/SessionPill";
-import { useNow, useSessionState } from "@/components/market/useMarketSession";
-import { frozenLine } from "@/lib/market-session";
+import { useLocalFeedTracker } from "@/components/market/FeedStatus";
+import { MarketHeadState } from "@/components/market/MarketHeadState";
+import { useSessionState } from "@/components/market/useMarketSession";
 import type { MarketState } from "@/lib/market-state";
-import { pricesVintage } from "@/lib/prices";
 import { subscribeToStream } from "@/lib/sse";
 import { cn } from "@/lib/utils";
 import type { SymbolSnapshot } from "@/lib/market-schemas";
@@ -44,14 +41,12 @@ export function LiveSnapshot({
   renderedAt: string;
 }) {
   const [snapshot, setSnapshot] = React.useState(initialSnapshot);
-  const [sawLive, setSawLive] = React.useState(false);
   // Staleness (Phase 7 step 1). PriceChart below holds a second connection
   // of its own; one indicator per page is enough, since both go through the
   // same proxy and die together.
   const feed = useLocalFeedTracker(initialSnapshot.asOf);
   const session = useSessionState(initialState);
   const frozen = session.session === "closed";
-  const now = useNow(renderedAt);
   // The subscription outlives a change of session, so it reads the latest through a ref.
   const frozenRef = React.useRef(frozen);
   React.useEffect(() => {
@@ -65,7 +60,6 @@ export function LiveSnapshot({
         feed.noteQuote();
         // Closed: an extended-hours print does not move a page that says it is frozen.
         if (frozenRef.current) return;
-        setSawLive(true);
         setSnapshot((prev) => ({
           ...prev,
           price: quote.price,
@@ -86,9 +80,6 @@ export function LiveSnapshot({
 
   const up = snapshot.change >= 0;
   const ink = frozen ? "text-text-muted" : up ? "text-market-up" : "text-market-down";
-  const vintage = frozen
-    ? frozenLine(pricesVintage([snapshot.asOf], now, false), session.opensAt, now)
-    : pricesVintage([snapshot.asOf], new Date(renderedAt), sawLive);
 
   return (
     <div className="space-y-6" data-session={frozen ? "closed" : undefined}>
@@ -132,13 +123,10 @@ export function LiveSnapshot({
             {snapshot.change.toFixed(2)} ({up ? "+" : ""}
             {snapshot.changePercent.toFixed(2)}%)
           </p>
-          <div className="mt-2 flex items-center justify-end gap-2">
-            <FeedStatus tracker={feed} fresh={<SessionPill initial={initialState} />} />
-          </div>
         </div>
       </div>
 
-      <MarketStateLine initial={initialState} renderedAt={renderedAt} newestAsOf={initialSnapshot.asOf} />
+      <MarketHeadState initial={initialState} renderedAt={renderedAt} newestAsOf={initialSnapshot.asOf} head={null} tracker={feed} />
 
       {/* Day range replaces the old High/Low/Prev Close 3-stat grid — the
           bar already conveys high/low; Prev Close is the one figure it
@@ -146,10 +134,6 @@ export function LiveSnapshot({
       <DayRangeBar low={snapshot.dayLow} high={snapshot.dayHigh} price={snapshot.price} size="lg" />
       <p className="font-mono text-small text-text-muted">
         Prev close <span className="text-text">{snapshot.prevClose.toFixed(2)}</span>
-        <span className="mx-2" aria-hidden="true">
-          ·
-        </span>
-        <span data-testid="symbol-asof">{vintage}</span>
       </p>
     </div>
   );

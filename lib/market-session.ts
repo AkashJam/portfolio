@@ -38,11 +38,6 @@ export function lastSessionLabel(newestAsOf: string | null): string | null {
   return sessionDay.format(new Date(`${sessionDayKey(newestAsOf)}T00:00:00Z`));
 }
 
-/** The as-of line while closed: the frozen vintage, and when it opens. */
-export function frozenLine(vintage: string, opensAt: string | null, now: Date): string {
-  return ["Frozen", vintage, opensAt ? opensIn(opensAt, now) : null].filter(Boolean).join(" · ");
-}
-
 export type StateTone = "open" | "closed" | "unreachable";
 
 export interface StateLine {

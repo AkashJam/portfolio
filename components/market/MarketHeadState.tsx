@@ -1,6 +1,7 @@
 "use client";
 
 import { FeedStatus } from "@/components/market/FeedStatus";
+import type { FeedTracker } from "@/lib/feed-freshness";
 import { useNow, useSessionState } from "@/components/market/useMarketSession";
 import { lastSessionLabel, opensIn, stateLine } from "@/lib/market-session";
 import type { MarketState } from "@/lib/market-state";
@@ -12,20 +13,23 @@ import { cn } from "@/lib/utils";
  * one place, then what the last close did. While New York trades it is the LIVE
  * chip. Otherwise it is the last close's time and when the market opens, with no
  * CLOSED pill and no second "Closed." elsewhere on the page. The stale-feed pill
- * takes the chip's place when ticks stop. The symbol page keeps MarketStateLine
- * until its own step (Phase 21 step 5).
+ * takes the chip's place when ticks stop. The price page uses it too (Phase 21
+ * step 5), with no ledger line and its own feed tracker.
  */
 export function MarketHeadState({
   initial,
   renderedAt,
   newestAsOf,
   head,
+  tracker,
 }: {
   initial: MarketState;
   renderedAt: string;
   newestAsOf: string | null;
   /** What the last close did, from the ledger; null when the ledger could not be read. */
   head: Head | null;
+  /** The page's own feed tracker, where the stream is owned below this row (the price page); /market uses the provider's. */
+  tracker?: FeedTracker;
 }) {
   const state = useSessionState(initial);
   const now = useNow(renderedAt);
@@ -42,6 +46,7 @@ export function MarketHeadState({
       className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-2 text-small text-text-muted"
     >
       <FeedStatus
+        tracker={tracker}
         fresh={
           unreachable ? (
             <span className="font-mono text-stale">{stateLine(state, now, newestAsOf).word} The feed is not answering.</span>

@@ -11,6 +11,7 @@ import {
   type UTCTimestamp,
 } from "lightweight-charts";
 
+import { EMA_PERIOD } from "@/lib/price-interval";
 import { subscribeToStream } from "@/lib/sse";
 import type { Candle, IndicatorSeriesResponse } from "@/lib/market-schemas";
 
@@ -126,7 +127,7 @@ export function PriceChart({
       const emaSeries = chart.addSeries(LineSeries, {
         color: tokens.ema,
         lineWidth: 1,
-        title: "EMA 9",
+        title: `EMA ${EMA_PERIOD}`,
       });
       emaSeries.setData(emaPoints.map((p) => ({ time: toUTCTimestamp(p.time), value: p.value })));
     }

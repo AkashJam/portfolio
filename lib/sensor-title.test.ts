@@ -23,19 +23,19 @@ describe("sensorTitle", () => {
     expect(sensorTitle(base)).toEqual({
       place: "Japan",
       heading: "Japan · MUFG",
-      sub: "Mitsubishi UFJ Financial Group · country sensor",
+      sub: "Mitsubishi UFJ Financial Group",
     });
   });
 
   it("names a global sensor by its theme", () => {
     const t = sensorTitle({ ...base, symbol: "NVDA", name: "NVIDIA", group: "global", country: null, theme: "Semiconductors" });
     expect(t.heading).toBe("Semiconductors · NVDA");
-    expect(t.sub).toBe("NVIDIA · global sensor");
+    expect(t.sub).toBe("NVIDIA");
   });
 
   it("carries the note beside the company", () => {
     expect(sensorTitle({ ...base, symbol: "BCH", country: "Chile", note: "telecom" }).sub).toBe(
-      "Mitsubishi UFJ Financial Group · country sensor · telecom",
+      "Mitsubishi UFJ Financial Group · telecom",
     );
   });
 });

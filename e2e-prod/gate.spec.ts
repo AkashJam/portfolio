@@ -61,7 +61,7 @@ test("a real quote reaches the browser and moves the symbol page without a reloa
   // And the page itself moves: a price that differs from the one it loaded with.
   await expect(price).not.toHaveText(before, { timeout: 90_000 });
   const after = (await price.textContent())!;
-  await expect(page.getByTestId("symbol-asof")).toHaveText(/^Live · last trade \d{2}:\d{2} ET$/);
+  await expect(page.getByTestId("live-chip")).toBeVisible();
 
   console.log(`GATE: ${SYMBOL} ${before} -> ${after}; quote ${quote.price} at ${quote.time}; observed ${new Date().toISOString()}`);
 });

@@ -33,14 +33,15 @@ test.describe("at 1440px", () => {
     const crumb = page.getByRole("navigation", { name: "Breadcrumb" });
     await expect(crumb).toContainText("Market / Japan / Price");
     await expect(crumb.getByRole("link", { name: "Market" })).toHaveAttribute("href", "/market");
-    await expect(page.getByText("country sensor")).toBeVisible();
+    await expect(page.getByText("Mitsubishi UFJ")).toBeVisible();
+    await expect(page.getByText("country sensor")).toHaveCount(0);
     await expect(page).toHaveTitle(/^Japan · MUFG — Market/);
   });
 
   test("a global sensor is named by its theme", async ({ page }) => {
     await page.goto("/market/NVDA/price");
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Semiconductors · NVDA");
-    await expect(page.getByText("global sensor")).toBeVisible();
+    await expect(page.getByText("global sensor")).toHaveCount(0);
   });
 
   // Phase 18 step 4, M19: the header's quote and the chart's candles are one subscription,
@@ -86,14 +87,40 @@ test.describe("at 1440px", () => {
     await expect(chart).toHaveAttribute("data-volume", "true");
   });
 
-  test("closed: the header is frozen in muted ink and says when it opens", async ({ page }) => {
+  test("closed: the header is frozen in muted ink, and one state line says the last close and when it opens", async ({ page }) => {
     await stubClosed(page);
     await page.goto("/market/MUFG/price");
     await expect(snapshot(page)).toHaveAttribute("data-session", "closed");
-    await expect(page.getByTestId("market-state-line")).toContainText("Opens in 4h 12m");
-    await expect(page.getByTestId("symbol-asof")).toHaveText(/^Frozen · .+ · opens in 4h 12m$/);
+    await expect(page.getByTestId("market-state-line")).toContainText(/Last close \d{1,2} \w{3}, 16:00 ET · opens in 4h 12m/);
     await expect(page.getByTestId("live-price")).toHaveCSS("color", MUTED);
-    await expect(page.getByText("SSE connected")).toBeVisible();
+    // M15, M6, I41: the state is said once, in no other words.
+    const text = await page.locator("main").innerText();
+    expect(text).not.toMatch(/SSE|Frozen|Latest trade|\bClosed\./);
+    await expect(page.getByTestId("live-chip")).toHaveCount(0);
+  });
+
+  // Phase 21 step 5, I44 and I51: the interval is in the address. Which interval the page opens on
+  // by itself follows the real session (unit-tested in lib/price-interval.test.ts); the simulator
+  // is never closed, so here a reader's choice is what is asserted.
+  test("?interval= opens the chart on that interval, and a switch writes it to the address", async ({ page }) => {
+    await page.goto("/market/MUFG/price?interval=15m");
+    await expect(page.getByRole("button", { name: "15m", exact: true })).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByRole("heading", { level: 2, name: "15-minute candles" })).toBeVisible();
+    await page.getByRole("button", { name: "1d", exact: true }).click();
+    await expect(page).toHaveURL(/\?interval=1d$/);
+    await expect(page.getByRole("heading", { level: 2, name: "Daily candles" })).toBeVisible();
+    await page.reload();
+    await expect(page.getByRole("button", { name: "1d", exact: true })).toHaveAttribute("aria-pressed", "true");
+    // A value that is not an interval is ignored, not an error.
+    const res = await page.goto("/market/MUFG/price?interval=10s");
+    expect(res?.status()).toBe(200);
+  });
+
+  test("the legend names the EMA's period and how candles are drawn, with the RSI reading beneath", async ({ page }) => {
+    await page.goto("/market/MUFG/price?interval=1d");
+    await expect(page.getByTestId("chart-legend")).toContainText("Hollow candles closed up, filled closed down");
+    await expect(page.getByTestId("chart-legend")).not.toContainText("EMA 9");
+    await expect(page.getByTestId("rsi-reading")).toContainText(/^RSI 14 \d+\.\d · /);
   });
 
   test("closed: an extended-hours quote still arriving does not move the price", async ({ page }) => {
@@ -112,7 +139,7 @@ test.describe("at 1440px", () => {
     await expect(snapshot(page)).toHaveAttribute("data-session", "closed");
     await page.waitForTimeout(1500);
     await expect(page.getByTestId("live-price")).not.toHaveText("99.50");
-    await expect(page.getByTestId("symbol-asof")).not.toContainText("Live");
+    await expect(page.getByTestId("live-chip")).toHaveCount(0);
   });
 
   test("open: not frozen, and the price is in a market colour", async ({ page }) => {
@@ -120,9 +147,8 @@ test.describe("at 1440px", () => {
       route.fulfill({ json: { tripped: false, feed: "live", session: "open", opensAt: null } }),
     );
     await page.goto("/market/MUFG/price");
-    await expect(page.getByTestId("market-state-line")).toContainText("Open.");
+    await expect(page.getByTestId("live-chip")).toHaveText("LIVE");
     await expect(page.locator("[data-session='closed']")).toHaveCount(0);
-    await expect(page.getByTestId("symbol-asof")).not.toContainText("Frozen");
     await expect(page.getByTestId("live-price")).not.toHaveCSS("color", MUTED);
   });
 

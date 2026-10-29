@@ -10,6 +10,9 @@ export const RSI_WIDTH = 900;
 /** Bars the ticker needs before RSI(14) has a first value: the period plus one
  * (`indicators.RSISeries`). Keep in step with the ticker's `RSIPeriod`. */
 export const RSI_MIN_BARS = 15;
+
+/** The period of the RSI the panel draws and the page names. */
+export const RSI_PERIOD = 14;
 export const RSI_HEIGHT = 160;
 
 /** The y of an RSI value in the box: 0 at the bottom, 100 at the top. */
@@ -25,4 +28,11 @@ export function rsiPath(values: number[]): string {
   return values
     .map((v, i) => `${i === 0 ? "M" : "L"}${Math.round(i * step * 100) / 100} ${rsiY(v)}`)
     .join(" ");
+}
+
+/** What an RSI(14) value means in a sentence, as the page words it under the chart. */
+export function rsiReading(value: number): string {
+  if (value > 70) return "above 70 is often read as stretched upward";
+  if (value < 30) return "below 30 is often read as stretched downward";
+  return "between 30 and 70 is the usual range";
 }

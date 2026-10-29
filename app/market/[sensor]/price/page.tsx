@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import { LiveSnapshot } from "@/components/market/LiveSnapshot";
 import { SymbolChartPanel } from "@/components/market/SymbolChartPanel";
 import { seedFromResponse } from "@/lib/market-session";
-import { RSI_MIN_BARS } from "@/lib/rsi-path";
+import { INTRADAY_INTERVAL, chooseInterval, isInterval } from "@/lib/price-interval";
 import {
   getCandles,
   getIndicatorSeries,
@@ -14,13 +14,6 @@ import {
 } from "@/lib/ticker-client";
 import { pageMetadata } from "@/lib/metadata";
 import { findSensor, isSimulated, sensorHref, sensorPriceHref, sensorTitle } from "@/lib/sensor-title";
-
-const DEFAULT_INTERVAL = "1h";
-// A sensor has daily bars from the sweep from the first day, but intraday bars only
-// once its trades have streamed (and none overnight in the first session), so a page
-// that opens on a 1h chart too short for RSI (none at all, or fewer bars than RSI(14)
-// needs) opens on the daily one instead. A reader who picks 1h still gets 1h.
-const FALLBACK_INTERVAL = "1d";
 
 // `/market/japan/price` and `/market/MUFG/price` are one page (Phase 16 step 2): the
 // segment is a country slug or a symbol, and the canonical is the slug form, the one
@@ -40,8 +33,9 @@ export async function generateMetadata({
   });
 }
 
-export default async function SymbolPage({ params }: PageProps<"/market/[sensor]/price">) {
+export default async function SymbolPage({ params, searchParams }: PageProps<"/market/[sensor]/price">) {
   const { sensor: rawName } = await params;
+  const requested = (await searchParams).interval;
   const name = decodeURIComponent(rawName);
   const renderedAt = new Date().toISOString();
 
@@ -53,21 +47,24 @@ export default async function SymbolPage({ params }: PageProps<"/market/[sensor]
   if (!sensor && !isSimulated(name)) notFound();
   const symbol = sensor ? sensor.symbol : name;
 
-  const [snapshot, intraday, intradayIndicators, marketState] = await Promise.all([
-    getSymbolSnapshot(symbol),
-    getCandles(symbol, DEFAULT_INTERVAL),
-    getIndicatorSeries(symbol, ["ema", "rsi"], DEFAULT_INTERVAL),
-    getMarketState(),
-  ]);
+  const [snapshot, marketState] = await Promise.all([getSymbolSnapshot(symbol), getMarketState()]);
   if (!snapshot) notFound();
 
-  const useDaily = (intraday?.candles.length ?? 0) < RSI_MIN_BARS;
-  const interval = useDaily ? FALLBACK_INTERVAL : DEFAULT_INTERVAL;
-  const [candles, indicators] = useDaily
-    ? await Promise.all([getCandles(symbol, interval), getIndicatorSeries(symbol, ["ema", "rsi"], interval)])
-    : [intraday, intradayIndicators];
-
+  // The interval follows the session (I44): a closed market opens on the daily view, an open
+  // one on the hour, and a reader's ?interval= wins (I51). Only an open market with no say
+  // from the reader needs the hourly bars, to see whether RSI has enough of them.
   const initialState = seedFromResponse(marketState);
+  const closed = initialState.session === "closed";
+  const wanted = Array.isArray(requested) ? requested[0] : requested;
+  const intraday =
+    !isInterval(wanted) && !closed
+      ? await Promise.all([getCandles(symbol, INTRADAY_INTERVAL), getIndicatorSeries(symbol, ["ema", "rsi"], INTRADAY_INTERVAL)])
+      : null;
+  const interval = chooseInterval({ requested: wanted, closed, intradayBars: intraday?.[0]?.candles.length ?? 0 });
+  const [candles, indicators] =
+    intraday && interval === INTRADAY_INTERVAL
+      ? intraday
+      : await Promise.all([getCandles(symbol, interval), getIndicatorSeries(symbol, ["ema", "rsi"], interval)]);
 
   return (
     <div className="mx-auto max-w-5xl space-y-8 px-4 py-16">

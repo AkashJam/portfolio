@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 
 import {
   countdown,
-  frozenLine,
   lastSessionLabel,
   opensIn,
   seedFromResponse,
@@ -39,22 +38,11 @@ describe("countdown", () => {
   });
 });
 
-describe("opensIn and frozenLine", () => {
+describe("opensIn", () => {
   it("phrases the countdown", () => {
     expect(opensIn(at(4 * HOUR + 12 * MIN), NOW)).toBe("opens in 4h 12m");
     expect(opensIn(at(30_000), NOW)).toBe("opens in under a minute");
     expect(opensIn(at(-1), NOW)).toBe("opening now");
-  });
-  it("puts the frozen vintage first, then when it opens", () => {
-    expect(frozenLine("Last close, 8 Oct 2026", at(4 * HOUR), NOW)).toBe(
-      "Frozen · Last close, 8 Oct 2026 · opens in 4h 0m",
-    );
-  });
-  it("states the vintage it really has, never 'the close' for a later print", () => {
-    expect(frozenLine("Last trade 15 Oct, 19:58 ET", at(HOUR), NOW)).toContain("Last trade 15 Oct, 19:58 ET");
-  });
-  it("leaves out the countdown when the ticker gave no opening time", () => {
-    expect(frozenLine("Last close, 8 Oct 2026", null, NOW)).toBe("Frozen · Last close, 8 Oct 2026");
   });
 });
 
