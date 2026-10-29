@@ -3,27 +3,26 @@ import { describe, expect, it } from "vitest";
 import { TRIP_RATE, cadence } from "@/lib/record-cadence";
 
 describe("cadence", () => {
-  it("states the count, the judged sessions and the expectation with their date", () => {
-    const c = cadence({ eventCount: 1, sessionsJudged: 50, judgedFrom: "2026-10-16" });
-    expect(c.text).toBe(
-      "1 event in 50 sessions judged since 16 Oct. A normal series passes 2.5σ on 1.24% of sessions, so about 0.62 would be expected.",
-    );
-    expect(c.expected).toBeCloseTo(50 * TRIP_RATE);
+  it("states the count, the checked sessions and the usual rate in words, with the date", () => {
+    const c = cadence({ eventCount: 2, sessionsJudged: 4, judgedFrom: "2026-10-16" });
+    expect(c.text).toBe("2 unusual moves in the 4 sessions checked since 16 Oct. A company moving normally makes one about once every 80 sessions.");
+    expect(c.expected).toBeCloseTo(4 * TRIP_RATE);
+    expect(cadence({ eventCount: 1, sessionsJudged: 1, judgedFrom: "2026-10-16" }).text).toMatch(/^1 unusual move in the 1 session checked/);
   });
 
-  it("says plainly that nothing tripped", () => {
+  it("says plainly that nothing was unusual", () => {
     expect(cadence({ eventCount: 0, sessionsJudged: 1, judgedFrom: "2026-10-16" }).text).toMatch(
-      /^Nothing has tripped in the 1 session judged since 16 Oct\./,
+      /^Nothing unusual in the 1 session checked since 16 Oct\./,
     );
   });
 
-  it("drops to one decimal from one expected event up", () => {
-    expect(cadence({ eventCount: 3, sessionsJudged: 200, judgedFrom: "2026-10-16" }).text).toMatch(/about 2\.5 would/);
-  });
-
-  it("claims nothing before a session is judged", () => {
+  it("claims nothing before a session is checked", () => {
     const c = cadence({ eventCount: 0, sessionsJudged: 0, judgedFrom: "2026-10-16" });
     expect(c.expected).toBeNull();
-    expect(c.text).toBe("The trigger has not judged a session yet; it starts from 16 Oct.");
+    expect(c.text).toBe("No session has been checked yet; checking starts from 16 Oct.");
+  });
+
+  it("uses none of the review's jargon", () => {
+    expect(cadence({ eventCount: 2, sessionsJudged: 4, judgedFrom: "2026-10-16" }).text).not.toMatch(/σ|tripped|judged|event|expected/i);
   });
 });

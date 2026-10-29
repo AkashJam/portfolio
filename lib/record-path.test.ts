@@ -60,4 +60,43 @@ describe("recordGeometry", () => {
   it("has nothing to draw under two sessions", () => {
     expect(recordGeometry({ series: series([20], [100]), events: [] })).toBeNull();
   });
+
+  it("colours a dot by the side the close left on, and places it by percentage", () => {
+    const g = recordGeometry({
+      series: series([20, 22, 21], [100, 99, 101]),
+      events: [{ sessionDate: "2026-07-02", trigger: { z: -3.1 } }, { sessionDate: "2026-07-03", trigger: { z: 2.7 } }],
+    })!;
+    expect(g.dots.map((d) => d.direction)).toEqual(["down", "up"]);
+    expect(g.dots[0].xPct).toBe(50);
+    expect(g.dots[0].yPct).toBeGreaterThan(0);
+    expect(g.dots[0].yPct).toBeLessThan(100);
+  });
+
+  it("labels the price-index axis with round values and marks the 100 line", () => {
+    const g = recordGeometry({ series: series([20, 22, 19], [100, 106, 92]), events: [] })!;
+    expect(g.yTicks.filter((t) => t.base)).toHaveLength(1);
+    expect(g.yTicks.find((t) => t.base)?.label).toBe("100");
+    for (const t of g.yTicks) {
+      expect(Number.isInteger(Number(t.label))).toBe(true);
+      expect(t.pct).toBeGreaterThanOrEqual(0);
+      expect(t.pct).toBeLessThanOrEqual(100);
+    }
+  });
+
+  it("puts a month label at the first session of each month", () => {
+    const g = recordGeometry({
+      series: { dates: ["2026-07-30", "2026-07-31", "2026-08-03", "2026-08-04", "2026-09-01"], close: [10, 11, 12, 11, 13], benchmarkClose: null },
+      events: [],
+    })!;
+    expect(g.xTicks.map((t) => t.label)).toEqual(["Jul", "Aug", "Sep"]);
+    expect(g.xTicks[0].pct).toBe(0);
+    expect(g.xTicks[1].pct).toBe(50);
+  });
+
+  it("keeps the two end labels apart when the lines end together", () => {
+    const g = recordGeometry({ series: series([100, 101, 100.5], [100, 101, 100.6]), events: [] })!;
+    expect(Math.abs(g.ends.sensor.yPct - g.ends.benchmark!.yPct)).toBeGreaterThanOrEqual(8.9);
+    expect(g.ends.sensor.value).toBe(100.5);
+    expect(g.ends.benchmark!.value).toBe(100.6);
+  });
 });

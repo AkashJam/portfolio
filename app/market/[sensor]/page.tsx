@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
 import { HashOpen } from "@/components/market/HashOpen";
-import { RowEntry } from "@/components/market/Ledger";
+import { LeadEntry, RowEntry } from "@/components/market/Ledger";
 import { RecordChart } from "@/components/market/RecordChart";
 import { RecordHead } from "@/components/market/RecordHead";
 import { RecordProvenance } from "@/components/market/RecordProvenance";
@@ -44,7 +44,7 @@ export async function generateMetadata({ params }: PageProps<"/market/[sensor]">
   return pageMetadata({
     path: addressOf(record),
     title: `${title} — Market — Akash James`,
-    description: `${record.country?.name ?? record.symbol} through ${record.symbol}: every move that tripped, and the sensor against its benchmark since the series began, each figure dated.`,
+    description: `${record.country?.name ?? record.symbol} through ${record.symbol}: every unusual move, and the company against its sector since the series began, each figure dated.`,
   });
 }
 
@@ -70,9 +70,9 @@ export default async function SensorRecordPage({ params }: PageProps<"/market/[s
         </div>
       </section>
 
-      <section aria-labelledby="tripped" className="reveal">
-        <h2 id="tripped" className="text-small font-semibold uppercase tracking-[0.16em] text-text">
-          Every move that tripped
+      <section aria-labelledby="unusual" className="reveal">
+        <h2 id="unusual" className="text-small font-semibold uppercase tracking-[0.16em] text-text">
+          Every unusual move
         </h2>
         <p data-testid="record-cadence" className="mt-3 max-w-measure text-body leading-relaxed text-read">
           {line.text}
@@ -84,7 +84,8 @@ export default async function SensorRecordPage({ params }: PageProps<"/market/[s
               data-testid="record-events"
               className="flex flex-col gap-px overflow-hidden rounded-[14px] border border-hairline bg-hairline"
             >
-              {record.events.map((event) => (
+              <LeadEntry event={record.events[0]} onRecord />
+              {record.events.slice(1).map((event) => (
                 <RowEntry key={event.id} event={event} recordLink={false} />
               ))}
             </div>

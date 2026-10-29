@@ -70,7 +70,12 @@ export function Ledger({ events, truncated }: { events: LedgerEvent[]; truncated
   );
 }
 
-function LeadEntry({ event }: { event: LedgerEvent }) {
+/**
+ * The newest entry as a card. On a company's own record (`onRecord`) the heading is the
+ * date, since the page already says whose it is, and the links back out to the record
+ * and to Atlas are left off.
+ */
+export function LeadEntry({ event, onRecord = false }: { event: LedgerEvent; onRecord?: boolean }) {
   const dir = breakoutDirection(event);
   const fresh = event.sessionsAgo === 0;
   return (
@@ -88,11 +93,11 @@ function LeadEntry({ event }: { event: LedgerEvent }) {
       }
     >
       <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-        <h3 className="text-h3 font-medium tracking-tight text-text">{entryHeading(event)}</h3>
-        <span className={FAINT}>{entryThrough(event)}</span>
+        <h3 className="text-h3 font-medium tracking-tight text-text">{onRecord ? sessionShort(event.sessionDate) : entryHeading(event)}</h3>
+        <span className={FAINT}>{onRecord ? "at the close" : entryThrough(event)}</span>
         <Badge event={event} />
       </div>
-      <Body event={event} recordLink />
+      <Body event={event} recordLink={!onRecord} />
     </article>
   );
 }
@@ -199,7 +204,7 @@ function Body({ event, compact = false, recordLink }: { event: LedgerEvent; comp
           <span className={FAINT}>every time it has moved unusually, against its sector</span>
         </p>
       )}
-      {event.country?.atlas && (
+      {recordLink && event.country?.atlas && (
         <p className="mt-5 text-small">
           <Link
             href={event.country.cityPage ? `/atlas/${event.country.slug}` : `/atlas#${event.country.slug}`}
