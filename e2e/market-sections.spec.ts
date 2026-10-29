@@ -9,11 +9,12 @@ import { expect, test } from "@playwright/test";
 test.describe("at 1440px", () => {
   test.use({ viewport: { width: 1440, height: 900 } });
 
-  test("shows the three sections in order, each with its lede", async ({ page }) => {
+  test("shows the three sections in order; Prices has no heading, the others a lede", async ({ page }) => {
     await page.goto("/market");
     // Scoped to the page: the command palette carries its own (screen-reader) h2.
     const headings = page.locator("main").getByRole("heading", { level: 2 });
-    await expect(headings).toHaveText(["Prices", "What moved, and why", "Industries"]);
+    await expect(headings).toHaveText(["What moved, and why", "Industries"]);
+    await expect(page.getByRole("region", { name: "Prices" })).toBeVisible();
 
     await expect(page.getByText("When one of them moves further than it normally does")).toBeVisible();
     await expect(page.getByText("Ten worldwide industry baskets, priced once a day at the close.")).toBeVisible();
@@ -23,10 +24,10 @@ test.describe("at 1440px", () => {
     await page.goto("/market");
     const empty = page.getByTestId("ledger-empty");
     await expect(empty).toBeVisible();
-    await expect(empty.getByRole("heading", { level: 3 })).toHaveText("Nothing has tripped yet.");
+    await expect(empty.getByRole("heading", { level: 3 })).toHaveText("Nothing unusual yet");
     await expect(empty).toContainText("The trigger is on and watching");
     await expect(empty).toContainText("sixty daily moves");
-    await expect(page.getByTestId("ledger-line")).toContainText("Nothing has tripped yet.");
+    await expect(page.getByTestId("ledger-line")).toContainText("Nothing unusual yet");
     // The fixture suite's former empty state (phase17.md step 5, decision 4): this
     // ticker has never tripped, so it is the empty ledger.
     await expect(page.getByTestId("ledger-line")).toHaveAttribute("data-kind", "empty");

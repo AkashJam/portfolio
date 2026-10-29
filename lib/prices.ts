@@ -153,7 +153,7 @@ export function newestVintage(asOfs: (string | null)[]): string | null {
   return best;
 }
 
-/** `thin listing, $13M a day (9 Oct 2026)`. */
+/** The hover text of "lightly traded": `Lightly traded in the US ($13M a day, 9 Oct 2026), so the price can jump`. */
 export function thinListing(usdM: number, asOf: string): string {
-  return `thin listing, $${usdM}M a day (${closeDate.format(new Date(asOf))})`;
+  return `Lightly traded in the US ($${usdM}M a day, ${closeDate.format(new Date(asOf))}), so the price can jump`;
 }

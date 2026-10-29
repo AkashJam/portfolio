@@ -19,15 +19,16 @@ const THIN = ["BCH", "TKC", "TLK", "KB"];
 test.describe("at 1440px", () => {
   test.use({ viewport: { width: 1440, height: 900 } });
 
-  test("lists the eighteen sensors in the ticker's order, in two labelled groups", async ({ page }) => {
+  test("lists the eighteen companies in the ticker's order, parted by one strong rule", async ({ page }) => {
     await page.goto("/market");
     const rows = page.locator('[data-testid^="market-row-"]');
     await expect(rows).toHaveCount(18);
     const ids = await rows.evaluateAll((els) => els.map((el) => el.getAttribute("data-testid")!.replace("market-row-", "")));
     expect(ids).toEqual(ORDER);
 
-    await expect(page.getByRole("rowheader", { name: /Countries/ })).toBeVisible();
-    await expect(page.getByRole("rowheader", { name: /Global/ })).toBeVisible();
+    await expect(page.getByRole("rowheader")).toHaveCount(0); // no group labels (owner, 2026-10-22)
+    await expect(page.locator('[data-testid^="market-row-"]').nth(13)).toHaveCSS("border-top-width", "2px");
+    await expect(page.getByTestId("market-row-MUFG")).not.toHaveCSS("border-top-width", "2px");
 
     const text = (await page.locator("main").innerText()).toLowerCase();
     expect(text).not.toContain("sim:");
@@ -42,7 +43,8 @@ test.describe("at 1440px", () => {
       .filter({ has: page.getByTestId("thin-listing") })
       .evaluateAll((els) => els.map((el) => el.getAttribute("data-testid")!.replace("market-row-", "")));
     expect(tagged.sort()).toEqual([...THIN].sort());
-    await expect(page.getByTestId("market-row-BCH")).toContainText("thin listing, $13M a day (9 Oct 2026)");
+    await expect(page.getByTestId("market-row-BCH")).toContainText("lightly traded");
+    await expect(page.getByTestId("market-row-BCH").getByTestId("thin-listing")).toHaveAttribute("title", "Lightly traded in the US ($13M a day, 9 Oct 2026), so the price can jump");
     await expect(page.getByTestId("market-row-KB")).toContainText("$25M a day");
   });
 
@@ -82,13 +84,13 @@ test.describe("at 1440px", () => {
     const row = page.getByTestId("market-row-MUFG");
     await expect(row.getByTestId("price")).toHaveText("99.50");
     await expect(row.getByTestId("change")).toHaveText(/^\+\d+\.\d{2}%$/);
-    await expect(page.getByTestId("prices-vintage")).toContainText("Live · last trade");
   });
 
-  test("before any quote, the as-of line dates the prices to their close", async ({ page }) => {
-    await page.route("**/api/stream*", (route) => route.abort());
+  test("the head and the Prices table use plain words, none of the review's jargon (I38)", async ({ page }) => {
     await page.goto("/market");
-    await expect(page.getByTestId("prices-vintage")).toHaveText(/^(Last close, \d{1,2} \w{3} \d{4}|Latest trade|Last trade)/);
+    // Phase 21 step 3 widens this from the head and Prices to the whole page, once the ledger is reworded.
+    const text = [await page.locator("main header").innerText(), await page.getByRole("region", { name: "Prices" }).innerText()].join("\n");
+    expect(text).not.toMatch(/sensor|tripped|σ|\bband\b|thin listing|\bSSE\b|\bclosed\b/i);
   });
 
   test("has no WCAG 2.1 AA violations", async ({ page }) => {
@@ -111,6 +113,13 @@ test.describe("at 390px", () => {
     // without a sideways scroll at this width.
     const change = await row.getByTestId("change").boundingBox();
     expect(change!.x + change!.width).toBeLessThanOrEqual(390);
+  });
+
+  test("the head and the Prices table use plain words, none of the review's jargon (I38)", async ({ page }) => {
+    await page.goto("/market");
+    // Phase 21 step 3 widens this from the head and Prices to the whole page, once the ledger is reworded.
+    const text = [await page.locator("main header").innerText(), await page.getByRole("region", { name: "Prices" }).innerText()].join("\n");
+    expect(text).not.toMatch(/sensor|tripped|σ|\bband\b|thin listing|\bSSE\b|\bclosed\b/i);
   });
 
   test("has no WCAG 2.1 AA violations", async ({ page }) => {

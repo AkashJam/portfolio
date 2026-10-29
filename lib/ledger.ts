@@ -258,35 +258,28 @@ export type HeadKind = "tripped" | "quiet" | "empty";
 
 export interface Head {
   kind: HeadKind;
-  /** The bold lead of the line. */
-  word: string;
-  facts: string;
+  /** The sentence in plain words. */
+  text: string;
+  /** The entry it points at (`#japan-2026-10-15`), or null with no entry to point at. */
+  href: string | null;
 }
 
 /**
- * The line under the page's intro (market.html, market-quiet.html): what the
- * last close did, in the mocks' words. Tripped means a trip at the last close
- * (the ticker's `tripped`, decision 4); anything older reads quiet and says how
- * long ago, because a record does not refresh.
+ * The sentence in /market's state row (market.html): what the last close did and,
+ * when it did nothing, the last time it did. A move at the last close is named;
+ * anything older reads quiet and says how long ago, because a record does not
+ * refresh. Plain words only (I38): no "tripped", no "band", no "threshold".
  */
-export function headLine(events: LedgerEvent[], sensorCount = 18): Head {
-  if (events.length === 0) {
-    return { kind: "empty", word: "Nothing has tripped yet.", facts: `${sensorCount} of ${sensorCount} inside their band` };
-  }
-  const latest = events.filter((e) => e.sessionsAgo === events[0].sessionsAgo);
+export function headLine(events: LedgerEvent[]): Head {
+  if (events.length === 0) return { kind: "empty", text: "Nothing unusual yet", href: null };
   if (events[0].sessionsAgo === 0) {
-    const names = latest.map(entryHeading);
+    const names = events.filter((e) => e.sessionsAgo === 0).map(entryHeading);
     const subject = names.length === 1 ? names[0] : `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
-    const rest = sensorCount - latest.length;
-    return {
-      kind: "tripped",
-      word: `${subject} tripped at the last close.`,
-      facts: `${rest} of ${sensorCount} inside their band`,
-    };
+    return { kind: "tripped", text: `${subject} moved unusually at the last close`, href: `#${events[0].id}` };
   }
   return {
     kind: "quiet",
-    word: "Nothing past threshold.",
-    facts: `${sensorCount} of ${sensorCount} inside their band · last trip was ${entryHeading(events[0])}, ${sessionsAgoLabel(events[0].sessionsAgo)}`,
+    text: `Nothing unusual at the last close · last unusual move: ${entryHeading(events[0])}, ${sessionsAgoLabel(events[0].sessionsAgo)}`,
+    href: `#${events[0].id}`,
   };
 }

@@ -1,16 +1,15 @@
 import type { Metadata } from "next";
 
-import { FeedFreshnessProvider, FeedStatus } from "@/components/market/FeedStatus";
-import { MarketStateLine } from "@/components/market/MarketStateLine";
-import { SessionPill } from "@/components/market/SessionPill";
+import { FeedFreshnessProvider } from "@/components/market/FeedStatus";
+import { MarketHeadState } from "@/components/market/MarketHeadState";
 import { IndustriesStrip } from "@/components/market/IndustriesStrip";
 import { PricesTable, type PriceEntry } from "@/components/market/PricesTable";
 import { Ledger } from "@/components/market/Ledger";
-import { LedgerHead } from "@/components/market/LedgerHead";
 import { Container } from "@/components/shell/Container";
 import type { SectorTile } from "@/lib/industries";
 import { newestVintage } from "@/lib/prices";
 import { SECTORS } from "@/lib/sectors";
+import { headLine } from "@/lib/ledger";
 import { seedFromResponse } from "@/lib/market-session";
 import { tapeBySymbol, trippedSymbols } from "@/lib/tape";
 import { getEvents, getMarketState, getSensors, getSymbolSnapshot, getTape } from "@/lib/ticker-client";
@@ -20,7 +19,7 @@ import { cn } from "@/lib/utils";
 export const metadata: Metadata = pageMetadata({
   path: "/market",
   title: "Market — Akash James",
-  description: "Eighteen real instruments, one bank or telecom for each of thirteen countries and five global names, with each price dated.",
+  description: "Most days, markets just drift. One major company is watched for each of 13 countries, plus five global companies, and a move far larger than usual fetches the news behind it.",
 });
 
 // Plain-language headings, each with a lede: the explanation arrives before the
@@ -93,30 +92,26 @@ export default async function MarketPage() {
       <Container className="space-y-16 py-16">
         <header>
           <h1 className="text-h1 font-light">Market</h1>
-          <p className={LEDE}>
-            Eighteen real instruments: one bank or telecom for each of thirteen countries, and five global names, read
-            once a day at the close. When one moves further than it usually does, the news that explains it is fetched,
-            and nothing is fetched when nothing moves. The page is quiet by construction, not by filtering.
+          <p className="mt-4 max-w-measure text-lead text-text">
+            Most days, markets just drift. This page waits for the days they don&rsquo;t.
           </p>
-          <MarketStateLine initial={initialState} renderedAt={renderedAt} newestAsOf={newestAsOf} />
-          {events !== null && <LedgerHead events={ledger} />}
+          <p className="mt-2.5 max-w-measure text-body leading-relaxed text-read">
+            One major company is watched for each of 13 countries, plus five global companies. Prices stream live while
+            New York trades. At each close, a move far larger than usual fetches the news that explains it. Most days
+            nothing appears here, because nothing unusual happened.
+          </p>
+          <MarketHeadState
+            initial={initialState}
+            renderedAt={renderedAt}
+            newestAsOf={newestAsOf}
+            head={events !== null ? headLine(ledger) : null}
+          />
         </header>
 
-        <section aria-labelledby="prices" className="reveal">
-          <div className="flex flex-wrap items-center gap-3">
-            <h2 id="prices" className="text-h2 font-medium">
-              Prices
-            </h2>
-            <FeedStatus fresh={<SessionPill initial={initialState} />} />
-          </div>
-          <p className={cn(LEDE, "mb-6")}>
-            One bank or telecom per country, plus five global industries. A move in a country&rsquo;s name is about
-            that country; a move in a global name is about the world.
-          </p>
+        <section aria-label="Prices" className="reveal !mt-8">
           {entries.length > 0 ? (
             <PricesTable
               entries={entries}
-              renderedAt={renderedAt}
               initialState={initialState}
               tape={tapeBySym}
               tripped={tripped}

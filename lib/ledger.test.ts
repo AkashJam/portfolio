@@ -153,30 +153,35 @@ describe("sentence", () => {
 });
 
 describe("the head of the ledger", () => {
-  it("is tripped when the last close tripped something, naming it", () => {
+  it("names the move at the last close and points at its entry", () => {
     const h = headLine(events);
     expect(h.kind).toBe("tripped");
-    expect(h.word).toBe("Japan tripped at the last close.");
-    expect(h.facts).toBe("17 of 18 inside their band");
+    expect(h.text).toBe("Japan moved unusually at the last close");
+    expect(h.href).toBe(`#${events[0].id}`);
   });
 
-  it("names several when several tripped at once", () => {
+  it("names several when several moved at once", () => {
     const two = [events[0], { ...events[2], sessionsAgo: 0 }, ...events.slice(3)];
-    expect(headLine(two).word).toBe("Japan and Brazil tripped at the last close.");
-    expect(headLine(two).facts).toBe("16 of 18 inside their band");
+    expect(headLine(two).text).toBe("Japan and Brazil moved unusually at the last close");
     const three = [events[0], { ...events[1], sessionsAgo: 0 }, { ...events[2], sessionsAgo: 0 }];
-    expect(headLine(three).word).toBe("Japan, South Korea and Brazil tripped at the last close.");
+    expect(headLine(three).text).toBe("Japan, South Korea and Brazil moved unusually at the last close");
   });
 
-  it("is quiet when the newest entry is older, and says how long ago", () => {
+  it("is quiet when the newest entry is older, says how long ago and points at it", () => {
     const h = headLine(events.slice(1));
     expect(h.kind).toBe("quiet");
-    expect(h.word).toBe("Nothing past threshold.");
-    expect(h.facts).toBe("18 of 18 inside their band · last trip was South Korea, 9 sessions ago");
+    expect(h.text).toBe("Nothing unusual at the last close · last unusual move: South Korea, 9 sessions ago");
+    expect(h.href).toBe(`#${events[1].id}`);
   });
 
-  it("is empty with no events", () => {
-    expect(headLine([]).kind).toBe("empty");
+  it("is empty with no events, and has nothing to point at", () => {
+    expect(headLine([])).toEqual({ kind: "empty", text: "Nothing unusual yet", href: null });
+  });
+
+  it("uses none of the review's jargon", () => {
+    for (const h of [headLine(events), headLine(events.slice(1)), headLine([])]) {
+      expect(h.text).not.toMatch(/tripped|band|threshold|sensor/i);
+    }
   });
 });
 

@@ -33,8 +33,11 @@ test.describe("tripped, at 1440px", () => {
     await page.goto("/market");
     const line = page.getByTestId("ledger-line");
     await expect(line).toHaveAttribute("data-kind", "tripped");
-    await expect(line).toContainText("Japan and Canada tripped at the last close.");
-    await expect(line).toContainText("16 of 18 inside their band");
+    await expect(line).toContainText("Japan and Canada moved unusually at the last close");
+    await expect(line.getByRole("link")).toHaveAttribute("href", /^#(japan|canada)-/);
+    // I38: the head and the Prices table use the plain words (step 3 widens this to the whole page).
+    const text = [await page.locator("main header").innerText(), await page.getByRole("region", { name: "Prices" }).innerText()].join("\n");
+    expect(text).not.toMatch(/sensor|tripped|σ|\bband\b|thin listing|\bSSE\b|\bclosed\b/i);
     await expect(page.locator('header a[href="/market"] [data-market-state]')).toHaveAttribute("data-market-state", "tripped");
   });
 
@@ -184,7 +187,7 @@ test.describe("tripped, at 1440px", () => {
     await expect(ca.getByTestId("coverage-pending")).toContainText("has not been fetched yet");
   });
 
-  test("the tape has a sparkline and the trigger's sigma for each sensor", async ({ page }) => {
+  test("the tape has a sparkline for each company and no sigma column", async ({ page }) => {
     await page.goto("/market");
     const rows = page.locator("[data-testid^=market-row-]");
     await expect(rows).toHaveCount(18);
@@ -193,13 +196,9 @@ test.describe("tripped, at 1440px", () => {
     await expect(page.getByTestId("sparkline-empty")).toHaveCount(0);
     const mufg = page.getByTestId("market-row-MUFG");
     await expect(mufg).toHaveAttribute("data-tripped", "true");
-    await expect(mufg.getByTestId("sigma")).toContainText("−0.8σ");
-    // The tape colours a σ only past the default 2.5σ (lib/tape.ts): it does not carry
-    // each event's threshold. So the tripped row is tinted, and its −0.8σ stays muted.
-    await expect(mufg.getByTestId("sigma").locator("b")).toHaveCSS("color", "rgb(139, 146, 155)"); // --text-muted
-    await expect(page.getByTestId("market-row-RY").getByTestId("sigma")).toContainText("−1.0σ");
-    await expect(page.getByTestId("market-row-BCH").getByTestId("sigma")).toContainText("+1.4σ");
-    await expect(page.getByRole("columnheader", { name: "σ · last close" })).toBeVisible();
+    // The σ column is gone (I38) and so is the Sensor column (I40).
+    await expect(page.getByTestId("sigma")).toHaveCount(0);
+    await expect(page.getByRole("columnheader")).toHaveText(["Country", "Last 60 trading days", "Last", "Change"]);
     await expect(page.locator("[data-tripped=true]")).toHaveCount(2); // Japan and Canada
   });
 
@@ -231,8 +230,8 @@ test.describe("quiet", () => {
     await page.goto("/market");
     const line = page.getByTestId("ledger-line");
     await expect(line).toHaveAttribute("data-kind", "quiet");
-    await expect(line).toContainText("Nothing past threshold.");
-    await expect(line).toContainText("18 of 18 inside their band · last trip was South Korea, 2 sessions ago");
+    await expect(line).toContainText("Nothing unusual at the last close · last unusual move: South Korea, 2 sessions ago");
+    await expect(line.getByRole("link")).toHaveAttribute("href", "#korea-2026-10-06");
     await expect(page.locator('header a[href="/market"] [data-market-state]')).toHaveAttribute("data-market-state", "quiet");
     // Still the head of the ledger, but calm: no tint, and the date carries its age.
     await expect(page.getByTestId("ledger-lead")).toHaveAttribute("id", "korea-2026-10-06");
@@ -254,7 +253,7 @@ test.describe("quiet", () => {
     await expect(page.getByTestId("market-state-line")).toHaveAttribute("data-tone", "closed");
     await expect(page.locator("[data-session]")).toHaveAttribute("data-session", "closed");
     await expect(page.getByTestId("ledger-lead")).toBeVisible();
-    await expect(page.getByTestId("ledger-line")).toContainText("Nothing past threshold.");
+    await expect(page.getByTestId("ledger-line")).toContainText("Nothing unusual at the last close");
     await axe(page);
   });
 });

@@ -117,7 +117,7 @@ describe("rowVintage and newestVintage", () => {
 
 describe("thinListing", () => {
   it("states the measured figure and its date", () => {
-    expect(thinListing(13, "2026-10-09")).toBe("thin listing, $13M a day (9 Oct 2026)");
+    expect(thinListing(13, "2026-10-09")).toBe("Lightly traded in the US ($13M a day, 9 Oct 2026), so the price can jump");
   });
 });
 

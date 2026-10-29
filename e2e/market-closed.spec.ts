@@ -34,21 +34,20 @@ const table = (page: Page) => page.locator("[data-session]");
 test.describe("at 1440px", () => {
   test.use({ viewport: { width: 1440, height: 900 } });
 
-  test("closed: the state line says when it opens and the last session, with no trip clause", async ({ page }) => {
+  test("closed: the state row says the last close and when it opens, in plain words", async ({ page }) => {
     await stub(page, closedStub(4 * HOUR + 12 * MIN + 30_000));
     await page.goto("/market");
     await expect(line(page)).toHaveAttribute("data-tone", "closed");
-    await expect(line(page)).toContainText("Closed.");
-    await expect(line(page)).toContainText("Opens in 4h 12m");
-    await expect(line(page)).toContainText(/last session \d{1,2} \w{3}/);
-    await expect(line(page)).not.toContainText("tripped");
+    await expect(line(page)).toContainText(/Last close \d{1,2} \w{3}, 16:00 ET · opens in 4h 12m/);
+    await expect(line(page)).not.toContainText("Closed");
+    await expect(page.getByText("Closed", { exact: false })).toHaveCount(0);
+    await expect(page.getByTestId("live-chip")).toHaveCount(0);
   });
 
-  test("closed: the table is frozen, in muted ink with no up or down colour, and says when it opens", async ({ page }) => {
+  test("closed: the table is frozen, in muted ink with no up or down colour", async ({ page }) => {
     await stub(page, closedStub(4 * HOUR + 12 * MIN + 30_000));
     await page.goto("/market");
     await expect(table(page)).toHaveAttribute("data-session", "closed");
-    await expect(page.getByTestId("prices-vintage")).toHaveText(/^Frozen · .+ · opens in 4h 12m$/);
 
     const row = page.getByTestId("market-row-MUFG");
     await expect(row.getByTestId("price")).toHaveCSS("color", MUTED);
@@ -57,11 +56,10 @@ test.describe("at 1440px", () => {
     await expect(table(page)).toHaveCSS("opacity", "1");
   });
 
-  test("closed: the stream pill says connected, not live", async ({ page }) => {
+  test("closed: no stream pill, and no word SSE, anywhere on the page (M15)", async ({ page }) => {
     await stub(page, closedStub(HOUR));
     await page.goto("/market");
-    await expect(page.getByText("SSE connected")).toBeVisible();
-    await expect(page.getByText("SSE live")).toHaveCount(0);
+    await expect(page.getByText("SSE")).toHaveCount(0);
   });
 
   test("closed: Industries is not dimmed and keeps its colours", async ({ page }) => {
@@ -93,7 +91,6 @@ test.describe("at 1440px", () => {
     await expect(table(page)).toHaveAttribute("data-session", "closed");
     await page.waitForTimeout(1500);
     await expect(price).not.toHaveText("99.50");
-    await expect(page.getByTestId("prices-vintage")).not.toContainText("Live");
   });
 
   test("the nav draws no dot while closed", async ({ page }) => {
@@ -111,20 +108,18 @@ test.describe("at 1440px", () => {
     await page.clock.install({ time: new Date() });
     await stub(page, closedStub(4 * HOUR + 12 * MIN + 30_000));
     await page.goto("/market");
-    await expect(line(page)).toContainText("Opens in 4h 12m");
+    await expect(line(page)).toContainText("opens in 4h 12m");
     await page.clock.fastForward(75_000);
-    await expect(line(page)).toContainText("Opens in 4h 11m");
-    await expect(page.getByTestId("prices-vintage")).toContainText("opens in 4h 11m");
+    await expect(line(page)).toContainText("opens in 4h 11m");
   });
 
-  test("open: no freeze, a live pill, and the open line", async ({ page }) => {
+  test("open: no freeze, and the LIVE chip is the state", async ({ page }) => {
     await stub(page, { feed: "live", session: "open", opensAt: null });
     await page.goto("/market");
     await expect(line(page)).toHaveAttribute("data-tone", "open");
-    await expect(line(page)).toContainText("Open.");
+    await expect(page.getByTestId("live-chip")).toHaveText("LIVE");
     await expect(table(page)).toHaveAttribute("data-session", "open");
-    await expect(page.getByTestId("prices-vintage")).not.toContainText("Frozen");
-    await expect(page.getByText("SSE live")).toBeVisible();
+    await expect(page.getByText("SSE")).toHaveCount(0);
   });
 
   test("unreachable: it says so, never closed, and does not freeze", async ({ page }) => {

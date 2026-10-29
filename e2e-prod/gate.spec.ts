@@ -66,13 +66,13 @@ test("a real quote reaches the browser and moves the symbol page without a reloa
   console.log(`GATE: ${SYMBOL} ${before} -> ${after}; quote ${quote.price} at ${quote.time}; observed ${new Date().toISOString()}`);
 });
 
-test("the Prices table row ticks and is dated", async ({ page }) => {
+test("the Prices table row ticks while the state row says LIVE", async ({ page }) => {
   await page.goto("/market");
   const row = page.getByTestId(`market-row-${SYMBOL}`);
   await expect(row).toBeVisible();
   const before = (await row.getByTestId("price").textContent())!;
   await expect(row.getByTestId("price")).not.toHaveText(before, { timeout: 120_000 });
-  await expect(page.getByTestId("prices-vintage")).toHaveText(/^Live · last trade \d{2}:\d{2} ET$/);
+  await expect(page.getByTestId("live-chip")).toBeVisible();
 });
 
 test("the home band is live on the fixed default", async ({ page }) => {
