@@ -26,6 +26,12 @@ export const sentence = (text: string): string => text.replace(/[\s.]+$/, "");
 
 export const euro = (value: number): string => money(value, "EUR");
 
+/** A multiplier as the change it makes: 1.0153 → "+1.5%". */
+const pctChange = (factor: number): string => {
+  const pct = Math.round((factor - 1) * 1000) / 10;
+  return `${pct < 0 ? "−" : "+"}${Math.abs(pct)}%`;
+};
+
 export interface ChainStep {
   key: "survey" | "derived" | "cpi" | "rate";
   title: string;
@@ -53,7 +59,7 @@ export function costChain(c: CityResponse): ChainStep[] {
   if (carried.value !== null && carried.from && carried.to && carried.factor !== null) {
     steps.push({
       key: "cpi",
-      title: `Carried to ${carried.to.year} prices`,
+      title: `Adjusted to ${carried.to.year} prices (${pctChange(carried.factor)})`,
       text:
         `${c.country}'s consumer price index was ${carried.from.index} in ${carried.from.year} and ${carried.to.index} in ${carried.to.year}, ` +
         `so × ${carried.factor}: ${money(carried.value, headline.currency)} in ${carried.to.year} prices. ` +

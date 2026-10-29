@@ -410,6 +410,23 @@ export const affordabilitySchema = z.object({
 });
 export type Affordability = z.infer<typeof affordabilitySchema>;
 
+// The change block (Phase 22, M22): a survey's own figure against consumer prices and average
+// spending per person over the same years, each 100 in the base year. Rates only, never a level.
+const changePointSchema = z.object({ year: z.number(), index: z.number() });
+export const changeBlockSchema = z.object({
+  baseYear: z.number(),
+  endYear: z.number(),
+  survey: z.array(changePointSchema).min(2),
+  prices: z.array(changePointSchema).min(2),
+  spending: z.array(changePointSchema).min(2),
+  rises: z.object({ survey: z.number(), prices: z.number(), spending: z.number() }),
+  note: z.string(),
+  surveySource: z.object({ label: z.string(), url: z.string(), detail: z.string(), retrieved: z.string() }).nullable(),
+  pricesSource: z.string(),
+  spendingSource: z.string(),
+});
+export type ChangeBlock = z.infer<typeof changeBlockSchema>;
+
 export const cityResponseSchema = z.object({
   generatedAt: z.string(),
   slug: z.string(),
@@ -420,6 +437,9 @@ export const cityResponseSchema = z.object({
   region: z.string(),
   verified: z.boolean(),
   survey: z.object({
+    kind: z.string(),
+    kindLabel: z.string(),
+    kindGloss: z.string(),
     instrument: z.string(),
     publisher: z.string(),
     headline: z.object({
@@ -437,6 +457,7 @@ export const cityResponseSchema = z.object({
     sources: z.array(z.object({ label: z.string(), url: z.string(), detail: z.string(), retrieved: z.string() })),
     nextRelease: z.string().nullable(),
     openItems: z.array(z.string()),
+    change: changeBlockSchema.nullable(),
   }),
   cost: z.object({
     carried: z.object({

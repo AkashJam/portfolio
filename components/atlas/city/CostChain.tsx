@@ -1,78 +1,70 @@
-import { costChain, dayLabel, euro, HOUSING_TAG_TEXT, money, sentence } from "@/lib/city-cost";
+import type { ReactNode } from "react";
+
+import { HOUSING_TAG_TEXT, euro, money, sentence } from "@/lib/city-cost";
 import type { CityResponse } from "@/lib/market-schemas";
 
-const MUTED = "text-meta leading-relaxed text-text-muted";
+/** `€774`: the euro beside the local figure is whole euros, as in the mock. */
+const wholeEuro = (v: number): string => new Intl.NumberFormat("en-US", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(v);
 
 /**
- * *Cost of living* (Phase 16 step 4; bearing.md #114): the survey's own total as the
- * headline, its housing assumption in plain words, a second line without housing
- * where the survey itemises it, and then the chain, each step a citation with its
- * year and source.
+ * The survey's own figure, named by its kind (Phase 22 step 4, M22; bearing.md #114;
+ * mockups/site-review/atlas-city.html): "Poverty line", "Benefit standard", with the kind's
+ * one-line gloss, the local figure first and the euro beside it, the second lines under it,
+ * what the figure is and the few facts that qualify it. The basket split and the change block
+ * follow as children. The chain of steps that led to the euro figure, and the survey's sources,
+ * are behind "How this is calculated" (I57).
  */
-export function CostChain({ city }: { city: CityResponse }) {
+export function CostChain({ city, children }: { city: CityResponse; children?: ReactNode }) {
   const { survey, cost } = city;
   const h = survey.headline;
-  const steps = costChain(city);
+  const euroArea = cost.eur.reason === "euro";
+  const facts = [
+    `${HOUSING_TAG_TEXT[survey.housing.tag]}${survey.housing.note ? `: ${sentence(survey.housing.note)}` : ""}`,
+    ...(euroArea ? ["In euros, no conversion"] : []),
+    `${survey.publisher}, ${h.year}`,
+  ];
   return (
     <section aria-labelledby="cost" data-testid="cost">
-      <h2 id="cost" className="text-small font-semibold uppercase tracking-[0.16em] text-text">
-        Cost of living
-      </h2>
-      <p className="mt-1 max-w-measure text-small text-text-muted">How the headline figure is built.</p>
+      <p id="cost" data-testid="kind" data-kind={survey.kind} className="inline-block text-meta font-medium uppercase tracking-[0.12em] text-text-muted">
+        {survey.kindLabel}
+      </p>
+      <p data-testid="kind-gloss" className="mt-2 max-w-measure text-small text-text-muted">
+        {survey.kindGloss}
+      </p>
 
-      <div className="mt-5 flex flex-wrap items-end gap-x-6 gap-y-2">
-        <p data-testid="headline" className="font-mono text-4xl tabular-nums text-text sm:text-5xl">
+      <div className="mt-5 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+        <p data-testid="headline" className="font-mono text-4xl font-semibold tabular-nums text-text sm:text-[44px]">
           {money(h.value, h.currency)}
-          <span className="ml-2 text-body text-text-muted">a month · {h.year}</span>
+          <span className="ml-3 font-sans text-small font-normal text-text-muted">a month · {h.year}</span>
         </p>
-        {cost.eur.value !== null && cost.eur.reason !== "euro" && (
-          <p data-testid="headline-eur" className="font-mono text-xl tabular-nums text-read">
-            {euro(cost.eur.value)}
-            <span className="ml-2 text-small text-text-muted">{cost.eur.basis === "carried" ? `in ${cost.carried.year} prices` : "at the ECB's average"}</span>
-          </p>
+        {cost.eur.value !== null && !euroArea && (
+          <span data-testid="headline-eur" className="font-mono text-body font-medium tabular-nums text-read">
+            {wholeEuro(cost.eur.value)}
+            <span className="ml-2 font-sans text-small font-normal text-text-muted">
+              {cost.eur.basis === "carried" ? `in ${cost.carried.year} prices, at the ECB's ${cost.eur.year} average` : `at the ECB's ${cost.eur.year} average`}
+            </span>
+          </span>
         )}
       </div>
-      <p className="mt-2 max-w-measure text-small text-read">{sentence(h.label)}.</p>
       {survey.secondLines.map((l) => (
-        <p key={l.label} data-testid="second-line" className="mt-1.5 font-mono text-small tabular-nums text-read">
-          {l.label} {money(l.value, h.currency)}
-          {l.eur !== null && h.currency !== "EUR" && <span className="text-text-muted"> ({euro(l.eur)})</span>}
+        <p key={l.label} data-testid="second-line" className="mt-2 text-small text-text-muted">
+          <span>{l.label}</span>{" "}
+          <span className="font-mono tabular-nums text-read">
+            {money(l.value, h.currency)}
+            {l.eur !== null && h.currency !== "EUR" && <span className="text-text-muted"> ({euro(l.eur)})</span>}
+          </span>
         </p>
       ))}
-      <p data-testid="housing-tag" data-tag={survey.housing.tag} className="mt-2 max-w-measure text-small text-text-muted">
-        <b className="font-medium text-read">{HOUSING_TAG_TEXT[survey.housing.tag]}</b> · {survey.housing.note}
-      </p>
-
-      <ol data-testid="chain" className="mt-6 space-y-3 border-l border-hairline pl-5">
-        {steps.map((s) => (
-          <li key={s.key} data-step={s.key}>
-            <p className="text-small font-medium text-text">{s.title}</p>
-            <p className="max-w-measure text-small leading-relaxed text-read">{s.text}</p>
-            <p className={MUTED}>{s.source}</p>
+      <p className="mt-3 max-w-measure text-read">{sentence(h.label)}.</p>
+      <ul data-testid="facts" className="mt-3.5 flex flex-wrap gap-x-6 gap-y-2 text-meta text-text-muted">
+        {facts.map((f) => (
+          <li key={f} data-testid={f.startsWith("Housing") ? "housing-tag" : undefined} data-tag={f.startsWith("Housing") ? survey.housing.tag : undefined} className="flex items-baseline">
+            <span aria-hidden="true" className="mr-2 inline-block size-[5px] shrink-0 rounded-full bg-text-faint align-[2px]" />
+            {f}
           </li>
         ))}
-      </ol>
-      <p className="mt-4 max-w-measure text-small leading-relaxed text-text-muted">
-        {survey.instrument} is {city.country}&apos;s own method: {h.method} It is not interchangeable with another country&apos;s
-        survey, which is why no other city&apos;s figure sits beside it.
-      </p>
-
-      <h3 className="mt-6 text-small font-medium text-text">Sources</h3>
-      <ul data-testid="sources" className="mt-1.5 space-y-1">
-        {survey.sources.map((s) => (
-          <li key={s.label} className={MUTED}>
-            {s.url ? (
-              <a href={s.url} className="underline underline-offset-2 hover:text-read focus-visible:outline-2 focus-visible:outline-brand">
-                {s.label}
-              </a>
-            ) : (
-              s.label
-            )}
-            {s.detail ? ` · ${s.detail}` : ""} · retrieved {dayLabel(s.retrieved)}
-          </li>
-        ))}
-        {survey.nextRelease && <li className={MUTED}>next release: {survey.nextRelease}</li>}
       </ul>
+      {children}
     </section>
   );
 }

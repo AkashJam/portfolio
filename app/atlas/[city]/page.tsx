@@ -2,12 +2,16 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
-import { Affordability } from "@/components/atlas/city/Affordability";
 import { BasketBar } from "@/components/atlas/city/BasketBar";
+import { ChangeBlock } from "@/components/atlas/city/ChangeBlock";
 import { CostChain } from "@/components/atlas/city/CostChain";
 import { Economy } from "@/components/atlas/city/Economy";
 import { LongChart } from "@/components/atlas/city/LongChart";
+import { Method } from "@/components/atlas/city/Method";
 import { Container } from "@/components/shell/Container";
+import { LABEL } from "@/lib/atlas-labels";
+import { kindShort } from "@/lib/city-change";
+import { currencyReading, housingReading, shareReading } from "@/lib/city-reading";
 import { getAtlasCities, getAtlasCity } from "@/lib/ticker-client";
 import { cityParams } from "@/lib/static-params";
 import { pageMetadata } from "@/lib/metadata";
@@ -48,7 +52,8 @@ export default async function CityPage({ params }: PageProps<"/atlas/[city]">) {
 
   const cur = city.survey.headline.currency;
   const euroArea = city.charts.currency.reason === "euro";
-  const housingBehind = city.charts.housing.behind;
+  const { shares, currency, housing } = city.charts;
+  const kind = kindShort(city.survey.kind, city.survey.kindLabel);
   return (
     <Container className="space-y-14 py-16">
       <header>
@@ -81,9 +86,10 @@ export default async function CityPage({ params }: PageProps<"/atlas/[city]">) {
         )}
       </header>
 
-      <CostChain city={city} />
-      <Affordability city={city} />
-      <BasketBar city={city} />
+      <CostChain city={city}>
+        <BasketBar city={city} />
+        <ChangeBlock block={city.survey.change} city={city.city} country={city.country} kindLabel={kind} />
+      </CostChain>
 
       <section aria-labelledby="charts" className="reveal space-y-10">
         <h2 id="charts" className="text-small font-semibold uppercase tracking-[0.16em] text-text">
@@ -91,40 +97,35 @@ export default async function CityPage({ params }: PageProps<"/atlas/[city]">) {
         </h2>
         <LongChart
           id="shares"
-          title="Share price index"
-          chart={city.charts.shares}
+          title={LABEL.shares.short}
+          chart={shares}
           scale="log"
           unit="index, 2015 = 100"
-          caption={`OECD · monthly · local currency · index, 2015 = 100 · nominal, ${euroArea ? "in euros" : `in ${cur}: read it beside the currency below`}`}
+          reading={shares.series ? shareReading(shares.series, cur, euroArea) : null}
         />
-        {/* The euro has no rate against itself, so a euro page has no currency card to show, and
-            nothing below it for the share price caption to point at (phase18.md step 5, M23). */}
+        {/* The euro has no rate against itself, so a euro page has no currency card to show (phase18.md step 5, M23). */}
         {!euroArea && (
           <LongChart
             id="currency"
             title={`${cur} per euro`}
-            chart={city.charts.currency}
+            chart={currency}
             scale="log"
             unit={`${cur} per euro`}
-            caption={`ECB reference rate · monthly average from 1999 · ${cur} per euro: a rising line is a weakening ${cur}`}
+            reading={currency.series ? currencyReading(currency.series, cur) : null}
           />
         )}
         <LongChart
           id="housing"
-          title="House prices"
-          chart={city.charts.housing}
+          title={LABEL.housing.name}
+          chart={housing}
           scale="linear"
           unit="real, 2010 = 100"
-          caption="BIS real residential property prices · quarterly · 2010 = 100, indexed to this country's own 2010, so only the trajectory compares across countries"
-          note={
-            housingBehind > 0
-              ? `This series ends ${housingBehind / 3 === 1 ? "a quarter" : `${housingBehind / 3} quarters`} behind the other countries' (${city.charts.housing.asOf}). /atlas ends every change measure at the same year, so the lag never shows there.`
-              : null
-          }
+          reading={housing.series ? housingReading(housing.series, housing.asOf, housing.behind) : null}
         />
       </section>
 
       <Economy city={city} />
+      <Method city={city} />
     </Container>
   );
 }

@@ -31,7 +31,7 @@ describe("costChain", () => {
     const steps = costChain(base);
     expect(steps.map((s) => s.key)).toEqual(["survey", "cpi", "rate"]);
     expect(steps[0].text).toContain("€1,571 a month, 2014");
-    expect(steps[1].title).toBe("Carried to 2025 prices");
+    expect(steps[1].title).toBe("Adjusted to 2025 prices (+26.7%)");
     expect(steps[1].text).toContain("100 in 2014 and 126.7 in 2025");
     expect(steps[1].text).toContain("× 1.267");
     expect(steps[2].text).toBe("France uses the euro: no conversion.");

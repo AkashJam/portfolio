@@ -3,9 +3,12 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
 // Phase 16 step 4: /atlas/[city] against the real city endpoint (the embedded
-// snapshots, so no vendor key and no market hours). Tokyo is the no-carry case with
-// a hatched welfare ceiling; Dijon is carried on CPI from 2014 and says its rent is
-// a medium-city rent; Milan publishes a total and no split, and is in the euro area.
+// snapshots, so no vendor key and no market hours). Phase 22 step 4: the kind as the
+// heading, the change block where a survey has two editions, one reading per chart and
+// the method behind a toggle. Tokyo is the no-carry case with a hatched welfare ceiling
+// and no change block; Dijon is carried on CPI from 2014 and says its rent is a
+// medium-city rent; Milan publishes a total and no split, is in the euro area and has
+// the change block (ISTAT from 2014); Toronto has one from 2020.
 
 async function axe(page: Page) {
   const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();
@@ -25,11 +28,19 @@ test.describe("at 1440px", () => {
     await expect(page.getByTestId("second-line")).toContainText("Excluding housing ¥77,220 (€45");
     await expect(page.getByTestId("housing-tag")).toHaveAttribute("data-tag", "welfare_ceiling");
 
-    const chain = page.getByTestId("chain");
-    await expect(chain.locator("[data-step=survey]")).toContainText("Public assistance standard");
-    await expect(chain.locator("[data-step=cpi]")).toContainText("No carry-forward");
-    await expect(chain.locator("[data-step=cpi]")).toContainText("(2026) is not older than Japan's latest CPI year (2025)");
-    await expect(chain.locator("[data-step=rate]")).toContainText("the ECB's 2025 average");
+    // The kind names the figure, with its gloss; the chain of steps is behind the toggle.
+    await expect(page.getByTestId("kind")).toHaveText("Benefit standard or reference budget");
+    await expect(page.getByTestId("kind-gloss")).toHaveText("What the state pays as a basic benefit, or prices a basket of essentials at.");
+    await expect(page.getByTestId("headline-eur")).toContainText("at the ECB's 2025 average");
+    const method = page.getByTestId("method");
+    await expect(method).toHaveJSProperty("open", false);
+    await expect(method).toContainText("Public assistance standard");
+    await expect(method).toContainText("No carry-forward");
+    await expect(method).toContainText("(2026) is not older than Japan's latest CPI year (2025)");
+    await expect(method).toContainText("the ECB's 2025 average");
+    // Japan has one edition on file: one line instead of the change block.
+    await expect(page.getByTestId("no-change")).toContainText("No earlier edition of this benefit standard is on file");
+    await expect(page.getByTestId("change-block")).toHaveCount(0);
 
     await expect(page.getByTestId("segment")).toHaveCount(4);
     await expect(page.locator("[data-testid=segment][data-hatched]")).toHaveCount(1);
@@ -43,10 +54,11 @@ test.describe("at 1440px", () => {
     await expect(page.getByTestId("headline")).toContainText("€1,571");
     await expect(page.getByTestId("headline")).toContainText("2014");
     await expect(page.getByTestId("housing-tag")).toContainText("priced in Dijon and Tours");
-    const cpi = page.getByTestId("chain").locator("[data-step=cpi]");
-    await expect(cpi).toContainText(/Carried to \d{4} prices/);
-    await expect(cpi).toContainText("consumer price index was");
-    await expect(page.getByTestId("chain").locator("[data-step=rate]")).toContainText("uses the euro: no conversion");
+    const method = page.getByTestId("method");
+    await expect(method).toContainText(/Adjusted to \d{4} prices \(\+[\d.]+%\)/);
+    await expect(method).toContainText("consumer price index was");
+    await expect(method).toContainText("uses the euro: no conversion");
+    await expect(page.getByTestId("headline-eur")).toHaveCount(0);
     await expect(page.getByTestId("part")).toHaveCount(9);
     // France has no market sensor, so no link to a record.
     await expect(page.getByTestId("sensor-link")).toHaveCount(0);
@@ -64,12 +76,11 @@ test.describe("at 1440px", () => {
     await expect(page.getByTestId("part").last()).toContainText("Health and insurance, net of the medical card");
     await expect(page.getByTestId("part").last()).toContainText("full medical card deduction €26.48");
     await expect(page.getByTestId("sources")).toContainText("MESL 2026");
-    // Ireland's income figure carries a caveat on that one cell elsewhere; the survey is the point here.
-    await expect(page.getByTestId("afford-ratio")).toBeVisible();
   });
 
   test("Amsterdam: verified on the July 2025 edition, which the page says may be superseded", async ({ page }) => {
     await page.goto("/atlas/netherlands");
+    await page.evaluate(() => document.querySelectorAll("details").forEach((d) => (d.open = true)));
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Amsterdam");
     await expect(page.getByTestId("headline")).toContainText("€1,747");
     await expect(page.getByTestId("headline")).toContainText("2025");
@@ -80,7 +91,12 @@ test.describe("at 1440px", () => {
 
   test("Milan publishes a total, not a split, and has no currency line", async ({ page }) => {
     await page.goto("/atlas/italy");
-    await expect(page.getByTestId("headline")).toContainText("€1,224.64");
+    await expect(page.getByTestId("headline")).toContainText("€1,256.37");
+    await expect(page.getByTestId("headline")).toContainText("2025");
+    await expect(page.getByTestId("kind")).toHaveText("Poverty line");
+    // The euro page has no euro beside the figure, no "EUR per euro" and says "in euros".
+    await expect(page.getByTestId("headline-eur")).toHaveCount(0);
+    await expect(page.getByTestId("facts")).toContainText("In euros, no conversion");
     await expect(page.getByTestId("no-split")).toContainText("No basket split");
     await expect(page.getByTestId("basket")).toHaveCount(0);
     // The euro has no rate against itself: no currency card, and nothing for the share caption to point at.
@@ -112,42 +128,40 @@ test.describe("at 1440px", () => {
     }
   });
 
-  test("affordability: the ratio with both legs, their years and the gap", async ({ page }) => {
+  test("Milan's change block sets the poverty line against prices and spending since 2014", async ({ page }) => {
+    await page.goto("/atlas/italy");
+    const block = page.getByTestId("change-block");
+    await expect(block.getByRole("heading", { name: "How it has changed since 2014" })).toBeVisible();
+    await expect(page.getByTestId("change-reading")).toHaveText(
+      "Milan's poverty line rose 23% from 2014 to 2025, in step with prices, while what a person in Italy spends on average rose 35%.",
+    );
+    await expect(block.locator("polyline")).toHaveCount(3);
+    await expect(block.locator("svg")).toHaveAttribute("aria-label", /each 100 in 2014, to 2025/);
+    await expect(block).toContainText("Each line is 100 in 2014.");
+    await expect(page.getByTestId("no-change")).toHaveCount(0);
+  });
+
+  test("Toronto has a change block from 2020, and Tokyo none", async ({ page }) => {
+    await page.goto("/atlas/canada");
+    await expect(page.getByTestId("change-block").getByRole("heading")).toHaveText("How it has changed since 2020");
+    await expect(page.getByTestId("change-reading")).toContainText("Toronto's poverty line");
     await page.goto("/atlas/japan");
-    const block = page.getByTestId("affordability");
-    await expect(block).toContainText("Derived on this page");
-    await expect(page.getByTestId("afford-ratio")).toHaveText("56.1%");
-    await expect(block).toContainText("The cost of living is 56.1% of what a typical person in Japan spends.");
-    await expect(page.getByTestId("afford-cost")).toContainText("€774.48 a month, the survey's own figure in 2026 prices, converted at the ECB's 2025 average");
-    await expect(page.getByTestId("afford-spending")).toContainText("€1,381 a month per person · World Bank");
-    await expect(page.getByTestId("afford-spending")).toContainText("2024");
-    await expect(page.getByTestId("afford-gap")).toContainText("The legs are 2 years apart");
-    // A 3.2% inflation does not make a two-year gap worth a caveat.
-    await expect(page.getByTestId("afford-caveat")).toHaveCount(0);
-    // It sits between the chain and the basket, and never on the comparison page.
-    const order = await page.locator("#cost, #afford, [data-testid=basket]").evaluateAll((els) => els.map((e) => e.id || e.getAttribute("data-testid")));
-    expect(order).toEqual(["cost", "afford", "basket"]);
+    await expect(page.getByTestId("change-block")).toHaveCount(0);
   });
 
-  test("affordability: a carried figure shares a year with the spending", async ({ page }) => {
-    await page.goto("/atlas/france");
-    await expect(page.getByTestId("afford-gap")).toHaveText(/^Both legs are in \d{4}\.$/);
-    await expect(page.getByTestId("afford-cost")).toContainText("the survey's figure carried to");
-  });
-
-  test("affordability: a fast-moving price level is called out, and the ratio is said to be overstated", async ({ page }) => {
-    await page.goto("/atlas/turkiye");
-    const caveat = page.getByTestId("afford-caveat");
-    await expect(caveat).toContainText("Türkiye's prices rose");
-    await expect(caveat).toContainText("overstated");
-  });
-
-  test("affordability: an average-consumption survey is worded as average against average", async ({ page }) => {
-    await page.goto("/atlas/china");
-    await expect(page.getByTestId("affordability")).toHaveAttribute("data-measure", "average");
-    await expect(page.getByTestId("affordability")).toContainText("The average spend here is");
-    await expect(page.getByTestId("afford-cost")).toContainText("Average spend, Shanghai");
-    await expect(page.getByTestId("afford-spending")).toContainText("National average spend, China");
+  test("each chart has a one-line reading, and the method sits behind the toggle", async ({ page }) => {
+    await page.goto("/atlas/japan");
+    await expect(page.getByTestId("chart-shares-reading")).toHaveText(/^At [\d,]+ in [A-Z][a-z]+ \d{4}, .* its 2015 level, in yen and before inflation\. The chart below shows what the yen was worth in euros\.$/);
+    await expect(page.getByTestId("chart-currency-reading")).toHaveText(/^[\d.,]+ yen to the euro in [A-Z][a-z]+ \d{4}, .*\. A rising line is a weaker yen\.$/);
+    await expect(page.getByTestId("chart-housing-reading")).toHaveText(/^\d+% (above|below) 2010, and .*\./);
+    // Dataset IDs and the scale note are in the method, not under the charts.
+    await expect(page.getByTestId("chart-shares")).not.toContainText("SPASTT01");
+    const method = page.getByTestId("method");
+    await expect(method).toHaveJSProperty("open", false);
+    await expect(method).toContainText("SPASTT01JPM661N");
+    await expect(method).toContainText("logarithmic scale");
+    await method.locator("summary").click();
+    await expect(method).toHaveJSProperty("open", true);
   });
 
   test("the comparison page carries no ratio", async ({ page }) => {
@@ -161,15 +175,16 @@ test.describe("at 1440px", () => {
     expect(html).toContain('data-scale="log"');
     expect(html).toContain('data-scale="linear"');
     expect((html.match(/<polyline/g) ?? []).length).toBeGreaterThanOrEqual(3);
-    expect(html).toContain("logarithmic scale: equal distance is equal percentage change");
+    expect(html).toContain("equal distance is equal percentage change");
     expect(html).toContain("a quarter behind");
   });
 
   test("the economy: five dated figures and the composition with its derived residual", async ({ page }) => {
     await page.goto("/atlas/japan");
     for (const key of ["inflation", "spending", "gni", "unemployment", "life"]) {
-      await expect(page.getByTestId(`macro-${key}`)).toContainText(/World Bank/);
+      await expect(page.getByTestId(`macro-${key}`)).toContainText(/\b20\d\d\b/);
     }
+    await expect(page.getByTestId("method")).toContainText("World Bank");
     await expect(page.getByTestId("composition-residual")).toContainText("Taxes less subsidies 0.8%");
     await expect(page.getByTestId("composition-industry")).toContainText("manufacturing 18.8%");
   });

@@ -124,11 +124,18 @@ describe("ticker API contract", () => {
     expect(tokyo?.cost.carried.reason).toBeTruthy();
     expect(tokyo?.cost.eur.rate).toBeGreaterThan(0);
     expect(tokyo?.charts.currency.series?.start).toBe("1999-01");
-    // Phase 16 step 5: the ratio names both legs and the years between them.
+    // Phase 22 step 1 (M22): the kind names the figure, from a closed set, with its gloss.
+    expect(tokyo?.survey.kind).toBe("benefit_or_reference_budget");
+    expect(tokyo?.survey.kindLabel).toBeTruthy();
+    expect(tokyo?.survey.kindGloss).toBeTruthy();
+    // Step 2: a city with one edition has no change block, and Italy's runs 2014 to 2025.
+    expect(tokyo?.survey.change).toBeNull();
+    const milan = await getAtlasCity("italy");
+    expect(milan?.survey.change?.baseYear).toBe(2014);
+    expect(milan?.survey.change?.survey[0].index).toBe(100);
+    expect(milan?.survey.change?.rises.survey).toBeGreaterThan(0);
+    // The ratio is still in the response until Phase 24, and the schema still parses it; no page reads it.
     expect(tokyo?.affordability.ratio).toBeGreaterThan(0);
-    expect(tokyo?.affordability.gapYears).toBeTypeOf("number");
-    expect(tokyo?.affordability.spending.asOf).toBeTruthy();
-    expect((await getAtlasCity("china"))?.affordability.measure).toBe("average");
     const dijon = await getAtlasCity("france");
     expect(dijon?.city).toBe("Dijon");
     expect(dijon?.cost.carried.value).toBeGreaterThan(1571);
