@@ -31,3 +31,11 @@ export async function openMoreColumns(page: Page) {
   const toggle = page.getByRole("button", { name: /More columns/ });
   if (await toggle.count()) await toggle.click();
 }
+
+/** Opens the Map's "Change measure or period" menu (closed by default, phase18.md I58). */
+export async function openMapMenu(page: Page) {
+  const details = page.locator("#map details");
+  if (!(await details.evaluate((e) => (e as HTMLDetailsElement).open))) {
+    await details.locator("summary").click();
+  }
+}

@@ -5,10 +5,13 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useAtlasWindow } from "@/components/atlas/AtlasWindow";
 import { MapControls } from "@/components/atlas/MapControls";
 import { MINUS, windowLabel } from "@/lib/atlas";
+import { LABEL } from "@/lib/atlas-labels";
+import { mapSearch } from "@/lib/atlas-url";
 import {
   MEASURE_NAME,
   NO_FIGURE,
   NO_ROW,
+  NO_ROW_LINE,
   TILE,
   TILES,
   caveatKind,
@@ -23,7 +26,6 @@ import {
   mapValue,
   parseAddress,
   schemeOf,
-  serialiseAddress,
   switchMeasure,
   textColourFor,
   viewLabel,
@@ -36,12 +38,14 @@ import { cn } from "@/lib/utils";
 import geometry from "@/data/atlas-map.json";
 
 /**
- * The Where and when section (Phase 11 steps 5 and 6; mockups/atlas-v1
- * atlas.html #map and atlas-map.html). Every country colour is the change for
+ * The Map tab (Phase 11 steps 5 and 6; Phase 22 I58, mockups/site-review/atlas.html
+ * .p-map): one measure and period, the options behind a menu, a larger legend and
+ * the countries outside the atlas hatched. Every country colour is the change for
  * one measure over the shared window or over one year, on a scale set by the
  * data in view (lib/atlas-map.ts). The real world map at 768px and up, equal
  * tiles below; each country links to its table row. The measure and year ride
- * in the address (`?measure=&year=`, defaults omitted, replaced in place).
+ * in the address (`?measure=&year=`, defaults omitted, replaced in place, the rest
+ * of the query left alone).
  */
 
 const MAP = geometry as unknown as {
@@ -80,6 +84,7 @@ export function WorldMap({
       },
   );
   const [ready, setReady] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [playing, setPlaying] = useState(false);
   const bounds = useMemo(
     () => yearBounds(rows, state.measure),
@@ -90,7 +95,10 @@ export function WorldMap({
   // first year, and the sync below rewrites the address to say so.
   useEffect(() => {
     const read = () => {
+      const q = new URLSearchParams(window.location.search);
       setState(parseAddress(window.location.search, rows));
+      // A measure or a year in the address means the options were used: show them.
+      setMenuOpen(q.has("measure") || q.has("year"));
       setReady(true);
     };
     read();
@@ -98,7 +106,8 @@ export function WorldMap({
 
   useEffect(() => {
     if (!ready) return;
-    const search = serialiseAddress(state);
+    // Only the map's own parameters: the tab, the home city and the other views' settings are in the same query.
+    const search = mapSearch(window.location.search, state);
     if (search !== window.location.search) {
       window.history.replaceState(
         null,
@@ -169,56 +178,65 @@ export function WorldMap({
   }
 
   return (
-    <section id="map" className="reveal">
-      <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
-        <h2 className="text-lead font-medium">Where and when</h2>
-        <span className="text-small text-text-muted">
-          {MEASURE_NAME[state.measure]} {"·"} change {viewLabel(view, win, end)}
-        </span>
-      </div>
-
+    <section id="map" aria-label="Map" className="reveal">
       <div className="panel-elevated rounded-2xl p-5">
-        <MapControls
-          state={state}
-          bounds={bounds}
-          windowText={windowLabel(win, end)}
-          playing={playing}
-          onMeasure={onMeasure}
-          onPeriod={(p) => {
-            setPlaying(false);
-            setState((s) => ({ ...s, period: p }));
-          }}
-          onYear={(y) => {
-            setPlaying(false);
-            setState((s) => ({ ...s, period: "year", year: y }));
-          }}
-          onPlay={onPlay}
-        />
+        <h2 className="text-lead font-medium">
+          {LABEL[state.measure].name}
+          {", "}
+          <span className="whitespace-nowrap">{viewLabel(view, win, end)}</span>
+        </h2>
+        <details
+          open={menuOpen}
+          onToggle={(e) => setMenuOpen(e.currentTarget.open)}
+          className="mt-3"
+        >
+          <summary className="cursor-pointer text-small text-brand-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand">
+            Change measure or period {"▾"}
+          </summary>
+          <MapControls
+            state={state}
+            bounds={bounds}
+            windowText={windowLabel(win, end)}
+            playing={playing}
+            onMeasure={onMeasure}
+            onPeriod={(p) => {
+              setPlaying(false);
+              setState((s) => ({ ...s, period: p }));
+            }}
+            onYear={(y) => {
+              setPlaying(false);
+              setState((s) => ({ ...s, period: "year", year: y }));
+            }}
+            onPlay={onPlay}
+          />
+        </details>
 
-        <div className="mb-3 flex flex-wrap items-center gap-0.5 font-mono text-meta text-text-muted">
-          <span className="mx-2">{lo}</span>
-          {stops.map((s) => (
-            <i
-              key={s.value}
-              aria-hidden="true"
-              className="inline-block h-[9px] w-[18px]"
-              style={{ background: s.fill }}
-            />
-          ))}
-          <span className="mx-2">{formatMapChange(limit, digits)} or more</span>
+        <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 font-mono text-meta text-text-muted max-md:grid max-md:grid-cols-[1fr_auto]">
+          <span>{lo}</span>
+          <span
+            aria-hidden="true"
+            className="flex h-3 w-60 overflow-hidden rounded-[3px] max-md:order-first max-md:col-span-2 max-md:w-full"
+          >
+            {stops.map((s) => (
+              <i key={s.value} className="flex-1" style={{ background: s.fill }} />
+            ))}
+          </span>
+          <span>{formatMapChange(limit, digits)} or more</span>
           <span className="ml-3 inline-flex items-center max-md:hidden">
             <i
               aria-hidden="true"
-              className="mr-1.5 inline-block h-[9px] w-3 border border-hairline"
-              style={{ background: NO_ROW }}
+              className="mr-1.5 inline-block h-3 w-[18px] rounded-[3px]"
+              style={{
+                background: `repeating-linear-gradient(45deg, ${NO_ROW} 0 3px, ${NO_ROW_LINE} 3px 5px)`,
+              }}
             />
-            no atlas row
+            not one of the {rows.length}
           </span>
           {anyNoFigure && (
-            <span className="ml-3 inline-flex items-center">
+            <span className="inline-flex items-center max-md:col-span-2">
               <i
                 aria-hidden="true"
-                className="mr-1.5 inline-block h-[9px] w-3"
+                className="mr-1.5 inline-block h-3 w-[18px] rounded-[3px]"
                 style={{ background: NO_FIGURE }}
               />
               no figure
@@ -226,7 +244,7 @@ export function WorldMap({
           )}
         </div>
         {exceptions && (
-          <p className="mb-3 text-meta text-text-muted">{exceptions}</p>
+          <p className="mt-3 text-meta text-text-muted">{exceptions}</p>
         )}
 
         <svg
@@ -235,9 +253,15 @@ export function WorldMap({
           aria-label={`${label}, by country`}
           className="hidden h-auto w-full md:block"
         >
+          <defs>
+            <pattern id="norow" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+              <rect width="6" height="6" fill={NO_ROW} />
+              <line x1="0" y1="0" x2="0" y2="6" stroke={NO_ROW_LINE} strokeWidth="2" />
+            </pattern>
+          </defs>
           <path
             d={MAP.outline}
-            fill={NO_ROW}
+            fill="url(#norow)"
             className="stroke-canvas"
             strokeWidth={0.5}
           />
@@ -333,16 +357,9 @@ export function WorldMap({
               worse.{" "}
             </>
           )}
-          <span className="max-md:hidden">
-            <b className="font-medium text-read">
-              The darker grey is not {"“"}no change{"”"}
-            </b>
-            : it is a country with no atlas row, because it lacks a series some
-            column needs.{" "}
-          </span>
-          Every country here is also a row in the table below, which carries the
-          exact figure for the window; the map is for seeing where and when, the
-          table for reading values.
+          Every country here is also a row in the Countries tab, which carries
+          the exact figure for the window; the map is for seeing where and when,
+          the table for reading values.
         </p>
       </div>
     </section>

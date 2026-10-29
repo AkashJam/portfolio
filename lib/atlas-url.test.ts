@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { compareSearch, homeAddress, parseCompare, parseHashParts, parseTable, tableSearch, readHome, resolveView, viewAddress, withParam } from "@/lib/atlas-url";
+import { compareSearch, homeAddress, parseCompare, parseHashParts, mapSearch, parseTable, tableSearch, readHome, resolveView, viewAddress, withParam } from "@/lib/atlas-url";
 
 describe("parseHashParts", () => {
   it("reads sections, rows and the legacy home apart", () => {
@@ -86,5 +86,13 @@ describe("the countries table address", () => {
     expect(tableSearch("?view=countries", d)).toBe("?view=countries");
     expect(tableSearch("?view=countries", { more: true, key: "housing", dir: "desc" })).toBe("?view=countries&cols=more&sort=housing.desc");
     expect(tableSearch("?cols=more&sort=housing.desc&home=japan", d)).toBe("?home=japan");
+  });
+});
+
+describe("the map address", () => {
+  it("sets only measure and year and leaves the rest of the address alone", () => {
+    const state = { measure: "currency", period: "year", year: 2022 } as const;
+    expect(mapSearch("?view=map&home=japan&cols=more", state)).toBe("?view=map&home=japan&cols=more&measure=currency&year=2022");
+    expect(mapSearch("?view=map&measure=currency&year=2022", { measure: "housing", period: "window", year: 2024 })).toBe("?view=map");
   });
 });

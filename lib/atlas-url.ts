@@ -6,6 +6,7 @@
 
 import type { ColumnKey, SortDir } from "@/lib/atlas";
 import { MEASURES } from "@/lib/atlas-plot";
+import type { MapState } from "@/lib/atlas-map";
 import { CHIPS, type ChipId } from "@/lib/atlas-readings";
 import type { WindowStart } from "@/lib/market-schemas";
 
@@ -146,4 +147,14 @@ export function tableSearch(search: string, state: TableState): string {
   const isDefault = state.key === DEFAULT_SORT.key && state.dir === DEFAULT_SORT.dir;
   const s = withParam(search, "cols", state.more ? "more" : null);
   return withParam(s, "sort", isDefault ? null : `${state.key}${state.dir === "desc" ? ".desc" : ""}`);
+}
+
+// ---- Map (phase18.md I51, I58) ---------------------------------------------------
+// `?measure=` names the map's measure and `?year=` one year; housing over the whole
+// window is the default and is omitted. `parseAddress` in lib/atlas-map.ts reads them.
+
+/** The query after a map change; every other parameter (view, home, compare, table) is untouched. */
+export function mapSearch(search: string, state: MapState): string {
+  const s = withParam(search, "measure", state.measure === "housing" ? null : state.measure);
+  return withParam(s, "year", state.period === "year" ? String(state.year) : null);
 }

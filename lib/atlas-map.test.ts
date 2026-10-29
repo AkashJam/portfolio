@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
+import { mapSearch } from "@/lib/atlas-url";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -19,7 +20,6 @@ import {
   mapValue,
   parseAddress,
   schemeOf,
-  serialiseAddress,
   switchMeasure,
   textColourFor,
   yearBounds,
@@ -385,16 +385,16 @@ describe("figures", () => {
 describe("the address", () => {
   it("omits the defaults: housing over the whole window is an empty search", () => {
     expect(
-      serialiseAddress({ measure: "housing", period: "window", year: 2024 }),
+      mapSearch("", { measure: "housing", period: "window", year: 2024 }),
     ).toBe("");
     expect(
-      serialiseAddress({ measure: "currency", period: "window", year: 2024 }),
+      mapSearch("", { measure: "currency", period: "window", year: 2024 }),
     ).toBe("?measure=currency");
     expect(
-      serialiseAddress({ measure: "housing", period: "year", year: 2022 }),
+      mapSearch("", { measure: "housing", period: "year", year: 2022 }),
     ).toBe("?year=2022");
     expect(
-      serialiseAddress({ measure: "prices", period: "year", year: 2022 }),
+      mapSearch("", { measure: "prices", period: "year", year: 2022 }),
     ).toBe("?measure=prices&year=2022");
   });
 
@@ -413,7 +413,7 @@ describe("the address", () => {
         },
         { measure, period: "year" as const, year: 2022 },
       ]) {
-        expect(parseAddress(serialiseAddress(state), YROWS)).toEqual(state);
+        expect(parseAddress(mapSearch("", state), YROWS)).toEqual(state);
       }
     }
   });
@@ -422,7 +422,7 @@ describe("the address", () => {
     const s = parseAddress("?measure=prices&year=2010", YROWS);
     expect(s).toEqual({ measure: "prices", period: "year", year: 2011 });
     // and the caller rewrites the address to name it
-    expect(serialiseAddress(s)).toBe("?measure=prices&year=2011");
+    expect(mapSearch("", s)).toBe("?measure=prices&year=2011");
   });
 
   it("treats a year after the last the same way", () => {

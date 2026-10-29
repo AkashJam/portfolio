@@ -33,7 +33,10 @@ const DOWN = RAMP.down.rgb;
 const CURVE = 0.7;
 
 export const NO_FIGURE = "#2a3038"; // an atlas country with no figure in this view
-export const NO_ROW = "#161a20"; // a country with no atlas row at all
+// A country with no atlas row at all is hatched, not a flat grey: the flat grey was close to the
+// ocean's (phase18.md I58). The mock's pattern: this base with 45-degree lines.
+export const NO_ROW = "#13171d";
+export const NO_ROW_LINE = "#2a3038";
 
 const hex = (n: number) => Math.round(n).toString(16).padStart(2, "0");
 
@@ -382,13 +385,4 @@ export function parseAddress(search: string, rows: AtlasRow[]): MapState {
   const year = raw !== null && /^\d{4}$/.test(raw) ? Number(raw) : null;
   if (year === null) return { measure, period: "window", year: b.last };
   return { measure, period: "year", year: inRange(year, b) ? year : b.first };
-}
-
-/** `?measure=currency&year=2022`, or "" when everything is the default (housing, whole window). */
-export function serialiseAddress(state: MapState): string {
-  const q = new URLSearchParams();
-  if (state.measure !== "housing") q.set("measure", state.measure);
-  if (state.period === "year") q.set("year", String(state.year));
-  const s = q.toString();
-  return s ? `?${s}` : "";
 }

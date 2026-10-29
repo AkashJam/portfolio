@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
-import { openBuild } from "./atlas-hydrated";
+import { atlasHydrated as atlasReady, gotoAtlas, openBuild, openMapMenu } from "./atlas-hydrated";
 
 // Phase 11 step 5: the map. World map at 768px and up, equal tiles below,
 // every country a link to its table row. Needs the ticker (real /atlas/cities).
@@ -160,6 +160,7 @@ test.describe("controls at 1024px", () => {
 
   test("opens on housing, whole window, with no slider", async ({ page }) => {
     await page.goto("/atlas?view=map");
+    await openMapMenu(page);
     await expect(measureBtn(page, "Housing")).toHaveAttribute(
       "aria-checked",
       "true",
@@ -176,6 +177,7 @@ test.describe("controls at 1024px", () => {
     page,
   }) => {
     await page.goto("/atlas?view=map");
+    await openMapMenu(page);
     await expect(map(page).getByText(/^No figure:/)).toHaveCount(0);
     await measureBtn(page, "Currency").click();
     await expect(
@@ -210,6 +212,7 @@ test.describe("controls at 1024px", () => {
     page,
   }) => {
     await page.goto("/atlas?view=map");
+    await openMapMenu(page);
     await periodBtn(page, /One year/).click();
     await expect(slider(page)).toBeVisible();
     await expect(slider(page)).toHaveAttribute("min", "2010");
@@ -222,28 +225,30 @@ test.describe("controls at 1024px", () => {
     page,
   }) => {
     await page.goto("/atlas?view=map");
+    await openMapMenu(page);
     await periodBtn(page, /One year/).click();
     const before = await historyLength(page);
     await slider(page).fill("2022");
     await expect(
       page.getByRole("link", { name: /^Japan: .*change during 2022/ }),
     ).toBeAttached();
-    await expect(page).toHaveURL(/\/atlas\?year=2022(#.*)?$/);
+    await expect(page).toHaveURL(/\/atlas\?view=map&year=2022(#.*)?$/);
     await slider(page).fill("2018");
-    await expect(page).toHaveURL(/\/atlas\?year=2018/);
+    await expect(page).toHaveURL(/\/atlas\?view=map&year=2018/);
     expect(await historyLength(page)).toBe(before);
   });
 
   test("defaults are left out of the address", async ({ page }) => {
     await page.goto("/atlas?view=map");
+    await openMapMenu(page);
     await measureBtn(page, "Currency").click();
-    await expect(page).toHaveURL(/\?measure=currency(#.*)?$/);
+    await expect(page).toHaveURL(/\?view=map&measure=currency(#.*)?$/);
     await measureBtn(page, "Housing").click();
-    await expect.poll(() => new URL(page.url()).search).toBe("");
+    await expect.poll(() => new URL(page.url()).search).toBe("?view=map");
     await periodBtn(page, /One year/).click();
-    await expect(page).toHaveURL(/\?year=\d{4}/);
+    await expect(page).toHaveURL(/\?view=map&year=\d{4}/);
     await periodBtn(page, /Whole window/).click();
-    await expect.poll(() => new URL(page.url()).search).toBe("");
+    await expect.poll(() => new URL(page.url()).search).toBe("?view=map");
   });
 
   test("a deep link opens its state", async ({ page }) => {
@@ -278,7 +283,8 @@ test.describe("controls at 1024px", () => {
     await expect(slider(page)).toHaveValue("2010");
     await measureBtn(page, "Prices").click();
     await expect(slider(page)).toHaveValue("2011");
-    await expect(page).toHaveURL(/\?measure=prices&year=2011/);
+    await expect(page).toHaveURL(/measure=prices/);
+    await expect(page).toHaveURL(/year=2011/);
     await measureBtn(page, "Housing").click();
     await expect(slider(page)).toHaveValue("2011");
   });
@@ -394,5 +400,53 @@ test.describe("controls at 390px", () => {
       results.violations,
       JSON.stringify(results.violations, null, 2),
     ).toEqual([]);
+  });
+});
+
+test.describe("the map panel (phase18.md I58)", () => {
+  test.use({ viewport: { width: 1280, height: 800 } });
+
+  test("opens on one measure and period, the options closed, the heading naming both", async ({ page }) => {
+    await gotoAtlas(page, "map");
+    await expect(map(page).getByRole("heading", { level: 2, name: "House prices, after inflation, 2010–24" })).toBeVisible();
+    await expect(page.locator("#map details")).toHaveJSProperty("open", false);
+    await expect(measureBtn(page, "Housing")).toBeHidden();
+    await openMapMenu(page);
+    await expect(measureBtn(page, "Housing")).toBeVisible();
+    await periodBtn(page, /One year/).click();
+    await expect(map(page).getByRole("heading", { level: 2, name: /during \d{4}$/ })).toBeVisible();
+  });
+
+  test("a deep link with a measure or a year opens the menu", async ({ page }) => {
+    await page.goto("/atlas?view=map&measure=currency");
+    await atlasReady(page);
+    await expect(page.locator("#map details")).toHaveJSProperty("open", true);
+    await expect(measureBtn(page, "Currency")).toHaveAttribute("aria-checked", "true");
+  });
+
+  test("changing the measure keeps the tab and the home city in the address", async ({ page }) => {
+    await page.goto("/atlas?view=map&home=japan");
+    await atlasReady(page);
+    await openMapMenu(page);
+    await measureBtn(page, "Currency").click();
+    await expect(page).toHaveURL(/\?view=map&home=japan&measure=currency$/);
+    await page.reload();
+    await expect(page.getByRole("tab", { name: "Map", selected: true })).toBeVisible();
+    await expect(page.locator("#atlas-home")).toHaveValue("japan");
+  });
+
+  test("the countries outside the atlas are hatched, and the legend says so", async ({ page }) => {
+    await gotoAtlas(page, "map");
+    await expect(page.locator("svg[aria-label$='by country'] pattern#norow")).toHaveCount(1);
+    await expect(page.locator("svg[aria-label$='by country'] > path").first()).toHaveAttribute("fill", "url(#norow)");
+    await expect(map(page).getByText("not one of the 23")).toBeVisible();
+  });
+
+  test("the legend bar is large enough to read", async ({ page }) => {
+    await gotoAtlas(page, "map");
+    const bar = map(page).locator("span[aria-hidden=true].flex.h-3").first();
+    const box = (await bar.boundingBox())!;
+    expect(box.width).toBeGreaterThanOrEqual(200);
+    expect(box.height).toBeGreaterThanOrEqual(12);
   });
 });

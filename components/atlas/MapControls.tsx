@@ -53,7 +53,7 @@ export function MapControls({
   );
 
   return (
-    <div className="mb-3 flex flex-wrap items-end gap-x-6 gap-y-4 border-b border-hairline pb-4">
+    <div className="mt-4 flex flex-wrap items-end gap-x-6 gap-y-4">
       <Segmented
         id="atlas-map-measure"
         label="Measure"
