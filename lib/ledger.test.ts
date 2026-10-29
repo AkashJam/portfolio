@@ -2,16 +2,19 @@ import { describe, expect, it } from "vitest";
 
 import eventsFixture from "@/lib/fixtures/ledger-events.json";
 import {
+  badgeWord,
   bandCaption,
   breakoutDirection,
-  chipsFor,
-  contextLine,
   dividendLine,
   entryHeading,
-  entryVia,
+  entryThrough,
   etClock,
   headLine,
+  ledgerSentence,
   leftOut,
+  methodLines,
+  moreLabel,
+  newsItems,
   noSplitText,
   outletCount,
   sentence,
@@ -20,8 +23,10 @@ import {
   sigmaLabel,
   signedChange,
   signedPercent,
+  sigmaLine,
   sourcesOf,
-  splitView,
+  topNews,
+  splitVerdict,
 } from "@/lib/ledger";
 import { eventsResponseSchema, type LedgerEvent } from "@/lib/market-schemas";
 
@@ -80,43 +85,65 @@ describe("an entry", () => {
   it("is headed by its country, or by a global name's theme", () => {
     expect(entryHeading(byId("japan-2026-10-15"))).toBe("Japan");
     expect(entryHeading(byId("cat-2026-09-10"))).toBe("Industrial cycle");
-    expect(entryVia(byId("japan-2026-10-15"))).toBe("as seen through MUFG · Mitsubishi UFJ · 15 Oct, at the close");
-    expect(entryVia(byId("cat-2026-09-10"))).toBe("through CAT · Caterpillar · 10 Sep, at the close");
+    expect(entryThrough(byId("japan-2026-10-15"))).toBe("through Mitsubishi UFJ (MUFG) · 15 Oct, at the close");
+    expect(entryThrough(byId("cat-2026-09-10"))).toBe("through Caterpillar (CAT) · 10 Sep, at the close");
   });
 
-  it("says which side the line left on, and against what", () => {
+  it("says which side the line left on, in words with no sigma", () => {
     expect(breakoutDirection(byId("japan-2026-10-15"))).toBe("down");
     expect(breakoutDirection(byId("korea-2026-10-02"))).toBe("up");
-    expect(contextLine(byId("japan-2026-10-15"))).toBe("−3.1σ against its sector (IXG).");
-    expect(bandCaption(byId("japan-2026-10-15"))).toContain("left it below on Thursday");
+    expect(bandCaption(byId("japan-2026-10-15"))).toBe(
+      "The shaded area is the normal range given what its sector did each day; the line left it below on Thursday.",
+    );
     expect(bandCaption(byId("korea-2026-10-02"))).toContain("left it above");
-    expect(bandCaption(byId("japan-2026-10-15"))).toContain("±2.5σ of the residual over 60 sessions (σ = 1.42%)");
   });
 
-  it("has no benchmark sentence when it has no benchmark", () => {
-    const e = { ...byId("japan-2026-10-15"), trigger: { ...byId("japan-2026-10-15").trigger, benchmark: null } };
-    expect(contextLine(e)).toContain("no sector fund");
+  it("badges the move in words from 2.5σ and 5σ", () => {
+    expect(badgeWord(2.6)).toBe("Unusual move");
+    expect(badgeWord(-4.9)).toBe("Unusual move");
+    expect(badgeWord(-5)).toBe("Extremely unusual move");
+    expect(badgeWord(8.2)).toBe("Extremely unusual move");
+  });
+});
+
+describe("the sentence", () => {
+  it("states the move, the sector's and the size to one decimal, and nothing it did not compute", () => {
+    expect(ledgerSentence(byId("japan-2026-10-15"))).toBe(
+      "Mitsubishi UFJ fell 4.9% on 15 Oct while global banks and financial companies fell 0.4%, about 3.1 times further than it usually moves against them, so the news from that day was fetched.",
+    );
+    expect(ledgerSentence(byId("korea-2026-10-02"))).toContain("KB Financial Group rose 3.7% on 2 Oct while global banks and financial companies rose 0.2%, about 2.7 times");
+  });
+
+  it("drops the sector clause when there is no benchmark, and is absent with no price", () => {
+    const e = byId("japan-2026-10-15");
+    const none = ledgerSentence({ ...e, trigger: { ...e.trigger, benchmark: null, benchmarkReturn: null } });
+    expect(none).toBe("Mitsubishi UFJ fell 4.9% on 15 Oct, about 3.1 times further than it usually moves, so the news from that day was fetched.");
+    expect(ledgerSentence({ ...e, price: null })).toBeNull();
+  });
+
+  it("uses none of the review's jargon", () => {
+    for (const e of events) expect(ledgerSentence(e) ?? "").not.toMatch(/sensor|tripped|σ|band|threshold/i);
   });
 });
 
 describe("the split", () => {
-  it("reads both parts and why the news was routed as it was", () => {
-    const v = splitView(byId("japan-2026-10-15"));
-    expect(v?.label).toBe("both");
-    expect(v?.currencyLine).toBe("JPY against the dollar −1.9% (2.6σ)");
-    expect(v?.stockLine).toBe("MUFG net of its sector and its currency −2.5% (2.2σ)");
-    expect(v?.note).toContain("all asked");
-    expect(v?.fix).toContain("ECB fix, about 16:00 CET");
-    expect(splitView(byId("korea-2026-10-02"))?.note).toContain("not an economy query");
-    expect(splitView(byId("brazil-2026-09-18"))?.note).toContain("central bank and an economy query");
+  it("says what moved in words", () => {
+    expect(splitVerdict(byId("japan-2026-10-15"))).toBe("Both moved: the stock and the currency each passed on their own (the yen fell 1.9%).");
+    expect(splitVerdict(byId("korea-2026-10-02"))).toBe("The stock moved; the currency was quiet (the won rose 0.2%).");
+    expect(splitVerdict(byId("brazil-2026-09-18"))).toBe("Mostly the currency (the real fell 2.9%).");
   });
 
   it("is absent, with a reason, where no split could be made", () => {
-    expect(splitView(byId("cat-2026-09-10"))).toBeNull();
+    expect(splitVerdict(byId("cat-2026-09-10"))).toBeNull();
     expect(noSplitText(byId("cat-2026-09-10").split?.reason)).toContain("global name has no home currency");
     expect(noSplitText(byId("colombia-2026-08-27").split?.reason)).toContain("publishes no daily rate");
     expect(noSplitText("something_new")).toBe("The move is not split by currency.");
-    expect(splitView(byId("canada-2026-08-05"))).toBeNull(); // pending: no split yet
+    expect(splitVerdict(byId("canada-2026-08-05"))).toBeNull(); // pending: no split yet
+  });
+
+  it("says neither in words", () => {
+    const e = byId("japan-2026-10-15");
+    expect(splitVerdict({ ...e, split: { ...e.split!, label: "neither" } })).toBe("Both moved a little; neither explains it alone.");
   });
 });
 
@@ -129,12 +156,15 @@ describe("the coverage", () => {
     expect(sourcesOf(byId("canada-2026-08-05"))).toEqual([]);
   });
 
-  it("orders outlet chips earliest first, with New York times", () => {
-    const before = chipsFor(econ, "before");
-    expect(before).toHaveLength(9);
-    const times = before.map((c) => c.time);
-    expect([...times].sort()).toEqual(times);
-    expect(chipsFor(econ, "after")).toHaveLength(5);
+  it("lists every news headline once, earliest first, and shows three outlets then the rest", () => {
+    const items = newsItems(japan);
+    expect(new Set(items.map((i) => i.link)).size).toBe(items.length);
+    expect([...items].map((i) => i.publishedAt).sort()).toEqual(items.map((i) => i.publishedAt));
+    const { top, rest } = topNews(items);
+    expect(top).toHaveLength(3);
+    expect(new Set(top.map((i) => i.outlet)).size).toBe(3);
+    expect(top.length + rest.length).toBe(items.length);
+    expect(moreLabel(rest)).toMatch(/^\+\d+ more, from \d+ outlets?$/);
     expect(outletCount(econ)).toBe(14);
   });
 
@@ -142,6 +172,21 @@ describe("the coverage", () => {
     expect(leftOut(econ)).toBe("Left out of the 71 headlines the search returned: 14 from outlets that generate pages from price or filing data.");
     expect(leftOut({ ...econ, excluded: 0, nonEnglish: 0, undated: 0 })).toBeNull();
     expect(leftOut({ ...econ, nonEnglish: 2 })).toContain("2 not in English");
+    expect(leftOut({ ...econ, noSubject: 3, duplicates: 1 })).toContain("3 that do not name their subject, ");
+    expect(leftOut({ ...econ, noSubject: 3, duplicates: 1 })).toContain("1 repeated");
+  });
+});
+
+describe("how it is calculated", () => {
+  it("holds the sigma, the searches, the filing line and the Google News note", () => {
+    const lines = methodLines(byId("japan-2026-10-15"));
+    expect(sigmaLine(byId("japan-2026-10-15"))).toBe(
+      "−3.1σ against global banks and financial companies (IXG): the close sat outside ±2.5σ of the residual over the last 60 trading days (σ = 1.42%).",
+    );
+    expect(lines.join("\n")).toContain('Searched: "Bank of Japan" OR');
+    expect(lines.join("\n")).toContain("No company announcement was filed with the US regulator in the window (CIK 0000067088).");
+    expect(lines.join("\n")).toContain("Links go via Google News.");
+    expect(lines.join("\n")).toContain("European Central Bank's daily exchange rate");
   });
 });
 

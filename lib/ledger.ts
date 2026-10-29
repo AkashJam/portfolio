@@ -20,6 +20,14 @@ export function etClock(iso: string): string {
   return clock.format(new Date(iso));
 }
 
+const nyDay = new Intl.DateTimeFormat("en-GB", { timeZone: NY, day: "numeric", month: "short" });
+
+/** `20 Oct, 17:26 ET`: a headline's own day and time, in New York. */
+export function etDateClock(iso: string): string {
+  const d = new Date(iso);
+  return `${nyDay.format(d)}, ${clock.format(d)} ET`;
+}
+
 /** `6 Oct` for a session date (`2026-10-06`), which is a calendar day, not an instant. */
 export function sessionShort(date: string): string {
   return dayMonth(date);
@@ -90,31 +98,59 @@ export function recordLinkText(event: LedgerEvent): string {
   return `${event.country?.name ?? event.symbol}'s full record`;
 }
 
-/** `as seen through MUFG · Mitsubishi UFJ · 6 Oct, at the close`. */
-export function entryVia(event: LedgerEvent): string {
-  const through = event.country ? "as seen through" : "through";
-  return `${through} ${event.symbol} · ${event.name} · ${sessionShort(event.sessionDate)}, at the close`;
+/** `through Mitsubishi UFJ (MUFG) · 6 Oct, at the close`. */
+export function entryThrough(event: LedgerEvent): string {
+  return `through ${event.name} (${event.symbol}) · ${sessionShort(event.sessionDate)}, at the close`;
 }
 
-/** `−3.1σ against its sector.` or, with no benchmark, `against its own history.` */
-export function contextLine(event: LedgerEvent): string {
-  const z = sigmaLabel(event.trigger.z);
-  return event.trigger.benchmark
-    ? `${z} against its sector (${event.trigger.benchmark}).`
-    : `${z} against its own history: it has no sector fund to measure against.`;
+/** The sector funds a move is measured against, in the plain words the page uses (I38). */
+export const SECTOR_WORDS: Record<string, string> = {
+  IXN: "global technology companies",
+  IXP: "global telecom companies",
+  RXI: "global consumer discretionary companies",
+  IXG: "global banks and financial companies",
+  IXJ: "global health care companies",
+  IXC: "global energy companies",
+  KXI: "global consumer staples companies",
+  EXI: "global industrial companies",
+  MXI: "global materials companies",
+  JXI: "global utilities",
+};
+
+/** `global telecom companies (IXP)`; the symbol alone for a fund the table does not know. */
+export function sectorName(symbol: string, withSymbol = false): string {
+  const words = SECTOR_WORDS[symbol];
+  return words ? (withSymbol ? `${words} (${symbol})` : words) : symbol;
 }
 
-/** What the band chart's caption says for the side the line left on. */
+/** `Unusual move` from the trigger's 2.5σ, `Extremely unusual move` from 5σ (I38). */
+export function badgeWord(z: number): string {
+  return Math.abs(z) >= 5 ? "Extremely unusual move" : "Unusual move";
+}
+
+const verb = (v: number) => (v < 0 ? "fell" : "rose");
+const oneDecimal = (v: number) => `${Math.abs(v).toFixed(1)}%`;
+
+/**
+ * The entry's sentence (I37), which asserts only what the code computed (bearing
+ * #87): the company's move, the sector's, and how many times further than usual
+ * the gap was, which is the residual z to one decimal. Null with no price to state.
+ */
+export function ledgerSentence(event: LedgerEvent): string | null {
+  if (!event.price) return null;
+  const { trigger } = event;
+  const own = `${event.name} ${verb(event.price.changePercent)} ${oneDecimal(event.price.changePercent)} on ${sessionShort(event.sessionDate)}`;
+  const times = `about ${Math.abs(trigger.z).toFixed(1)} times further than it usually moves`;
+  const tail = "so the news from that day was fetched.";
+  if (trigger.benchmark === null || trigger.benchmarkReturn === null) return `${own}, ${times}, ${tail}`;
+  const pct = trigger.benchmarkReturn * 100;
+  return `${own} while ${sectorName(trigger.benchmark)} ${verb(pct)} ${oneDecimal(pct)}, ${times} against them, ${tail}`;
+}
+
+/** What the chart's caption says for the side the line left on. */
 export function bandCaption(event: LedgerEvent): string {
-  const dir = breakoutDirection(event);
-  const sigma = event.trigger.sigma * 100;
-  const side = dir === "down" ? "below" : "above";
-  return (
-    `The shaded band is where this normally trades given what its sector did that day, so it drifts rather ` +
-    `than sitting flat. The line left it ${side} on ${sessionWeekday(event.sessionDate)}, which is what fetched the ` +
-    `news below. The band is ±${event.trigger.threshold}σ of the residual over ${event.trigger.window} sessions ` +
-    `(σ = ${sigma.toFixed(2)}%).`
-  );
+  const side = breakoutDirection(event) === "down" ? "below" : "above";
+  return `The shaded area is the normal range given what its sector did each day; the line left it ${side} on ${sessionWeekday(event.sessionDate)}.`;
 }
 
 // --- the currency split ---
@@ -132,38 +168,33 @@ export function noSplitText(reason: string | undefined): string {
   return (reason && NO_SPLIT[reason]) || "The move is not split by currency.";
 }
 
-const ROUTED: Record<string, string> = {
-  "currency-led": "The currency led, so the central bank and an economy query were asked.",
-  "stock-led": "The currency was quiet, so the move is the company's: the filings and a sector query were asked, not an economy query.",
-  both: "Both parts passed on their own, so the central bank, an economy query, the filings and a sector query were all asked.",
-  neither: "Neither part passed alone, so the central bank, an economy query, the filings and a sector query were all asked.",
+/** A currency in the words a reader uses; any other falls back to its code. */
+const CURRENCY_WORD: Record<string, string> = {
+  BRL: "real", CAD: "Canadian dollar", CLP: "peso", COP: "peso", GBP: "pound", IDR: "rupiah", INR: "rupee",
+  JPY: "yen", KRW: "won", MXN: "peso", PEN: "sol", TRY: "lira", EUR: "euro",
 };
 
-export function routedText(label: string | undefined): string {
-  return (label && ROUTED[label]) || "";
-}
-
-export interface SplitView {
-  label: string | null;
-  currency: string;
-  currencyLine: string;
-  stockLine: string;
-  note: string;
-  fix: string;
-}
-
-/** The split block's words, or null when the event has none (see `noSplitText`). */
-export function splitView(event: LedgerEvent): SplitView | null {
+/**
+ * What moved, in words (I47): the stock, the currency, both or neither. Null with
+ * no split to read; `noSplitText` then says why.
+ */
+export function splitVerdict(event: LedgerEvent): string | null {
   const s: Split | null = event.split;
   if (!s || s.status !== "ok" || !s.currencyPart || !s.stockPart || !s.label) return null;
-  return {
-    label: s.label,
-    currency: s.currency ?? "",
-    currencyLine: `${s.currency ?? "currency"} against the dollar ${signedPercent(s.currencyPart.value * 100, 1)} (${sigmaMagnitude(s.currencyPart.z)})`,
-    stockLine: `${event.symbol} net of its sector and its currency ${signedPercent(s.stockPart.value * 100, 1)} (${sigmaMagnitude(s.stockPart.z)})`,
-    note: `${routedText(s.label)} Each part is tested at ${s.threshold ?? 2}σ against its own ${s.window ?? 60} sessions.`,
-    fix: "Split at the ECB fix, about 16:00 CET: the currency's last six hours before this close are not in it.",
-  };
+  const word = CURRENCY_WORD[s.currency ?? ""] ?? s.currency ?? "currency";
+  const the = `the ${word}`;
+  const pct = s.currencyPart.value * 100;
+  const move = `${the} ${verb(pct)} ${oneDecimal(pct)}`;
+  switch (s.label) {
+    case "stock-led":
+      return `The stock moved; the currency was quiet (${move}).`;
+    case "currency-led":
+      return `Mostly the currency (${move}).`;
+    case "both":
+      return `Both moved: the stock and the currency each passed on their own (${move}).`;
+    default:
+      return "Both moved a little; neither explains it alone.";
+  }
 }
 
 // --- the coverage ---
@@ -209,8 +240,10 @@ export function outletCount(source: CoverageSource): number {
 export function leftOut(source: CoverageSource): string | null {
   const parts: string[] = [];
   if (source.excluded) parts.push(`${source.excluded} from outlets that generate pages from price or filing data`);
+  if (source.noSubject) parts.push(`${source.noSubject} that do not name their subject`);
   if (source.nonEnglish) parts.push(`${source.nonEnglish} not in English`);
   if (source.undated) parts.push(`${source.undated} with no time`);
+  if (source.duplicates) parts.push(`${source.duplicates} repeated`);
   return parts.length === 0 ? null : `Left out of the ${source.total ?? 0} headlines the search returned: ${parts.join(", ")}.`;
 }
 
@@ -218,6 +251,113 @@ export function leftOut(source: CoverageSource): string | null {
 export function sourcesOf(event: LedgerEvent): { key: string; source: CoverageSource }[] {
   const sources = event.coverage?.sources ?? {};
   return SOURCE_ORDER.filter((k) => sources[k] !== undefined).map((key) => ({ key, source: sources[key] }));
+}
+
+// --- the news, as one list (I46) ---
+
+export const NEWS_SOURCES = ["economyNews", "sectorNews", "topicNews"] as const;
+
+export interface NewsItem {
+  title: string;
+  link: string;
+  publishedAt: string;
+  side: Side;
+  outlet: string;
+}
+
+/** Every headline of the event's news sources, once each, earliest first. */
+export function newsItems(event: LedgerEvent): NewsItem[] {
+  const seen = new Set<string>();
+  const out: NewsItem[] = [];
+  for (const key of NEWS_SOURCES) {
+    for (const o of event.coverage?.sources[key]?.outlets ?? []) {
+      for (const i of o.items) {
+        if (seen.has(i.link)) continue;
+        seen.add(i.link);
+        out.push({ title: i.title, link: i.link, publishedAt: i.publishedAt, side: i.side, outlet: o.name });
+      }
+    }
+  }
+  return out.sort((a, b) => (a.publishedAt < b.publishedAt ? -1 : a.publishedAt > b.publishedAt ? 1 : a.outlet.localeCompare(b.outlet)));
+}
+
+/** The first `shown` headlines from distinct outlets, earliest first, and the rest. */
+export function topNews(items: NewsItem[], shown = 3): { top: NewsItem[]; rest: NewsItem[] } {
+  const top: NewsItem[] = [];
+  const outlets = new Set<string>();
+  for (const i of items) {
+    if (top.length === shown) break;
+    if (outlets.has(i.outlet)) continue;
+    outlets.add(i.outlet);
+    top.push(i);
+  }
+  const used = new Set(top.map((i) => i.link));
+  return { top, rest: items.filter((i) => !used.has(i.link)) };
+}
+
+/** `+7 more, from 7 outlets`. */
+export function moreLabel(rest: NewsItem[]): string {
+  const outlets = new Set(rest.map((i) => i.outlet)).size;
+  return `+${rest.length} more, from ${outlets} ${outlets === 1 ? "outlet" : "outlets"}`;
+}
+
+/** Why a news source holds nothing, one line each, so a quiet list is never mistaken for a missing one. */
+export function newsAbsences(event: LedgerEvent): string[] {
+  const lines: string[] = [];
+  for (const key of NEWS_SOURCES) {
+    const s = event.coverage?.sources[key];
+    if (!s || s.status === "ok") continue;
+    lines.push(s.status === "error" ? `${SOURCE_LABEL[key]} could not be read${s.attempts > 1 ? ` after ${s.attempts} attempts` : ""}.` : `${SOURCE_LABEL[key]}: ${sentence(s.absent?.reason ?? "nothing was found")}.`);
+  }
+  return lines;
+}
+
+// --- how this is calculated (M15, I49) ---
+
+/** `+4.7σ against global telecom companies (IXP): ...` or the no-benchmark form. */
+export function sigmaLine(event: LedgerEvent): string {
+  const t = event.trigger;
+  const sigma = `σ = ${(t.sigma * 100).toFixed(2)}%`;
+  const rule = `the close sat outside ±${t.threshold}σ of the residual over the last ${t.window} trading days (${sigma})`;
+  return t.benchmark
+    ? `${sigmaLabel(t.z)} against ${sectorName(t.benchmark, true)}: ${rule}.`
+    : `${sigmaLabel(t.z)} against its own history, since it has no sector fund to measure against: ${rule}.`;
+}
+
+/** Everything the page leaves out of the entry's face, in the words the owner agreed. */
+export function methodLines(event: LedgerEvent): string[] {
+  const lines = [sigmaLine(event)];
+  lines.push(
+    event.theme === null
+      ? "Priced in US dollars on the NYSE; the country's own market had closed hours before this print."
+      : "A global name: its move is about the world rather than about America, and it has no home currency.",
+  );
+  const s = event.split;
+  if (s && s.status === "ok" && s.currencyPart && s.stockPart) {
+    lines.push(
+      `The currency part (${s.currency ?? "the currency"} against the dollar ${signedPercent(s.currencyPart.value * 100, 1)}, ${sigmaMagnitude(s.currencyPart.z)}) and the company's part net of its sector and its currency (${signedPercent(s.stockPart.value * 100, 1)}, ${sigmaMagnitude(s.stockPart.z)}) are each tested at ${s.threshold ?? 2}σ against their own ${s.window ?? 60} sessions. The currency is read at the European Central Bank's daily exchange rate (about 16:00 CET), so its last six hours before the close are not in it.`,
+    );
+  } else if (s && s.status !== "ok" && s.reason) {
+    lines.push(noSplitText(s.reason));
+  }
+  const sources = event.coverage?.sources ?? {};
+  const news = NEWS_SOURCES.map((k) => sources[k]).filter((x): x is CoverageSource => !!x && !!x.query);
+  if (news.length > 0) {
+    const total = news.reduce((n, x) => n + (x.total ?? 0), 0);
+    const left = news.map(leftOut).filter((t): t is string => t !== null);
+    lines.push(
+      `Searched: ${news.map((x) => x.query).join("; ")}. The economy query is asked on every country move. ${total} headlines came back. ${left.join(" ")}`.trim(),
+    );
+  }
+  const bank = sources.centralBank;
+  if (bank?.status === "empty") lines.push(`Central bank: ${sentence(bank.absent?.reason ?? "no release was found")}.`);
+  const filings = sources.filings;
+  if (filings?.status === "empty") {
+    lines.push(`No company announcement was filed with the US regulator in the window${filings.query ? ` (${filings.query.replace(/, form .*/, "")})` : ""}.`);
+  }
+  lines.push("Every outlet is listed, never one headline: the query returns many outlets for one story, and choosing one would be ranking. Each item's own time decides whether it came before or after the close.");
+  lines.push("Links go via Google News. " + (event.coverage?.complete ? "Fetched at the close and once more after the next close." : "Fetched at the close; fetched once more after the next close, to add what was published after this move."));
+  return lines;
 }
 
 // --- the ex-dividend caveat (bearing.md #112) ---

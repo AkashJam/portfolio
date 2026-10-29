@@ -17,6 +17,8 @@ export function HashOpen() {
       const el = document.getElementById(id);
       if (!el) return;
       if (el instanceof HTMLDetailsElement) el.open = true;
+      // A linked entry shows its details too; a plain click on a row does not.
+      el.querySelectorAll<HTMLDetailsElement>("details[data-open-on-hash]").forEach((d) => (d.open = true));
       el.scrollIntoView({ block: "start" });
     }
     open();

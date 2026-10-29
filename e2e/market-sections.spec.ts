@@ -16,8 +16,11 @@ test.describe("at 1440px", () => {
     await expect(headings).toHaveText(["What moved, and why", "Industries"]);
     await expect(page.getByRole("region", { name: "Prices" })).toBeVisible();
 
-    await expect(page.getByText("When one of them moves further than it normally does")).toBeVisible();
-    await expect(page.getByText("Ten worldwide industry baskets, priced once a day at the close.")).toBeVisible();
+    await expect(page.getByText("Each entry was earned by a move: newest first, never ranked.")).toBeVisible();
+    // Industries sits closed at the bottom (I37), its summary saying what it holds.
+    const industries = page.getByTestId("industries-disclosure");
+    await expect(industries).toHaveJSProperty("open", false);
+    await expect(industries.locator("summary")).toContainText("The ten worldwide industry baskets each move is measured against, at the close");
   });
 
   test("What moved, and why is empty and says the trigger is on and watching", async ({ page }) => {
@@ -25,8 +28,7 @@ test.describe("at 1440px", () => {
     const empty = page.getByTestId("ledger-empty");
     await expect(empty).toBeVisible();
     await expect(empty.getByRole("heading", { level: 3 })).toHaveText("Nothing unusual yet");
-    await expect(empty).toContainText("The trigger is on and watching");
-    await expect(empty).toContainText("sixty daily moves");
+    await expect(empty).toContainText("Every company is checked once, at the close, against its last sixty trading days");
     await expect(page.getByTestId("ledger-line")).toContainText("Nothing unusual yet");
     // The fixture suite's former empty state (phase17.md step 5, decision 4): this
     // ticker has never tripped, so it is the empty ledger.

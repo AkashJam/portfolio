@@ -161,6 +161,8 @@ export const coverageSourceSchema = z.object({
   excluded: z.number().optional(),
   nonEnglish: z.number().optional(),
   undated: z.number().optional(),
+  noSubject: z.number().optional(),
+  duplicates: z.number().optional(),
   items: z.array(coverageItemSchema).optional(),
   categorised: z.boolean().optional(),
   // The dividend source only (bearing.md #112): set when the session was an ex-date.

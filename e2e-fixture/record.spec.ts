@@ -52,7 +52,7 @@ test.describe("tripped, at 1440px", () => {
     await expect(row).toHaveAttribute("id", "japan-2026-10-08");
     await expect(row).toHaveJSProperty("open", true);
     await expect(row.getByTestId("band-chart")).toHaveCount(0);
-    await expect(row).toContainText("−0.8σ against its sector (IXG).");
+    await expect(row.getByTestId("says")).toContainText(/times further than it usually moves against them, so the news from that day was fetched\./);
     await expect(row.getByTestId("record-link")).toHaveCount(0);
   });
 

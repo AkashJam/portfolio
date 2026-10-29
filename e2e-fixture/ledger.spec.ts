@@ -35,9 +35,13 @@ test.describe("tripped, at 1440px", () => {
     await expect(line).toHaveAttribute("data-kind", "tripped");
     await expect(line).toContainText("Japan and Canada moved unusually at the last close");
     await expect(line.getByRole("link")).toHaveAttribute("href", /^#(japan|canada)-/);
-    // I38: the head and the Prices table use the plain words (step 3 widens this to the whole page).
+    // I38: the head and the Prices table use the plain words.
     const text = [await page.locator("main header").innerText(), await page.getByRole("region", { name: "Prices" }).innerText()].join("\n");
     expect(text).not.toMatch(/sensor|tripped|σ|\bband\b|thin listing|\bSSE\b|\bclosed\b/i);
+    // And the whole populated page with every disclosure open; the method keeps its σ by design.
+    await expandAll(page);
+    await page.evaluate(() => document.querySelectorAll("main details").forEach((d) => ((d as HTMLDetailsElement).open = true)));
+    expect(await page.locator("main").innerText()).not.toMatch(/sensor|tripped|\bband\b|thin listing|\bSSE\b/i);
     await expect(page.locator('header a[href="/market"] [data-market-state]')).toHaveAttribute("data-market-state", "tripped");
   });
 
@@ -46,7 +50,8 @@ test.describe("tripped, at 1440px", () => {
     const lead = page.getByTestId("ledger-lead");
     await expect(lead).toHaveAttribute("id", "japan-2026-10-08");
     await expect(lead.getByRole("heading", { level: 3 })).toHaveText("Japan");
-    await expect(lead).toContainText("as seen through MUFG");
+    await expect(lead).toContainText("through Mitsubishi UFJ (MUFG)");
+    await expect(lead.getByTestId("badge")).toHaveText(/^Unusual move$/);
 
     const rows = page.getByTestId("ledger-row");
     await expect(rows).toHaveCount(5);
@@ -54,47 +59,61 @@ test.describe("tripped, at 1440px", () => {
     for (const open of await rows.evaluateAll((els) => els.map((e) => (e as HTMLDetailsElement).open))) expect(open).toBe(false);
   });
 
-  test("the lead carries the band, the split and the coverage", async ({ page }) => {
+  test("the lead shows its sentence and chart, and keeps the rest behind Show details", async ({ page }) => {
     await page.goto("/market");
     const lead = page.getByTestId("ledger-lead");
 
     const chart = lead.getByTestId("band-chart");
     await expect(chart).toHaveAttribute("data-side", "below");
     await expect(chart.locator("polyline")).toHaveCount(4); // upper edge, lower edge, inside, the departure
-    await expect(lead).toContainText("−0.8σ against its sector (IXG).");
-    await expect(lead).toContainText("±0.001σ of the residual over 60 sessions");
-
-    const split = lead.getByTestId("split");
-    await expect(split).toHaveAttribute("data-label", "neither");
-    await expect(split).toContainText("JPY against the dollar 0.0% (0.1σ)");
-    await expect(split).toContainText("MUFG net of its sector and its currency −1.1% (0.7σ)");
-    await expect(split).toContainText("Neither part passed alone");
-    await expect(split).toContainText("ECB fix, about 16:00 CET");
-
-    await expect(lead.getByTestId("source-centralBank")).toContainText("Summary of Opinions at the Monetary Policy Meeting");
-    await expect(lead.getByTestId("source-filings")).toContainText("No 6-K was filed in the window");
-    await expect(lead.getByTestId("source-filings")).toContainText("cannot be categorised");
-
-    const econ = lead.getByTestId("source-economyNews");
-    await expect(econ).toContainText("5 outlets");
-    await expect(econ).toContainText("before the close · 3");
-    await expect(econ).toContainText("after the close · 3");
-    await expect(econ).not.toContainText("Left out of");
-    // The last close's own fetch: the follow-up comes after the next close.
-    await expect(lead.getByTestId("coverage")).toHaveAttribute("data-complete", "false");
-    await expect(lead.getByTestId("coverage-incomplete")).toBeVisible();
+    await expect(lead.getByTestId("says")).toContainText(/^Mitsubishi UFJ (fell|rose) [\d.]+% on 8 Oct while global banks and financial companies (fell|rose) [\d.]+%, about 0\.8 times further than it usually moves against them, so the news from that day was fetched\.$/);
+    const details = lead.getByTestId("details");
+    await expect(details).toHaveJSProperty("open", false);
+    await details.locator("summary").click();
+    await expect(details).toHaveJSProperty("open", true);
   });
 
-  test("every outlet is a click away, in two tables split at the close", async ({ page }) => {
+  test("Show details holds what moved, the news, the filing and the method", async ({ page }) => {
     await page.goto("/market");
-    const econ = page.getByTestId("ledger-lead").getByTestId("source-economyNews");
-    const more = econ.locator("summary");
-    await expect(more).toHaveText("Show all 5 outlets and their headlines");
-    await expect(econ.getByTestId("outlets-before")).toBeHidden();
-    await more.click();
-    await expect(econ.getByTestId("outlets-before").locator("tbody tr")).toHaveCount(3);
-    await expect(econ.getByTestId("outlets-after").locator("tbody tr")).toHaveCount(3);
-    await expect(econ.getByTestId("outlets-before").getByRole("link").first()).toHaveAttribute("rel", "noopener noreferrer");
+    const lead = page.getByTestId("ledger-lead");
+    await lead.getByTestId("details").locator("summary").click();
+
+    await expect(lead.getByTestId("split")).toHaveAttribute("data-label", "neither");
+    await expect(lead.getByTestId("split")).toContainText("Both moved a little; neither explains it alone.");
+    await expect(lead.getByTestId("source-centralBank")).toContainText("Summary of Opinions at the Monetary Policy Meeting");
+    // A filing source that found nothing is not drawn; its absence is a line in the method.
+    await expect(lead.getByTestId("source-filings")).toHaveCount(0);
+
+    const method = lead.getByTestId("method");
+    await method.locator("summary").click();
+    await expect(method).toContainText("±0.001σ of the residual over the last 60 trading days");
+    await expect(method).toContainText("No company announcement was filed with the US regulator in the window");
+    await expect(method).toContainText("The economy query is asked on every country move.");
+    await expect(method).toContainText("European Central Bank's daily exchange rate");
+    await expect(method).toContainText("Links go via Google News.");
+    await expect(method).toContainText("Fetched at the close; fetched once more after the next close");
+    await expect(method).not.toContainText("Foreign filers");
+    // M16: the step 1 fixture headlines that name no subject, repeat or come from a reference page.
+    await expect(method).toContainText("do not name their subject");
+    await expect(method).toContainText("1 repeated");
+    await expect(lead.getByTestId("news")).not.toContainText("Britannica");
+  });
+
+  test("three outlets show, and the rest are one click away with their side of the close", async ({ page }) => {
+    await page.goto("/market");
+    const lead = page.getByTestId("ledger-lead");
+    await lead.getByTestId("details").locator("summary").click();
+    const news = lead.getByTestId("news");
+    await expect(news.locator(":scope > ul > li")).toHaveCount(3);
+    const more = news.getByTestId("news-more");
+    await expect(more.locator("summary")).toHaveText(/^\+\d+ more, from \d+ outlets?$/);
+    await expect(more.locator("li").first()).toBeHidden();
+    await more.locator("summary").click();
+    await expect(more.locator("li").first()).toBeVisible();
+    await expect(more).toContainText("before the close");
+    await expect(more).toContainText("after the close");
+    await expect(more.getByRole("link").first()).toHaveAttribute("rel", "noopener noreferrer");
+    await expect(news.locator("time").first()).toHaveText(/^\d{1,2} \w{3}, \d{2}:\d{2} ET$/);
   });
 
   test("a row expands in place, and opening one does not close another", async ({ page }) => {
@@ -106,7 +125,7 @@ test.describe("tripped, at 1440px", () => {
     await expect(korea).toHaveJSProperty("open", true);
     await expect(brazil).toHaveJSProperty("open", true);
     await expect(korea.getByTestId("band-chart")).toHaveAttribute("data-side", "below");
-    await expect(korea.getByTestId("caveats")).toContainText("Thin listing · about $25M a day in New York (measured to 2026-10-09)");
+    await expect(korea.getByTestId("caveats")).toContainText("Lightly traded in the US ($25M a day, 9 Oct 2026), so the price can jump");
     await expect(korea.getByTestId("split")).toHaveAttribute("data-label", "neither");
     await expect(korea).toContainText("→ South Korea in atlas");
     // South Korea has no verified survey, so no city page: the link lands on its row.
@@ -147,6 +166,8 @@ test.describe("tripped, at 1440px", () => {
   test("a fragment opens its entry on load, and on a later change", async ({ page }) => {
     await page.goto("/market#cat-2026-09-30");
     await expect(page.locator("#cat-2026-09-30")).toHaveJSProperty("open", true);
+    // The linked entry shows its details too; a row opened by a click does not.
+    await expect(page.locator("#cat-2026-09-30").getByTestId("details")).toHaveJSProperty("open", true);
     await expect(page.locator("#korea-2026-10-06")).toHaveJSProperty("open", false);
     await page.evaluate(() => (window.location.hash = "#korea-2026-10-06"));
     await expect(page.locator("#korea-2026-10-06")).toHaveJSProperty("open", true);
@@ -155,7 +176,7 @@ test.describe("tripped, at 1440px", () => {
   test("a global name shows its 8-K item codes, no split and no atlas link", async ({ page }) => {
     await page.goto("/market#cat-2026-09-30");
     const cat = page.locator("#cat-2026-09-30");
-    await expect(cat.getByTestId("split-none")).toContainText("A global name has no home currency");
+    await expect(cat.getByTestId("split")).toContainText("A global name has no home currency");
     const codes = cat.getByTestId("item-codes");
     await expect(codes).toContainText("Item 5.02");
     await expect(codes).toContainText("Departure of Directors or Certain Officers");
@@ -163,9 +184,8 @@ test.describe("tripped, at 1440px", () => {
     await expect(cat.getByRole("link", { name: /in atlas/ })).toHaveCount(0);
     await expect(cat).toContainText("Industrial cycle");
     // MarketBeat's two headlines are on the excluded list: counted, never listed.
-    const topic = cat.getByTestId("source-topicNews");
-    await expect(topic).toContainText("Left out of the 6 headlines the search returned: 2 from outlets that generate pages from price or filing data.");
-    await expect(topic).not.toContainText("MarketBeat");
+    await expect(cat.getByTestId("method")).toContainText("Left out of the 6 headlines the search returned: 2 from outlets that generate pages from price or filing data.");
+    await expect(cat.getByTestId("news")).not.toContainText("MarketBeat");
   });
 
   test("Colombia is named, has no atlas link, and shows a source that kept failing", async ({ page }) => {
@@ -177,13 +197,13 @@ test.describe("tripped, at 1440px", () => {
     await expect(bank).toHaveAttribute("data-status", "error");
     await expect(bank).toContainText("could not be read after 3 attempts");
     await expect(bank).toContainText("HTTP 403");
-    await expect(co.getByTestId("split-none")).toContainText("publishes no daily rate");
+    await expect(co.getByTestId("split")).toContainText("publishes no daily rate");
   });
 
   test("an entry whose news and split are still pending says so", async ({ page }) => {
     await page.goto("/market#canada-2026-10-08");
     const ca = page.locator("#canada-2026-10-08");
-    await expect(ca.getByTestId("split-pending")).toContainText("has not been made yet");
+    await expect(ca.getByTestId("split")).toContainText("has not been made yet");
     await expect(ca.getByTestId("coverage-pending")).toContainText("has not been fetched yet");
   });
 
@@ -211,6 +231,14 @@ test.describe("tripped, at 1440px", () => {
 
 test.describe("tripped, at 390px", () => {
   test.use({ viewport: { width: 390, height: 844 }, baseURL: siteUrl("tripped") });
+
+  test("a row drops its sigma figure on a phone, and the sentence carries the size", async ({ page }) => {
+    await page.goto("/market");
+    const row = page.getByTestId("ledger-row").first();
+    await expect(row.locator(":scope > summary")).not.toContainText("σ");
+    await row.locator(":scope > summary").click();
+    await expect(row.getByTestId("says")).toContainText("times further than it usually moves");
+  });
 
   test("has no WCAG 2.1 AA violations and the ledger does not overflow the screen", async ({ page }) => {
     await page.goto("/market");

@@ -88,9 +88,11 @@ test.describe("at 1440px", () => {
 
   test("the head and the Prices table use plain words, none of the review's jargon (I38)", async ({ page }) => {
     await page.goto("/market");
-    // Phase 21 step 3 widens this from the head and Prices to the whole page, once the ledger is reworded.
     const text = [await page.locator("main header").innerText(), await page.getByRole("region", { name: "Prices" }).innerText()].join("\n");
     expect(text).not.toMatch(/sensor|tripped|σ|\bband\b|thin listing|\bSSE\b|\bclosed\b/i);
+    // The whole page, ledger included, with every disclosure open (the method keeps its σ by design, so σ is not on this list).
+    await page.evaluate(() => document.querySelectorAll("main details").forEach((d) => ((d as HTMLDetailsElement).open = true)));
+    expect(await page.locator("main").innerText()).not.toMatch(/sensor|tripped|\bband\b|thin listing|\bSSE\b/i);
   });
 
   test("has no WCAG 2.1 AA violations", async ({ page }) => {
@@ -117,9 +119,11 @@ test.describe("at 390px", () => {
 
   test("the head and the Prices table use plain words, none of the review's jargon (I38)", async ({ page }) => {
     await page.goto("/market");
-    // Phase 21 step 3 widens this from the head and Prices to the whole page, once the ledger is reworded.
     const text = [await page.locator("main header").innerText(), await page.getByRole("region", { name: "Prices" }).innerText()].join("\n");
     expect(text).not.toMatch(/sensor|tripped|σ|\bband\b|thin listing|\bSSE\b|\bclosed\b/i);
+    // The whole page, ledger included, with every disclosure open (the method keeps its σ by design, so σ is not on this list).
+    await page.evaluate(() => document.querySelectorAll("main details").forEach((d) => ((d as HTMLDetailsElement).open = true)));
+    expect(await page.locator("main").innerText()).not.toMatch(/sensor|tripped|\bband\b|thin listing|\bSSE\b/i);
   });
 
   test("has no WCAG 2.1 AA violations", async ({ page }) => {

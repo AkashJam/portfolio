@@ -125,10 +125,7 @@ export default async function MarketPage() {
           <h2 id="what-moved" className="text-h2 font-medium">
             What moved, and why
           </h2>
-          <p className={cn(LEDE, "mb-6")}>
-            When one of them moves further than it normally does, the news explaining it is fetched. Nothing else is,
-            and on a quiet day nothing is fetched at all.
-          </p>
+          <p className={cn(LEDE, "mb-6")}>Each entry was earned by a move: newest first, never ranked.</p>
           {events !== null ? (
             <Ledger events={ledger} truncated={events.truncated} />
           ) : (
@@ -136,17 +133,25 @@ export default async function MarketPage() {
           )}
         </section>
 
-        <section aria-labelledby="industries" className="reveal">
-          <h2 id="industries" className="text-h2 font-medium">
-            Industries
-          </h2>
-          <p className={cn(LEDE, "mb-6")}>Ten worldwide industry baskets, priced once a day at the close.</p>
-          {tiles.some((t) => t.row.asOf !== null) ? (
-            <IndustriesStrip tiles={tiles} renderedAt={renderedAt} />
-          ) : (
-            <p className="text-small text-text-muted">Industry data is temporarily unavailable.</p>
-          )}
-        </section>
+        <details data-testid="industries-disclosure" className="reveal group rounded-2xl border border-hairline bg-panel">
+          <summary className="flex cursor-pointer list-none flex-wrap items-baseline gap-x-3 gap-y-1 px-5 py-4 focus-visible:outline-2 focus-visible:outline-brand [&::-webkit-details-marker]:hidden">
+            <h2 id="industries" className="text-h3 font-medium">
+              Industries
+            </h2>
+            <span className="text-small text-text-muted">
+              The ten worldwide industry baskets each move is measured against, at the close
+              <span aria-hidden="true" className="ml-1.5 group-open:hidden">▾</span>
+              <span aria-hidden="true" className="ml-1.5 hidden group-open:inline">▴</span>
+            </span>
+          </summary>
+          <div className="px-5 pb-5">
+            {tiles.some((t) => t.row.asOf !== null) ? (
+              <IndustriesStrip tiles={tiles} renderedAt={renderedAt} />
+            ) : (
+              <p className="text-small text-text-muted">Industry data is temporarily unavailable.</p>
+            )}
+          </div>
+        </details>
       </Container>
     </FeedFreshnessProvider>
   );

@@ -17,6 +17,7 @@ test.describe("at 1440px", () => {
 
   test("shows the ten baskets, each with its label", async ({ page }) => {
     await page.goto("/market");
+    await page.getByTestId("industries-disclosure").locator("summary").click(); // closed by default (I37)
     const tiles = page.locator('[data-testid^="industry-"]:not([data-testid="industry-change"])');
     await expect(tiles).toHaveCount(10);
     const ids = await tiles.evaluateAll((els) => els.map((el) => el.getAttribute("data-testid")!.replace("industry-", "")));
@@ -29,6 +30,7 @@ test.describe("at 1440px", () => {
 
   test("orders them strongest to weakest by the day's change", async ({ page }) => {
     await page.goto("/market");
+    await page.getByTestId("industries-disclosure").locator("summary").click(); // closed by default (I37)
     const changes = await page
       .getByTestId("industries")
       .getByTestId("industry-change")
@@ -41,18 +43,21 @@ test.describe("at 1440px", () => {
 
   test("dates the strip to a close, and says what a tile is", async ({ page }) => {
     await page.goto("/market");
+    await page.getByTestId("industries-disclosure").locator("summary").click(); // closed by default (I37)
     await expect(page.getByTestId("industries-vintage")).toHaveText(/^Last close, \d{1,2} \w{3} \d{4}$/);
     await expect(page.getByTestId("industries")).toContainText("its close against the previous session");
   });
 
   test("keeps the meters out of assistive technology: the printed figure is the information", async ({ page }) => {
     await page.goto("/market");
+    await page.getByTestId("industries-disclosure").locator("summary").click(); // closed by default (I37)
     const meters = page.getByTestId("industries").locator("li > span[aria-hidden='true']");
     await expect(meters).toHaveCount(10);
   });
 
   test("has no WCAG 2.1 AA violations", async ({ page }) => {
     await page.goto("/market");
+    await page.getByTestId("industries-disclosure").locator("summary").click(); // closed by default (I37)
     await expect(page.getByTestId("industries")).toBeVisible();
     const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();
     expect(results.violations, JSON.stringify(results.violations, null, 2)).toEqual([]);
@@ -64,6 +69,7 @@ test.describe("at 390px", () => {
 
   test("fits two or more tiles across without sideways scroll, and is axe clean", async ({ page }) => {
     await page.goto("/market");
+    await page.getByTestId("industries-disclosure").locator("summary").click(); // closed by default (I37)
     const strip = page.getByTestId("industries").locator("ul");
     await expect(strip).toBeVisible();
     const box = await strip.boundingBox();

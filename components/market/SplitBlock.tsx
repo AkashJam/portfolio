@@ -1,47 +1,22 @@
 import type { LedgerEvent } from "@/lib/market-schemas";
-import { noSplitText, splitView } from "@/lib/ledger";
+import { noSplitText, splitVerdict } from "@/lib/ledger";
 
 /**
- * The currency split (bearing.md #90): a sensor is priced in dollars, so its move
- * is the home market's plus the currency's. Shows both parts and why the news was
- * routed as it was, or, where no split could be made, says so and why. A split
- * that has not been made yet says that, rather than saying nothing.
+ * What moved (I47): the currency split in one sentence. The parts, the 2σ tests and
+ * the exchange-rate note are in the method toggle. Where no split could be made it
+ * says so and why, and a split that has not been made yet says that.
  */
 export function SplitBlock({ event }: { event: LedgerEvent }) {
-  const view = splitView(event);
-  if (view) {
-    return (
-      <div
-        data-testid="split"
-        data-label={view.label ?? undefined}
-        className="mt-3.5 flex flex-wrap items-baseline gap-x-2.5 gap-y-1.5 rounded-[10px] border border-hairline bg-panel-2 px-3 py-2.5 text-small text-read"
-      >
-        <span className="rounded-full border border-hairline px-2 py-1 text-meta font-semibold uppercase leading-none tracking-[0.14em] text-text-muted">
-          {view.label}
-        </span>
-        <span>
-          <b className="font-mono font-semibold text-text">{view.currencyLine}</b>
-          <span aria-hidden="true" className="mx-2 text-text-muted">
-            ·
-          </span>
-          <b className="font-mono font-semibold text-text">{view.stockLine}</b>
-        </span>
-        <small className="basis-full font-mono text-meta leading-normal text-text-muted">
-          {view.fix} {view.note}
-        </small>
-      </div>
-    );
-  }
-  if (event.split === null) {
-    return (
-      <p data-testid="split-pending" className="mt-3.5 font-mono text-meta leading-normal text-text-muted">
-        The currency split has not been made yet; it is retried at the next run.
-      </p>
-    );
-  }
+  const verdict = splitVerdict(event);
   return (
-    <p data-testid="split-none" className="mt-3.5 font-mono text-meta leading-normal text-text-muted">
-      {noSplitText(event.split.reason)}
-    </p>
+    <div data-testid="split" data-label={event.split?.label ?? undefined}>
+      <h4 className="mb-1.5 text-meta font-semibold uppercase tracking-[0.18em] text-text-muted">What moved</h4>
+      <p className="text-small leading-relaxed text-read">
+        {verdict ??
+          (event.split === null
+            ? "The currency split has not been made yet; it is retried at the next run."
+            : noSplitText(event.split.reason))}
+      </p>
+    </div>
   );
 }
