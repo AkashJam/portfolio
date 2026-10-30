@@ -69,14 +69,14 @@ test.describe("tripped, at 1440px", () => {
     await expect(lead.getByTestId("says")).toContainText(/^Mitsubishi UFJ (fell|rose) [\d.]+% on 8 Oct while global banks and financial companies (fell|rose) [\d.]+%, about 0\.8 times further than it usually moves against them, so the news from that day was fetched\.$/);
     const details = lead.getByTestId("details");
     await expect(details).toHaveJSProperty("open", false);
-    await details.locator("summary").click();
+    await details.locator(":scope > summary").click();
     await expect(details).toHaveJSProperty("open", true);
   });
 
   test("Show details holds what moved, the news, the filing and the method", async ({ page }) => {
     await page.goto("/market");
     const lead = page.getByTestId("ledger-lead");
-    await lead.getByTestId("details").locator("summary").click();
+    await lead.getByTestId("details").locator(":scope > summary").click();
 
     await expect(lead.getByTestId("split")).toHaveAttribute("data-label", "neither");
     await expect(lead.getByTestId("split")).toContainText("Both moved a little; neither explains it alone.");
@@ -102,7 +102,7 @@ test.describe("tripped, at 1440px", () => {
   test("three outlets show, and the rest are one click away with their side of the close", async ({ page }) => {
     await page.goto("/market");
     const lead = page.getByTestId("ledger-lead");
-    await lead.getByTestId("details").locator("summary").click();
+    await lead.getByTestId("details").locator(":scope > summary").click();
     const news = lead.getByTestId("news");
     await expect(news.locator(":scope > ul > li")).toHaveCount(3);
     const more = news.getByTestId("news-more");
@@ -235,7 +235,8 @@ test.describe("tripped, at 390px", () => {
   test("a row drops its sigma figure on a phone, and the sentence carries the size", async ({ page }) => {
     await page.goto("/market");
     const row = page.getByTestId("ledger-row").first();
-    await expect(row.locator(":scope > summary")).not.toContainText("σ");
+    // innerText: the figure is in the DOM, hidden by CSS on a phone, and textContent would still find it.
+    await expect(row.locator(":scope > summary")).not.toContainText("σ", { useInnerText: true });
     await row.locator(":scope > summary").click();
     await expect(row.getByTestId("says")).toContainText("times further than it usually moves");
   });

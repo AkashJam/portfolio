@@ -45,7 +45,7 @@ test.describe("at 1440px", () => {
     expect(tagged.sort()).toEqual([...THIN].sort());
     await expect(page.getByTestId("market-row-BCH")).toContainText("lightly traded");
     await expect(page.getByTestId("market-row-BCH").getByTestId("thin-listing")).toHaveAttribute("title", "Lightly traded in the US ($13M a day, 9 Oct 2026), so the price can jump");
-    await expect(page.getByTestId("market-row-KB")).toContainText("$25M a day");
+    await expect(page.getByTestId("market-row-KB").getByTestId("thin-listing")).toHaveAttribute("title", /\$25M a day/);
   });
 
   test("labels country rows by country and company, and global rows by theme", async ({ page }) => {

@@ -40,7 +40,8 @@ test.describe("at 1440px", () => {
     await expect(line(page)).toHaveAttribute("data-tone", "closed");
     await expect(line(page)).toContainText(/Last close \d{1,2} \w{3}, 16:00 ET · opens in 4h 12m/);
     await expect(line(page)).not.toContainText("Closed");
-    await expect(page.getByText("Closed", { exact: false })).toHaveCount(0);
+    // Case-sensitive and whole-word: getByText is a case-insensitive substring match, so "closed" in prose would count.
+    await expect(page.getByText(/\bClosed\b/)).toHaveCount(0);
     await expect(page.getByTestId("live-chip")).toHaveCount(0);
   });
 
@@ -59,7 +60,7 @@ test.describe("at 1440px", () => {
   test("closed: no stream pill, and no word SSE, anywhere on the page (M15)", async ({ page }) => {
     await stub(page, closedStub(HOUR));
     await page.goto("/market");
-    await expect(page.getByText("SSE")).toHaveCount(0);
+    await expect(page.getByText(/\bSSE\b/)).toHaveCount(0);
   });
 
   test("closed: Industries is not dimmed and keeps its colours", async ({ page }) => {
@@ -106,10 +107,12 @@ test.describe("at 1440px", () => {
 
   test("the countdown falls as the clock does", async ({ page }) => {
     await page.clock.install({ time: new Date() });
-    await stub(page, closedStub(4 * HOUR + 12 * MIN + 30_000));
+    // 5s past the minute, then 10s on: it crosses a minute without passing the feed's 30s stale
+    // threshold, which the faked clock would trip (no event can arrive while time jumps).
+    await stub(page, closedStub(4 * HOUR + 12 * MIN + 5_000));
     await page.goto("/market");
     await expect(line(page)).toContainText("opens in 4h 12m");
-    await page.clock.fastForward(75_000);
+    await page.clock.fastForward(10_000);
     await expect(line(page)).toContainText("opens in 4h 11m");
   });
 
@@ -119,7 +122,7 @@ test.describe("at 1440px", () => {
     await expect(line(page)).toHaveAttribute("data-tone", "open");
     await expect(page.getByTestId("live-chip")).toHaveText("LIVE");
     await expect(table(page)).toHaveAttribute("data-session", "open");
-    await expect(page.getByText("SSE")).toHaveCount(0);
+    await expect(page.getByText(/\bSSE\b/)).toHaveCount(0);
   });
 
   test("unreachable: it says so, never closed, and does not freeze", async ({ page }) => {
@@ -152,7 +155,7 @@ test.describe("at 390px", () => {
   test("closed: the line wraps inside the screen, and the page has no WCAG 2.1 AA violations", async ({ page }) => {
     await stub(page, closedStub(65 * HOUR + 30 * MIN));
     await page.goto("/market");
-    await expect(line(page)).toContainText("Opens in 2d 17h");
+    await expect(line(page)).toContainText("opens in 2d 17h");
     const box = await line(page).boundingBox();
     expect(box!.x + box!.width).toBeLessThanOrEqual(390);
     const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();
