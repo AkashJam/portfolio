@@ -139,7 +139,7 @@ function DataCell({
   const dot = old && (
     <span
       aria-hidden="true"
-      className="ml-1.5 inline-block size-[5px] rounded-full bg-stale align-[2px]"
+      className="ml-1.5 inline-block size-1.25 rounded-full bg-stale align-[2px]"
     />
   );
   return (
@@ -418,12 +418,12 @@ export function CountriesTable({ rows }: { rows: AtlasRow[] }) {
                           accessibility target, so the unit line is not a second tab stop. */}
                       <small
                         onClick={() => onSort(c.key)}
-                        className="max-w-[7rem] cursor-pointer whitespace-normal text-right text-meta font-normal text-text-muted"
+                        className="max-w-28 cursor-pointer whitespace-normal text-right text-meta font-normal text-text-muted"
                       >
                         {c.key === "everydaySpendingEur" && rate ? `${rate.currency} / person / month` : c.sub(end)}
                       </small>
                       {home && (
-                        <small data-testid="delta-unit" className="max-w-[7rem] whitespace-normal text-right text-meta font-normal text-brand-hover">
+                        <small data-testid="delta-unit" className="max-w-28 whitespace-normal text-right text-meta font-normal text-brand-hover">
                           {deltaUnit(c.key)}
                         </small>
                       )}
@@ -450,7 +450,7 @@ export function CountriesTable({ rows }: { rows: AtlasRow[] }) {
                     "max-md:in-data-[target=true]:bg-[color-mix(in_oklab,var(--brand)_15%,var(--panel))]",
                   )}
                 >
-                  <span className="flex min-w-[10rem] flex-col">
+                  <span className="flex min-w-40 flex-col">
                     <span className="flex items-center gap-1.5">
                       {cityHref(r) ? (
                         <Link

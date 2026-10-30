@@ -163,9 +163,10 @@ test.describe("at 1440px", () => {
   }
 
   test("an Atlas row's sensor symbol links to the sensor's record", async ({ page }) => {
-    await page.goto("/atlas");
-    const link = page.locator("#countries tbody tr td:first-child small a[href='/market/japan']");
-    await link.click();
+    await page.goto("/atlas?view=countries");
+    // The sensor is in the city cell's popover (Phase 22 I56).
+    await page.getByRole("button", { name: "About Tokyo" }).click();
+    await page.getByRole("dialog").locator("a[href='/market/japan']").click();
     await expect(page).toHaveURL(/\/market\/japan$/);
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Japan");
   });

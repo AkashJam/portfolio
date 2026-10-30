@@ -1,5 +1,5 @@
 import AxeBuilder from "@axe-core/playwright";
-import { atlasHydrated, gotoAtlas } from "./atlas-hydrated";
+import { atlasHydrated, desktopScatter, gotoAtlas } from "./atlas-hydrated";
 import { expect, test, type Page } from "@playwright/test";
 
 // Phase 11 step 8: navigation. The top bar, drawer, footer and palette all read
@@ -188,7 +188,7 @@ test.describe("at 1440px", () => {
       "data-target",
       "true",
     );
-    await expect(page.locator('g[data-slug="japan"]')).toHaveAttribute(
+    await expect(desktopScatter(page).locator('g[data-slug="japan"]')).toHaveAttribute(
       "data-target",
       "true",
     );
@@ -203,7 +203,7 @@ test.describe("at 1440px", () => {
       "data-target",
       "true",
     );
-    await expect(page.locator('g[data-slug="italy"]')).toHaveAttribute(
+    await expect(desktopScatter(page).locator('g[data-slug="italy"]')).toHaveAttribute(
       "data-target",
       "true",
     );

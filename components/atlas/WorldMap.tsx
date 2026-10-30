@@ -178,7 +178,7 @@ export function WorldMap({
   }
 
   return (
-    <section id="map" aria-label="Map" className="reveal">
+    <section aria-label="Map" className="reveal">
       <div className="panel-elevated rounded-2xl p-5">
         <h2 className="text-lead font-medium">
           {LABEL[state.measure].name}

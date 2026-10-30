@@ -22,9 +22,9 @@ test("shares on an axis clips Türkiye to the edge and says so", async ({
   await expect(tr).toHaveAttribute("data-clipped", "y");
   await page.getByLabel("Across").selectOption("prices");
   await expect(tr).toHaveAttribute("data-clipped", "x y");
-  await expect(tr.locator("text")).toContainText("+1,223% \u00b7 +1,725%");
+  await expect(tr.locator("text").first()).toContainText("+1,223% \u00b7 +1,725%");
   await page.getByLabel("Across").selectOption("everydaySpendingEur");
-  await expect(tr.locator("text")).toContainText("1,725%");
+  await expect(tr.locator("text").first()).toContainText("1,725%");
   await expect(page.getByText("Off the axis:")).toBeVisible();
 });
 
@@ -32,6 +32,7 @@ test("y = x is drawn for prices against shares and nowhere else", async ({
   page,
 }) => {
   await gotoAtlas(page);
+  await openBuild(page);
   await expect(desktopScatter(page).getByText("kept pace with prices")).toHaveCount(0);
   await page.getByLabel("Across").selectOption("prices");
   await page.getByLabel("Up").selectOption("shares");
@@ -44,18 +45,18 @@ test("a row address rings that row's dot, and a hash change moves the ring", asy
   page,
 }) => {
   await page.goto("/atlas?view=compare#japan");
-  await expect(page.locator('g[data-slug="japan"]')).toHaveAttribute(
+  await expect(desktopScatter(page).locator('g[data-slug="japan"]')).toHaveAttribute(
     "data-target",
     "true",
   );
   await page.evaluate(() => {
     window.location.hash = "#italy";
   });
-  await expect(page.locator('g[data-slug="italy"]')).toHaveAttribute(
+  await expect(desktopScatter(page).locator('g[data-slug="italy"]')).toHaveAttribute(
     "data-target",
     "true",
   );
-  await expect(page.locator("g[data-target]")).toHaveCount(1);
+  await expect(desktopScatter(page).locator("g[data-target]")).toHaveCount(1);
 });
 
 test("a gap on the chosen pair is left off and counted", async ({ page }) => {
@@ -79,7 +80,7 @@ test("the busiest state has no WCAG 2.1 AA violations: clipped point, y = x line
     .locator("#compare")
     .getByRole("radio", { name: "2016\u201324" })
     .click();
-  await expect(page.locator("g[data-target]")).toHaveCount(1);
+  await expect(desktopScatter(page).locator("g[data-target]")).toHaveCount(1);
   const results = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa"])
     .analyze();

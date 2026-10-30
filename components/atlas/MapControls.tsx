@@ -103,7 +103,7 @@ export function MapControls({
             >
               <input
                 type="range"
-                className="year-range absolute inset-x-0 top-0 z-[2]"
+                className="year-range absolute inset-x-0 top-0 z-2"
                 min={bounds.first}
                 max={bounds.last}
                 step={1}
@@ -117,7 +117,7 @@ export function MapControls({
                   key={y}
                   aria-hidden="true"
                   className={cn(
-                    "absolute top-[15px] h-[5px] w-px",
+                    "absolute top-3.75 h-1.25 w-px",
                     y <= state.year ? "bg-brand/60" : "bg-hairline",
                   )}
                   style={{ left: calc(at(y)) }}
@@ -135,7 +135,7 @@ export function MapControls({
               ))}
             </div>
             <span
-              className="min-w-[3.5rem] text-center font-mono text-body font-semibold tabular-nums text-text"
+              className="min-w-14 text-center font-mono text-body font-semibold tabular-nums text-text"
               aria-hidden="true"
             >
               {state.year}
@@ -143,19 +143,19 @@ export function MapControls({
           </div>
 
           <div className="flex basis-full items-center gap-4 md:hidden">
-            <div className="flex h-[42px] items-stretch overflow-hidden rounded-lg border border-hairline">
+            <div className="flex h-10.5 items-stretch overflow-hidden rounded-lg border border-hairline">
               <button
                 type="button"
                 aria-label="Previous year"
                 disabled={state.year <= bounds.first}
                 onClick={() => onYear(state.year - 1)}
-                className="w-[46px] bg-panel-2 text-xl text-read focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand disabled:opacity-40"
+                className="w-11.5 bg-panel-2 text-xl text-read focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand disabled:opacity-40"
               >
                 {"‹"}
               </button>
               <span
                 aria-live="polite"
-                className="flex min-w-[76px] items-center justify-center border-x border-hairline bg-panel px-3.5 font-mono text-body font-semibold tabular-nums text-text"
+                className="flex min-w-19 items-center justify-center border-x border-hairline bg-panel px-3.5 font-mono text-body font-semibold tabular-nums text-text"
               >
                 {state.year}
               </span>
@@ -164,7 +164,7 @@ export function MapControls({
                 aria-label="Next year"
                 disabled={state.year >= bounds.last}
                 onClick={() => onYear(state.year + 1)}
-                className="w-[46px] bg-panel-2 text-xl text-read focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand disabled:opacity-40"
+                className="w-11.5 bg-panel-2 text-xl text-read focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand disabled:opacity-40"
               >
                 {"›"}
               </button>

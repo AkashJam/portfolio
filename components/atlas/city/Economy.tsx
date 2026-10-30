@@ -39,7 +39,7 @@ export function Economy({ city }: { city: CityResponse }) {
           <div key={r.key} data-testid={`macro-${r.key}`} className="rounded-xl border border-hairline bg-panel px-4 py-3.5">
             <dt className="text-meta text-text-muted">{r.label}</dt>
             <dd className="mt-2.5 font-mono text-[22px] font-medium leading-tight tabular-nums text-text">{r.s.value === null ? "—" : r.text}</dd>
-            <dd className="mt-1.5 font-mono text-meta text-text-faint">{r.s.value === null ? `${r.s.reason ?? "unpublished"} · ${r.s.asOf}` : r.s.asOf}</dd>
+            <dd className="mt-1.5 font-mono text-meta text-text-muted">{r.s.value === null ? `${r.s.reason ?? "unpublished"} · ${r.s.asOf}` : r.s.asOf}</dd>
           </div>
         ))}
       </dl>

@@ -16,7 +16,7 @@ test("opens on the first question with Milan against New York", async ({ page })
     "aria-selected",
     "true",
   );
-  await expect(page.locator("[role=tab][aria-selected=true]")).toHaveCount(1);
+  await expect(page.getByRole("tablist", { name: "Questions" }).locator("[role=tab][aria-selected=true]")).toHaveCount(1);
   await expect(page.getByRole("heading", { level: 2, name: "Where people spend more, have house prices risen more?" })).toBeVisible();
   await expect(reading(page)).toContainText("Milan against New York");
   await expect(reading(page)).toContainText("New York spends more than Milan");
@@ -81,7 +81,7 @@ test("touching an axis dropdown clears the question, the highlight and shows the
   await openBuild(page);
   await expect(page.locator("svg[data-drawing=desktop] g[data-picked]")).toHaveCount(2);
   await page.getByLabel("Across").selectOption("gniPpp");
-  await expect(page.locator("[role=tab][aria-selected=true]")).toHaveCount(0);
+  await expect(page.getByRole("tablist", { name: "Questions" }).locator("[role=tab][aria-selected=true]")).toHaveCount(0);
   await expect(page.locator("g[data-picked]")).toHaveCount(0);
   await expect(page).toHaveURL(/\?x=gniPpp&y=housing$/);
   await expect(reading(page)).toContainText("is highest on income");
@@ -149,7 +149,7 @@ test.describe("at 390px", () => {
   test("the questions are a dropdown and the phone drawing shows with no sideways scroll", async ({ page }) => {
     await gotoAtlas(page);
     await expect(page.getByRole("tablist", { name: "Questions" })).toBeHidden();
-    const select = page.getByLabel("Question");
+    const select = page.locator("#atlas-question-select");
     await expect(select).toHaveValue("spend-housing");
     await select.selectOption("prices-shares");
     await expect(page.getByRole("heading", { level: 2, name: "Did stock markets grow faster than inflation?" })).toBeVisible();

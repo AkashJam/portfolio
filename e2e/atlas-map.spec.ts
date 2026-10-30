@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
-import { atlasHydrated as atlasReady, gotoAtlas, openBuild, openMapMenu } from "./atlas-hydrated";
+import { atlasHydrated as atlasReady, desktopScatter, gotoAtlas, openBuild, openMapMenu } from "./atlas-hydrated";
 
 // Phase 11 step 5: the map. World map at 768px and up, equal tiles below,
 // every country a link to its table row. Needs the ticker (real /atlas/cities).
@@ -20,7 +20,7 @@ test.describe("at 1024px", () => {
     await expect(links(page)).toHaveCount(23);
     await expect(map(page).locator("svg:visible")).toHaveCount(1);
     await expect(map(page).locator("svg:visible path")).not.toHaveCount(0);
-    await expect(map(page).locator("svg:visible rect")).toHaveCount(0);
+    await expect(map(page).locator("svg:visible rect[rx]")).toHaveCount(0);
   });
 
   test("every link names its figure, measure and window", async ({ page }) => {
@@ -48,7 +48,7 @@ test.describe("at 1024px", () => {
     await page.keyboard.press("Enter");
     await expect(page).toHaveURL(/#japan$/);
     await expect(page.locator("tr#japan")).toBeInViewport();
-    await expect(page.locator('g[data-slug="japan"]')).toHaveAttribute(
+    await expect(desktopScatter(page).locator('g[data-slug="japan"]')).toHaveAttribute(
       "data-target",
       "true",
     );
@@ -70,9 +70,7 @@ test.describe("at 1024px", () => {
     await expect(italy).toHaveAttribute("aria-label", /−7%.*2016–24/);
     expect(await fill()).not.toBe(before);
     await expect(
-      page
-        .getByText(/housing after inflation|house prices after inflation/)
-        .first(),
+      map(page).getByRole("heading", { level: 2, name: /^House prices, after inflation, 2016–24$/ }),
     ).toBeVisible();
   });
 
@@ -97,7 +95,7 @@ test.describe("at 390px", () => {
   }) => {
     await page.goto("/atlas?view=map");
     await expect(links(page)).toHaveCount(23);
-    await expect(map(page).locator("svg:visible rect")).toHaveCount(23);
+    await expect(map(page).locator("svg:visible rect[rx]")).toHaveCount(23);
     await expect(map(page).locator("svg:visible path")).toHaveCount(0);
   });
 
@@ -161,7 +159,7 @@ test.describe("controls at 1024px", () => {
   test("opens on housing, whole window, with no slider", async ({ page }) => {
     await page.goto("/atlas?view=map");
     await openMapMenu(page);
-    await expect(measureBtn(page, "Housing")).toHaveAttribute(
+    await expect(measureBtn(page, "House prices")).toHaveAttribute(
       "aria-checked",
       "true",
     );
@@ -201,7 +199,7 @@ test.describe("controls at 1024px", () => {
     await expect(
       page.getByRole("link", { name: /^Chile: .*derived via the dollar/ }),
     ).toBeAttached();
-    await measureBtn(page, "Prices").click();
+    await measureBtn(page, "Inflation").click();
     await expect(
       page.getByRole("link", { name: /^Japan: .*consumer prices/ }),
     ).toBeAttached();
@@ -243,7 +241,7 @@ test.describe("controls at 1024px", () => {
     await openMapMenu(page);
     await measureBtn(page, "Currency").click();
     await expect(page).toHaveURL(/\?view=map&measure=currency(#.*)?$/);
-    await measureBtn(page, "Housing").click();
+    await measureBtn(page, "House prices").click();
     await expect.poll(() => new URL(page.url()).search).toBe("?view=map");
     await periodBtn(page, /One year/).click();
     await expect(page).toHaveURL(/\?view=map&year=\d{4}/);
@@ -253,7 +251,7 @@ test.describe("controls at 1024px", () => {
 
   test("a deep link opens its state", async ({ page }) => {
     await page.goto("/atlas?measure=prices&year=2022#map");
-    await expect(measureBtn(page, "Prices")).toHaveAttribute(
+    await expect(measureBtn(page, "Inflation")).toHaveAttribute(
       "aria-checked",
       "true",
     );
@@ -281,11 +279,11 @@ test.describe("controls at 1024px", () => {
   test("switching to prices from 2010 moves to 2011", async ({ page }) => {
     await page.goto("/atlas?year=2010#map");
     await expect(slider(page)).toHaveValue("2010");
-    await measureBtn(page, "Prices").click();
+    await measureBtn(page, "Inflation").click();
     await expect(slider(page)).toHaveValue("2011");
     await expect(page).toHaveURL(/measure=prices/);
     await expect(page).toHaveURL(/year=2011/);
-    await measureBtn(page, "Housing").click();
+    await measureBtn(page, "House prices").click();
     await expect(slider(page)).toHaveValue("2011");
   });
 
@@ -410,9 +408,9 @@ test.describe("the map panel (phase18.md I58)", () => {
     await gotoAtlas(page, "map");
     await expect(map(page).getByRole("heading", { level: 2, name: "House prices, after inflation, 2010–24" })).toBeVisible();
     await expect(page.locator("#map details")).toHaveJSProperty("open", false);
-    await expect(measureBtn(page, "Housing")).toBeHidden();
+    await expect(measureBtn(page, "House prices")).toBeHidden();
     await openMapMenu(page);
-    await expect(measureBtn(page, "Housing")).toBeVisible();
+    await expect(measureBtn(page, "House prices")).toBeVisible();
     await periodBtn(page, /One year/).click();
     await expect(map(page).getByRole("heading", { level: 2, name: /during \d{4}$/ })).toBeVisible();
   });

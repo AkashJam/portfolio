@@ -35,7 +35,7 @@ test.describe("at 1440px, with a mouse", () => {
     await expect(chip).toHaveAttribute("aria-selected", "true");
 
     await page.getByRole("tab", { name: "Countries" }).click();
-    const sort = page.getByRole("button", { name: /^Stock market/ }).first();
+    const sort = page.getByRole("button", { name: /^House prices/ }).first();
     await sort.scrollIntoViewIfNeeded();
     const s = (await sort.boundingBox())!;
     await page.mouse.click(s.x + s.width / 2, s.y + s.height / 2);
@@ -61,17 +61,17 @@ test.describe("at 390px, with touch", () => {
     await gotoAtlas(page);
 
     // On a phone the questions are a dropdown.
-    const question = page.getByLabel("Question");
+    const question = page.locator("#atlas-question-select");
     await question.selectOption("shares-housing");
     await expect(question).toHaveValue("shares-housing");
 
     await page.getByRole("tab", { name: "Countries" }).tap();
-    const sort = page.getByRole("button", { name: /^Stock market/ }).first();
+    const sort = page.getByRole("button", { name: /^House prices/ }).first();
     await sort.scrollIntoViewIfNeeded();
     await sort.tap();
     await expect(page.locator("th[aria-sort=descending]")).toHaveCount(1);
 
-    const info = page.getByRole("button", { name: "About the stock market column" });
+    const info = page.getByRole("button", { name: "About the house prices column" });
     await info.tap();
     await expect(page.getByRole("dialog")).toBeVisible();
 

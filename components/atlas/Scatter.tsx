@@ -70,7 +70,7 @@ function ScatterSvg({
   return (
     <svg
       viewBox={`0 0 ${g.width} ${g.height}`}
-      role="img"
+      role="group"
       aria-label={label}
       data-drawing={isPhone ? "phone" : "desktop"}
       className={cn("atlas-scatter block h-auto w-full", className)}

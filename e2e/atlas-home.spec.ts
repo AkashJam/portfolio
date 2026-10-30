@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
-import { gotoAtlas, openMoreColumns } from "./atlas-hydrated";
+import { desktopScatter, gotoAtlas, openMoreColumns } from "./atlas-hydrated";
 
 // Phase 16 step 6: the home city. One control, four effects: the crosshairs, the pinned
 // row, the comparison line under every other cited figure, and the display currency.
@@ -151,9 +151,9 @@ test.describe("at 1440px", () => {
   });
 
   test("with a home set the page has no WCAG 2.1 AA violations", async ({ page }) => {
-    await gotoAtlas(page, "countries");
+    await gotoAtlas(page);
     await pick(page, "japan");
-    await expect(page.getByTestId("home-crosshairs").first()).toBeVisible();
+    await expect(desktopScatter(page).getByTestId("home-crosshairs").first()).toBeVisible();
     await axe(page);
   });
 });

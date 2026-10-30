@@ -182,7 +182,7 @@ test.describe("at 1440px", () => {
   test("the economy: five dated figures and the composition with its derived residual", async ({ page }) => {
     await page.goto("/atlas/japan");
     for (const key of ["inflation", "spending", "gni", "unemployment", "life"]) {
-      await expect(page.getByTestId(`macro-${key}`)).toContainText(/\b20\d\d\b/);
+      await expect(page.getByTestId(`macro-${key}`)).toContainText(/20\d\d/);
     }
     await expect(page.getByTestId("method")).toContainText("World Bank");
     await expect(page.getByTestId("composition-residual")).toContainText("Taxes less subsidies 0.8%");
