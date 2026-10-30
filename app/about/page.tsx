@@ -31,12 +31,22 @@ function TimelineWhen({
   start,
   end,
   location,
-}: Pick<ExperienceEntry | EducationEntry, "start" | "end" | "location">) {
+  stacked,
+}: Pick<ExperienceEntry | EducationEntry, "start" | "end" | "location"> & {
+  /** Break between the years from `lg`, where the long month names do not fit the 190px column on one line; phones always read on one line. */
+  stacked?: boolean;
+}) {
   return (
     <>
       {start}
-      <br />— {end ?? "Present"}
-      {location && <div className="mt-2 text-meta text-text-muted">{location}</div>}
+      {stacked ? <br className="max-lg:hidden" /> : null}
+      {" "}— {end ?? "Present"}
+      {location && (
+        <div className="inline text-meta text-text-muted lg:mt-2 lg:block">
+          <span className="lg:hidden"> · </span>
+          {location}
+        </div>
+      )}
     </>
   );
 }
@@ -73,8 +83,9 @@ export default function AboutPage() {
 
         <h2 className="mt-[72px] text-meta tracking-[0.2em] text-text-muted uppercase">Experience</h2>
         <Timeline
+          mobileRail={false}
           items={experience.map((entry) => ({
-            when: <TimelineWhen {...entry} />,
+            when: <TimelineWhen {...entry} stacked />,
             current: !entry.end,
             content: (
               <div key={entry.company} className="reveal">
@@ -86,6 +97,7 @@ export default function AboutPage() {
 
         <h2 className="mt-[72px] text-meta tracking-[0.2em] text-text-muted uppercase">Education</h2>
         <Timeline
+          mobileRail={false}
           items={education.map((entry) => ({
             when: <TimelineWhen {...entry} />,
             current: !entry.end,

@@ -40,7 +40,8 @@ export function ChangeBlock({
       <p data-testid="change-reading" className="mt-1.5 max-w-measure text-small text-read">
         {changeReading(block, city, country, kindLabel, average)}
       </p>
-      <div className="overflow-x-auto">
+      {/* The drawing keeps its size below the measure and scrolls sideways, so the region is focusable for a keyboard (axe: scrollable-region-focusable). */}
+      <div role="region" aria-label={`${kindLabel} since ${block.baseYear}, chart`} tabIndex={0} className="overflow-x-auto focus-visible:outline-2 focus-visible:outline-brand-hover">
         <svg viewBox={`0 0 ${CHG_W} ${CHG_H}`} role="img" aria-label={g.alt} className="mt-3 block h-auto w-full min-w-[520px]">
           {g.yTicks.map((t) => (
             <g key={t.label}>

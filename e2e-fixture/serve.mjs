@@ -50,7 +50,9 @@ if (!existsSync(join(root, ".next/standalone/server.js"))) {
 cpSync(join(root, "public"), join(root, ".next/standalone/public"), { recursive: true });
 cpSync(join(root, ".next/static"), join(root, ".next/standalone/.next/static"), { recursive: true });
 
-for (const [mode, [site, ticker]] of Object.entries(SITES)) {
+// Playwright starts the specs when the tripped site answers (playwright.fixture.config.ts), so
+// the quiet site is started first and waited for: the tripped one is up only once both are.
+for (const [mode, [site, ticker]] of Object.entries(SITES).reverse()) {
   // server.js changes into its own directory, so the copy's .next/server and .next/cache
   // are this site's alone.
   const dir = join(root, `.next/standalone-${mode}`);
@@ -72,6 +74,10 @@ for (const [mode, [site, ticker]] of Object.entries(SITES)) {
       env: { ...process.env, PORT: String(site), HOSTNAME: "127.0.0.1", TICKER_API_URL: `http://127.0.0.1:${ticker}` },
     }),
   );
+  for (let i = 0; i < 240; i++) {
+    if (await fetch(`http://127.0.0.1:${site}/`).then(() => true, () => false)) break;
+    await new Promise((r) => setTimeout(r, 500));
+  }
 }
 
 const stop = () => {
