@@ -128,8 +128,8 @@ describe("ticker API contract", () => {
     expect(tokyo?.survey.kind).toBe("benefit_or_reference_budget");
     expect(tokyo?.survey.kindLabel).toBeTruthy();
     expect(tokyo?.survey.kindGloss).toBeTruthy();
-    // Step 2: a city with one edition has no change block, and Italy's runs 2014 to 2025.
-    expect(tokyo?.survey.change).toBeNull();
+    // Step 2: Tokyo's change block runs from the October 2023 revision, and Italy's from 2014.
+    expect(tokyo?.survey.change?.baseYear).toBe(2023);
     const milan = await getAtlasCity("italy");
     expect(milan?.survey.change?.baseYear).toBe(2014);
     expect(milan?.survey.change?.survey[0].index).toBe(100);
@@ -140,6 +140,8 @@ describe("ticker API contract", () => {
     expect(dijon?.city).toBe("Dijon");
     expect(dijon?.cost.carried.value).toBeGreaterThan(1571);
     expect(dijon?.cost.eur.reason).toBe("euro");
+    // One edition on file (2014): no change block.
+    expect(dijon?.survey.change).toBeNull();
     expect((await getAtlasCity("korea"))?.verified).toBe(false);
     expect(await getAtlasCity("singapore")).toBeNull();
     expect(await getAtlasCity("chile")).toBeNull();

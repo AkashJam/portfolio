@@ -88,7 +88,13 @@ export default async function CityPage({ params }: PageProps<"/atlas/[city]">) {
 
       <CostChain city={city}>
         <BasketBar city={city} />
-        <ChangeBlock block={city.survey.change} city={city.city} country={city.country} kindLabel={kind} />
+        <ChangeBlock
+          block={city.survey.change}
+          city={city.survey.area || city.city}
+          country={city.country}
+          kindLabel={kind}
+          average={city.survey.kind === "average_spending"}
+        />
       </CostChain>
 
       <section aria-labelledby="charts" className="reveal space-y-10">

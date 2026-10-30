@@ -15,12 +15,16 @@ export function ChangeBlock({
   city,
   country,
   kindLabel,
+  average = false,
 }: {
   block: Block | null;
+  /** The place the figure is for: the survey's area where it has one, else the city. */
   city: string;
   country: string;
   /** The kind, short and capitalised: "Poverty line". */
   kindLabel: string;
+  /** The survey is itself average spending, so the spending line is named as the national figure. */
+  average?: boolean;
 }) {
   if (!block) {
     return (
@@ -29,12 +33,12 @@ export function ChangeBlock({
       </p>
     );
   }
-  const g = changeGeometry(block, kindLabel, city, country);
+  const g = changeGeometry(block, kindLabel, city, country, average);
   return (
     <div data-testid="change-block" className="mt-7 rounded-[14px] border border-hairline bg-panel px-4 pb-3 pt-5 sm:px-5">
       <h3 className="text-body font-medium text-text">How it has changed since {block.baseYear}</h3>
       <p data-testid="change-reading" className="mt-1.5 max-w-measure text-small text-read">
-        {changeReading(block, city, country, kindLabel)}
+        {changeReading(block, city, country, kindLabel, average)}
       </p>
       <div className="overflow-x-auto">
         <svg viewBox={`0 0 ${CHG_W} ${CHG_H}`} role="img" aria-label={g.alt} className="mt-3 block h-auto w-full min-w-[520px]">
@@ -73,7 +77,10 @@ export function ChangeBlock({
           ))}
         </svg>
       </div>
-      <p className={`${MUTED} mt-2 max-w-measure`}>Each line is 100 in {block.baseYear}. {block.note}</p>
+      <p className={`${MUTED} mt-2 max-w-measure`}>
+        Each line is 100 in {block.baseYear}. {block.note}
+        {average && ` The line marked National is household spending per person across ${country}, not ${city}'s.`}
+      </p>
     </div>
   );
 }

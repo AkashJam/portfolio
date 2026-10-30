@@ -91,4 +91,18 @@ describe("changeReading", () => {
       "X's living wage fell 3% from 2014 to 2025, slower than prices, while what a person in Y spends on average fell 4%.",
     );
   });
+
+  it("says unchanged for a flat line, and gives the United Kingdom its article", () => {
+    expect(changeReading(block(0.2, 2.7, 2.4), "Tokyo", "Japan", "Benefit standard")).toBe(
+      "Tokyo's benefit standard was unchanged from 2014 to 2025, slower than prices, while what a person in Japan spends on average rose 2%.",
+    );
+    expect(changeReading(block(4.2, 3.9, 4.3), "London", "United Kingdom", "Minimum income")).toContain("a person in the United Kingdom spends");
+  });
+
+  it("names the other line as national household spending where the survey is itself average spending", () => {
+    expect(changeReading(block(48.8, 15.3, 97.4), "Shanghai", "China", "Average spending", true)).toBe(
+      "Shanghai's average spending rose 49% from 2014 to 2025, faster than prices, while national household spending per person rose 97%.",
+    );
+    expect(changeReading(block(10.6, 5, 8.8), "Urban Maharashtra", "India", "Average spending", true)).toContain("Urban Maharashtra's average spending rose 11%");
+  });
 });

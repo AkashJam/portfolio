@@ -22,6 +22,13 @@ const milan: ChangeBlock = {
 describe("changeGeometry", () => {
   const g = changeGeometry(milan, "Poverty line", "Milan", "Italy");
 
+  it("names the spending line as the national figure where the survey is itself average spending", () => {
+    const a = changeGeometry(milan, "Average spending", "Shanghai", "China", true);
+    expect(a.ends.find((e) => e.key === "spending")?.name).toBe("National");
+    expect(a.alt).toContain("China's prices and national household spending per person");
+    expect(g.ends.find((e) => e.key === "spending")?.name).toBe("Spending");
+  });
+
   it("draws three lines with a point a year, all from the same left edge", () => {
     for (const k of ["survey", "prices", "spending"] as const) {
       const p = g.lines[k].split(" ");

@@ -440,6 +440,8 @@ export const cityResponseSchema = z.object({
     kind: z.string(),
     kindLabel: z.string(),
     kindGloss: z.string(),
+    /** Where the figures are for something other than the city itself ("Urban Maharashtra"); "" otherwise. */
+    area: z.string().default(""),
     instrument: z.string(),
     publisher: z.string(),
     headline: z.object({

@@ -46,7 +46,7 @@ const signed = (v: number): string => {
   return n < 0 ? `${MINUS}${Math.abs(n)}%` : `+${n}%`;
 };
 
-export function changeGeometry(b: ChangeBlock, surveyName: string, city: string, country: string): ChangeGeometry {
+export function changeGeometry(b: ChangeBlock, surveyName: string, city: string, country: string, average = false): ChangeGeometry {
   const all = [...b.survey, ...b.prices, ...b.spending].map((p) => p.index);
   const lo = Math.min(...all, 100);
   const hi = Math.max(...all, 100);
@@ -77,15 +77,16 @@ export function changeGeometry(b: ChangeBlock, surveyName: string, city: string,
   const ends: ChangeGeometry["ends"] = [
     { key: "survey" as const, name: surveyName, v: last(b.survey), rise: b.rises.survey },
     { key: "prices" as const, name: "Prices", v: last(b.prices), rise: b.rises.prices },
-    { key: "spending" as const, name: "Spending", v: last(b.spending), rise: b.rises.spending },
+    { key: "spending" as const, name: average ? "National" : "Spending", v: last(b.spending), rise: b.rises.spending },
   ]
     .map((e) => ({ key: e.key, name: e.name, x: RIGHT, y: y(e.v), labelY: y(e.v), rise: signed(e.rise) }))
     .sort((a, c) => a.y - c.y);
   // Keep the labels apart: each sits below the one above if they would touch.
   for (let i = 1; i < ends.length; i++) ends[i].labelY = Math.max(ends[i].labelY, ends[i - 1].labelY + LABEL_GAP);
 
+  const spent = average ? "national household spending per person" : "average spending per person";
   const alt =
-    `${city}'s ${surveyName.toLowerCase()}, ${country}'s prices and average spending per person, each 100 in ${b.baseYear}, to ${b.endYear}: ` +
+    `${city}'s ${surveyName.toLowerCase()}, ${country}'s prices and ${spent}, each 100 in ${b.baseYear}, to ${b.endYear}: ` +
     `the ${surveyName.toLowerCase()} ends at ${Math.round(last(b.survey))}, prices at ${Math.round(last(b.prices))}, spending at ${Math.round(last(b.spending))}`;
 
   return { lines: { survey: path(b.survey), prices: path(b.prices), spending: path(b.spending) }, yTicks, xTicks, ends, alt };

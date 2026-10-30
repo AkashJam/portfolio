@@ -1,3 +1,4 @@
+import { moved, nm } from "@/lib/atlas-readings";
 import { seriesDate } from "@/lib/city-path";
 import type { ChangeBlock, LongSeries } from "@/lib/market-schemas";
 
@@ -127,15 +128,19 @@ export function housingReading(s: LongSeries, asOf: string, behind: number): str
   return `${first}, and ${peak}.${lag}`;
 }
 
-/** The change block: "Milan's poverty line rose 23% from 2014 to 2025, in step with prices, while what a person in Italy spends on average rose 34%." */
-export function changeReading(b: ChangeBlock, city: string, country: string, kindLabel: string): string {
-  const s = Math.round(b.rises.survey);
-  const c = Math.round(b.rises.spending);
+/**
+ * The change block. `city` is the place the figure is for (the survey's `area` where it has one, else the city).
+ * "Milan's poverty line rose 23% from 2014 to 2025, in step with prices, while what a person in Italy spends on average rose 34%." */
+export function changeReading(b: ChangeBlock, city: string, country: string, kindLabel: string, average = false): string {
   const gap = b.rises.survey - b.rises.prices;
   const rel = Math.abs(gap) <= IN_STEP ? "in step with prices" : gap > 0 ? "faster than prices" : "slower than prices";
-  const verb = (n: number) => (n < 0 ? "fell" : "rose");
+  // "rose 23%", "fell 3%", or "was unchanged" for a figure that rounds to nothing.
+  const change = (n: number) => (Math.round(n) === 0 ? moved(n) : `${moved(n)} ${Math.abs(Math.round(n))}%`);
+  // Where the survey is itself average spending (Shanghai, urban Maharashtra), the other line is the country's
+  // household spending from the national accounts, a wider group, so it is named as that and not as the same thing.
+  const other = average ? "national household spending per person" : `what a person in ${nm({ country })} spends on average`;
   return (
-    `${city}'s ${kindLabel.toLowerCase()} ${verb(s)} ${Math.abs(s)}% from ${b.baseYear} to ${b.endYear}, ${rel}, ` +
-    `while what a person in ${country} spends on average ${verb(c)} ${Math.abs(c)}%.`
+    `${city}'s ${kindLabel.toLowerCase()} ${change(b.rises.survey)} from ${b.baseYear} to ${b.endYear}, ${rel}, ` +
+    `while ${other} ${change(b.rises.spending)}.`
   );
 }
